@@ -16,3 +16,4 @@ trigger: always_on
    - `[STATUS: FAIL] {"log_file": "..."}`: Thất bại. Tuyệt đối không ném log trực tiếp vào chat, phải ghi log ra file văn bản và chỉ truyền đường dẫn.
    - `[STATUS: ESCALATE]`: Yêu cầu con người can thiệp khẩn cấp (thường do lặp QA quá 3 lần).
    - `[SPEC_CHANGED]`: Cảnh báo hệ thống có sự thay đổi về file đặc tả API (API Spec).
+4. **Dọn dẹp rác (Cleanup One-off Scripts):** Mọi agent (đặc biệt là QA và Backend) nếu có tạo ra các file script chạy 1 lần (dùng để test, debug, insert data tạm thời...) thì BẮT BUỘC phải xoá bỏ các file script đó ngay sau khi sử dụng xong để giữ Source Code luôn sạch sẽ.

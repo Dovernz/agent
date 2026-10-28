@@ -1,6 +1,7 @@
-# Tech Stack Knowledge Base (Quy chuẩn Web & Dev)
+# Tech Stack Knowledge Base - Minh Sinh Dental (`dental_project`)
 
-Mọi Agent BẮT BUỘC tuân thủ trước khi code để đồng bộ kiến trúc:
+Mọi Agent làm việc trên dự án Minh Sinh Dental BẮT BUỘC tuân thủ:
+- **Đường dẫn dự án:** `d:\Thành\WEB\Code\dental_project`
 - **Nguyên tắc cốt lõi:** Code siêu ngắn, DRY, Component-Driven (chia nhỏ UI).
 - **Docker-First (BẢO VỆ MÁY GỐC):** Mọi lệnh cài đặt (npm, pip) hoặc chạy script (linter, test, db check) BẮT BUỘC phải chạy BÊN TRONG container Docker (vd: `docker-compose exec` hoặc `docker run`). Tuyệt đối KHÔNG chạy lệnh trực tiếp làm rác môi trường máy tính gốc của User.
 - **Quản trị Dependency & .env:** Cài thêm thư viện BẮT BUỘC tự động cập nhật `package.json`/`requirements.txt` và ghi chú biến vào `.env.example`.

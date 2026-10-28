@@ -8,11 +8,15 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ```text
 .agents/
-├── common/                          # Giao thức & tài liệu dùng chung toàn hệ thống
+├── common/                          # Giao thức, MCP & tài liệu dùng chung toàn hệ thống
 │   ├── rules/
 │   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Inherit Model
-│   └── docs/
-│       └── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
+│   ├── docs/
+│   │   └── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
+│   ├── mcp/
+│   │   └── web-search-interactive/  # MCP Server Dual-Engine (Fast HTTP + Playwright Browser)
+│   └── skills/
+│       └── web-search-interactive/  # Kỹ năng tìm kiếm và tự động hóa trình duyệt toàn cục
 ├── rules/                           # Rules toàn cục tự động nhận diện
 │   └── m2m-protocol.md
 ├── projects/                        # Các nhóm Agent chuyên biệt theo từng dự án
@@ -28,6 +32,16 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │       ├── lead-frontend/       # dental-lead-frontend
 │   │       ├── lead-backend/        # dental-lead-backend
 │   │       └── lead-qa/             # dental-lead-qa
+│   ├── pc-builder/                  # Dự án Chuyên gia Tư vấn & Build PC
+│   │   ├── README.md
+│   │   ├── knowledge/
+│   │   │   ├── tech-stack.md        # Workload sizing (Data Science, Docker, AI, Gaming)
+│   │   │   ├── hardware-compatibility.md # Ma trận tương thích CPU/Mainboard/PSU
+│   │   │   └── vietnam-retailers.md # Danh bạ web & link build PC Việt Nam
+│   │   ├── rules/
+│   │   │   └── pc-rules.md          # Quy chuẩn phần cứng không nghẽn cổ chai
+│   │   └── skills/
+│   │       └── pc-builder/          # pc-builder skill (kèm script tính PSU & link build)
 │   └── _template/                   # Template mẫu chuẩn sẵn sàng nhân bản
 │       ├── README.md
 │       ├── knowledge/
@@ -66,6 +80,13 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
   - `dental-lead-frontend`: Dàn trang Mobile-First, tự sinh API client từ OpenAPI, linter trong Docker.
   - `dental-lead-backend`: Xây dựng API, cấu hình CORS/Security, DB Seeding dữ liệu giả, linter trong Docker.
   - `dental-lead-qa`: Chạy E2E test trong Docker, code review, tear-down dữ liệu rác, dọn script tạm.
+
+### 2. Dự án Tư Vấn & Build Cấu Hình PC (`pc-builder`)
+- **Đường dẫn dự án:** `projects/pc-builder`
+- **Bộ Skills & Công cụ:**
+  - `pc-builder`: Phân bổ ngân sách, kiểm tra tương thích phần cứng, tính công suất nguồn chuẩn và kết hợp tầng web realtime để so sánh giá linh kiện ở các shop lớn.
+  - `common/skills/web-search-interactive`: Kỹ năng toàn cục tìm kiếm web & duyệt trình duyệt tương tác.
+  - `common/mcp/web-search-interactive`: MCP Server Dual-Engine (Fast HTTP + Playwright/Chrome).
 
 ---
 

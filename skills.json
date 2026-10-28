@@ -1,7 +1,13 @@
 {
   "entries": [
     {
+      "path": "common/skills"
+    },
+    {
       "path": "projects/dental-project/skills"
+    },
+    {
+      "path": "projects/pc-builder/skills"
     }
   ]
 }

@@ -79,14 +79,16 @@ Trả về định dạng Bảng Ma trận Quyết định Chính sách (Policy 
 
 #### 3. Gọi `data-catalog-inspector`:
 ```text
-Vai trò: Kiểm tra và đối chiếu danh mục Master Data
+Vai trò: Kiểm tra và đối chiếu danh mục Master Data (Quy chuẩn Peek-and-Script)
 Tập tin giao: [surcharge.csv], [ssr.csv], [Ancillary Type.xlsx]
-Yêu cầu:
-1. Thống kê số lượng bản ghi, cấu trúc trường, phân loại nhóm dịch vụ.
-2. Xác định danh sách mã không phải Ancillary cần loại trừ (Thuế sân bay, an ninh, vé: AI, SG, SF, FA,...).
-3. So sánh chéo (Gap Analysis) giữa Surcharge và SSR:
-   - Đánh dấu bản ghi: 'In Both Tables', 'Surcharge Only', 'SSR Only', 'Data Gap'.
-4. Đề xuất 9 nhóm sản phẩm quy chuẩn (Standard Product Groups).
+Yêu cầu bắt buộc:
+1. TUYỆT ĐỐI CẤM đọc toàn bộ nội dung file vào context chat.
+2. Dùng peek_data_sample.ps1 để khảo sát Header và 3 dòng mẫu để nắm cấu trúc cột.
+3. Viết script PowerShell/Python để:
+   - Thống kê số lượng bản ghi, lọc bỏ các mã không hợp lệ / thuế phí ngoài phạm vi (AI, SG, SF, FA...).
+   - Thực hiện Gap Analysis (In Both Tables, Surcharge Only, SSR Only, Data Gap).
+   - Gom nhóm và phân loại theo 9 nhóm quy chuẩn.
+4. CHỈ gửi kết quả thống kê rút gọn (số lượng bản ghi mỗi nhóm, danh sách mã đại diện) về cho Orchestrator, KHÔNG in toàn bộ dữ liệu thô.
 ```
 
 ---

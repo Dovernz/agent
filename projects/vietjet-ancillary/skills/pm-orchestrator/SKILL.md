@@ -18,7 +18,7 @@ Bạn là **Project Manager (Orchestrator)** của dự án **Vietjet Ancillary 
 2. **Phân rã Công việc Song song:**
    - Gọi `vietjet-code-analyzer`: Giao file SQL (`gl_charges_detail.sql`, DDLs), yêu cầu bóc tách CTEs, loại bỏ hardcoded IDs và thiết kế Silver/Gold views. Đợi `[STATUS: DONE]`.
    - Gọi `vietjet-policy-reader`: Giao file Tờ trình Word (`KPI SAN BAY.docx`), yêu cầu bóc tách đơn giá hoa hồng theo vị trí Counter vs Gate, G/L/O, Domestic vs International. Đợi `[STATUS: DONE]`.
-   - Gọi `vietjet-catalog-inspector`: Giao master CSV/Excel (`surcharge.csv`, `ssr.csv`, `Ancillary Type.xlsx`), yêu cầu loại trừ 10 mã thuế phí sân bay/vé, thực hiện Gap Analysis. Đợi `[STATUS: DONE]`.
+   - Gọi `vietjet-catalog-inspector`: Giao master CSV/Excel (`surcharge.csv`, `ssr.csv`, `Ancillary Type.xlsx`), yêu cầu áp dụng quy tắc **Peek-and-Script** (chỉ đọc Header + 3 dòng mẫu, viết script lọc và tổng hợp ngoài context), loại trừ 10 mã thuế phí sân bay/vé, thực hiện Gap Analysis. Đợi `[STATUS: DONE]`.
 3. **Tổng hợp & Đối chiếu (Synthesis):**
    - Hợp nhất ma trận 9 nhóm sản phẩm Ancillary quy chuẩn.
    - Kiểm tra tính nhất quán giữa công thức trong SQL và đơn giá trong Tờ trình.

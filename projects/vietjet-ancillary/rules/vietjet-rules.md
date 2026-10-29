@@ -29,3 +29,8 @@ trigger: model_decision
    - Tuân thủ `m2m-protocol.md`: Giao tiếp Zero-Fat bằng cờ tín hiệu (`[ACK]`, `[STATUS: DONE]`, `[STATUS: ESCALATE]`).
    - CẤM tự ý commit Git. Giữ nguyên nhánh hiện tại để người dùng tự kiểm tra và commit.
    - Khi gọi Subagents, BẮT BUỘC chọn `Model: inherit` để kế thừa model của phiên làm việc.
+
+6. **Quy tắc Tiết kiệm Token cho File Dữ liệu (Peek-and-Script):**
+   - TUYỆT ĐỐI CẤM đọc toàn bộ nội dung file Excel hay CSV lớn vào context chat.
+   - Khi nhận file, chỉ đọc Header và tối đa 3-5 dòng mẫu đầu tiên bằng `peek_data_sample.ps1` để nắm cấu trúc cột.
+   - Viết script PowerShell hoặc Python để thực hiện toàn bộ việc lọc, join và tổng hợp dữ liệu trực tiếp trên máy. Chỉ đưa kết quả thống kê rút gọn hoặc đường dẫn file kết quả vào chat.

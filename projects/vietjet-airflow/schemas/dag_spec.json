@@ -1,0 +1,48 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AirflowDagSpec",
+  "description": "Ultra-compact specification for Airflow DAG generation, eliminating token overhead.",
+  "type": "object",
+  "required": ["dag_id", "schedule", "tasks"],
+  "properties": {
+    "dag_id": {"type": "string"},
+    "description": {"type": "string"},
+    "schedule": {"type": "string", "description": "Cron expression or preset e.g. 0 1 * * *"},
+    "start_date": {"type": "string", "description": "YYYY-MM-DD"},
+    "catchup": {"type": "boolean", "default": false},
+    "tags": {"type": "array", "items": {"type": "string"}},
+    "owner": {"type": "string", "default": "airflow"},
+    "timezone": {"type": "string", "default": "Asia/Ho_Chi_Minh"},
+    "params": {
+      "type": "object",
+      "description": "Key-value pair of Airflow DAG params (e.g. date_from, date_to)"
+    },
+    "connections": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["conn_id", "conn_type"],
+        "properties": {
+          "conn_id": {"type": "string"},
+          "conn_type": {"type": "string", "enum": ["postgres", "sftp", "oracle", "mysql", "s3", "http", "mssql"]}
+        }
+      }
+    },
+    "tasks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["task_id", "type"],
+        "properties": {
+          "task_id": {"type": "string"},
+          "type": {"type": "string", "enum": ["taskflow", "postgres_to_sftp", "bash", "sql_sensor", "python"]},
+          "upstream": {"type": "array", "items": {"type": "string"}},
+          "source_conn": {"type": "string"},
+          "target_conn": {"type": "string"},
+          "query_or_func": {"type": "string"},
+          "config": {"type": "object"}
+        }
+      }
+    }
+  }
+}

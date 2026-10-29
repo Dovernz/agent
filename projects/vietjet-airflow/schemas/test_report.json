@@ -1,0 +1,26 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "AirflowTestReport",
+  "description": "Compact machine-readable test verdict emitted by DagValidator to DagCoder.",
+  "type": "object",
+  "required": ["status", "dag_id"],
+  "properties": {
+    "status": {"type": "string", "enum": ["PASS", "FAIL"]},
+    "dag_id": {"type": "string"},
+    "stage": {"type": "string", "enum": ["ast_syntax", "cycle_check", "vietjet_standards", "dagbag_load", "none"]},
+    "task_count": {"type": "integer"},
+    "tasks": {"type": "array", "items": {"type": "string"}},
+    "errors": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "line": {"type": "integer"},
+          "type": {"type": "string"},
+          "message": {"type": "string"}
+        }
+      }
+    },
+    "warnings": {"type": "array", "items": {"type": "string"}}
+  }
+}

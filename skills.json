@@ -8,6 +8,12 @@
     },
     {
       "path": "projects/pc-builder/skills"
+    },
+    {
+      "path": "projects/vietjet-airflow/skills"
+    },
+    {
+      "path": "projects/vietjet-ancillary/skills"
     }
   ]
 }

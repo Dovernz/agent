@@ -44,7 +44,19 @@ Sử dụng công cụ `web_search` của Global MCP với cú pháp:
 Khi cần xem thông số kỹ thuật chi tiết hoặc chương trình khuyến mãi của một đại lý cụ thể:
 * Sử dụng `fetch_web_page(url="https://www.anphatpc.com.vn/...")` để lấy giá bán niêm yết mới nhất và kiểm tra tình trạng còn hàng.
 
-### Bước 4: Tạo Link Cấu Hình & Báo Cáo
+### Bước 4: Tự Động Build Thử Cấu Hình Trên Web Bán Lẻ (Live Auto-Builder)
+Khi người dùng yêu cầu vào trực tiếp các trang như HACOM hay Phong Vũ để build thử:
+1. Chạy công cụ tự động hóa trình duyệt:
+   ```bash
+   uv run --with playwright python ./scripts/auto_builder_hacom.py --cpu "i5 13500" --ram "32GB 3200" --ssd "Kingston 1TB" --vga "GTX 1650" --psu "550W"
+   ```
+2. Script sẽ:
+   - Tự động mở Google Chrome thật kết nối tới `https://hacom.vn/buildpc`.
+   - Lần lượt bấm nút `Chọn` từng hạng mục, tìm kiếm mã linh kiện và bấm `Thêm` vào cấu hình.
+   - Chụp ảnh màn hình lưu lại bảng cấu hình hoàn chỉnh với tổng chi phí thực tế.
+3. Nếu người dùng muốn tận mắt nhìn thấy trình duyệt thao tác hoặc cần hỗ trợ thao tác thêm, truyền cờ `--headed`.
+
+### Bước 5: Tạo Link Cấu Hình & Báo Cáo
 1. Sử dụng helper script để sinh nhanh link trang Xây dựng cấu hình PC:
    - `python ./scripts/pc_builder_links.py i5 13500 gtx 1650 32gb`
-2. Xuất bảng Báo giá Linh kiện (BOM) hoàn chỉnh gửi người dùng với các đường link trực tiếp.
+2. Xuất bảng Báo giá Linh kiện (BOM) hoàn chỉnh gửi người dùng kèm ảnh chụp cấu hình thực tế.

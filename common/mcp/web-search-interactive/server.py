@@ -1,15 +1,17 @@
 #!/usr/bin/env python3
 """
 Dual-Engine Web Search & Interactive Browser MCP Server for Antigravity
-Provides both:
+Provides:
 1. Fast-Path (HTTP): Lightweight real-time search, HTML parsing, text/price extraction.
 2. Interactive-Path (Playwright/Chrome): Live browser automation, DOM form inspection, input filling, clicking, and screenshots.
+3. Secure Account & Credential Engine: Automatically resolves domain credentials from .env and handles automated logins.
 """
 
 import sys
 import os
 import json
 import re
+import time
 import urllib.request
 import urllib.parse
 from html.parser import HTMLParser
@@ -27,9 +29,84 @@ if sys.stdin.encoding.lower() != 'utf-8':
         pass
 
 SERVER_NAME = "web-search-interactive-mcp"
-SERVER_VERSION = "2.0.0"
+SERVER_VERSION = "2.1.0"
 
 USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36"
+
+# ==================== CREDENTIAL & .ENV RESOLUTION ====================
+
+def load_env_credentials():
+    env_vars = dict(os.environ)
+    search_dirs = [os.getcwd(), os.path.dirname(os.getcwd())]
+    for d in [r"D:\Thành\WEB\.agents", r"D:\Thành\New"]:
+        if os.path.exists(d):
+            search_dirs.append(d)
+            
+    for directory in search_dirs:
+        env_path = os.path.join(directory, ".env")
+        if os.path.exists(env_path):
+            try:
+                with open(env_path, "r", encoding="utf-8") as f:
+                    for line in f:
+                        line = line.strip()
+                        if line and not line.startswith("#") and "=" in line:
+                            k, v = line.split("=", 1)
+                            env_vars[k.strip()] = v.strip().strip('"').strip("'")
+            except Exception:
+                pass
+    return env_vars
+
+def get_credentials_for_url(url: str):
+    parsed = urllib.parse.urlparse(url)
+    hostname = (parsed.hostname or "").lower()
+    if hostname.startswith("www."):
+        hostname = hostname[4:]
+    domain_slug = re.sub(r'[^a-zA-Z0-9]', '_', hostname.split('.')[0]).upper()
+    full_slug = re.sub(r'[^a-zA-Z0-9]', '_', hostname).upper()
+    
+    envs = load_env_credentials()
+    candidate_keys = [domain_slug, full_slug, "DOMAIN_" + domain_slug, "DOMAIN_" + full_slug]
+    
+    username = None
+    password = None
+    matched_prefix = None
+    for prefix in candidate_keys:
+        u_key = f"{prefix}_USERNAME"
+        p_key = f"{prefix}_PASSWORD"
+        if u_key in envs and p_key in envs:
+            username = envs[u_key]
+            password = envs[p_key]
+            matched_prefix = prefix
+            break
+            
+    return {
+        "domain": hostname,
+        "found": username is not None and password is not None,
+        "username": username,
+        "password": password,
+        "prefix": matched_prefix
+    }
+
+def list_configured_accounts():
+    envs = load_env_credentials()
+    accounts = []
+    for k, v in envs.items():
+        if k.endswith("_USERNAME"):
+            prefix = k[:-9]
+            p_key = f"{prefix}_PASSWORD"
+            if p_key in envs:
+                masked_user = v[:3] + "***" + (v[-2:] if len(v) > 5 else "")
+                accounts.append({
+                    "service": prefix.lower().replace("_", "."),
+                    "configured_username": masked_user,
+                    "env_prefix": prefix
+                })
+    return {
+        "status": "SUCCESS",
+        "total_configured": len(accounts),
+        "accounts": accounts,
+        "security_note": "Mật khẩu được lưu trữ an toàn trong .env và KHÔNG BAO GIỜ hiển thị trực tiếp trong chat log."
+    }
 
 # ==================== ENGINE 1: FAST-PATH (HTTP / SCRAPING) ====================
 
@@ -195,12 +272,11 @@ def get_playwright_installed():
 def init_browser_page(headless: bool = True):
     global _browser_session
     if not get_playwright_installed():
-        return False, "Playwright chưa được cài đặt. Để kích hoạt tính năng tương tác trình duyệt thực tế, vui lòng cài đặt: 'uv pip install playwright' hoặc 'pip install playwright' và 'playwright install chromium'."
+        return False, "Playwright chưa được cài đặt. Để kích hoạt tương tác trình duyệt, vui lòng chạy: 'uv pip install playwright' hoặc 'pip install playwright' và 'playwright install chromium'."
     
     from playwright.sync_api import sync_playwright
     if _browser_session["page"] is None:
         pw = sync_playwright().start()
-        # Prefer system Google Chrome if available, otherwise chromium
         chrome_path = r"C:\Program Files\Google\Chrome\Application\chrome.exe"
         launch_kwargs = {"headless": headless}
         if os.path.exists(chrome_path):
@@ -236,7 +312,6 @@ def browser_inspect_form():
         return {"status": "FAIL", "message": "Chưa có trang web nào được mở bằng browser_navigate."}
     
     try:
-        # Extract all input fields, buttons, and form tags for agent awareness
         form_data = page.evaluate("""() => {
             const inputs = Array.from(document.querySelectorAll('input, select, textarea')).map(el => ({
                 tag: el.tagName.toLowerCase(),
@@ -312,6 +387,65 @@ def browser_take_screenshot(output_path: str = None):
     try:
         page.screenshot(path=output_path, full_page=False)
         return {"status": "SUCCESS", "saved_to": output_path}
+    except Exception as e:
+        return {"status": "ERROR", "message": str(e)}
+
+def browser_auto_login(url: str, headless: bool = False, username_sel: str = None, password_sel: str = None, submit_sel: str = None):
+    cred = get_credentials_for_url(url)
+    if not cred["found"]:
+        return {
+            "status": "FAIL",
+            "message": f"Không tìm thấy tài khoản cho domain '{cred['domain']}' trong file .env. Vui lòng cấu hình '{cred['domain'].split('.')[0].upper()}_USERNAME' và '{cred['domain'].split('.')[0].upper()}_PASSWORD' vào file .env (tham khảo file .env.example)."
+        }
+    
+    ok, page_or_err = init_browser_page(headless=headless)
+    if not ok:
+        return {"status": "FAIL", "message": page_or_err}
+    page = page_or_err
+    
+    try:
+        page.goto(url, wait_until="domcontentloaded", timeout=30000)
+        time.sleep(2)
+        
+        # Auto-detect inputs if selectors are not provided
+        if not username_sel or not password_sel:
+            detected = page.evaluate("""() => {
+                const u = document.querySelector('input[type="email"], input[type="text"], input[name*="user"], input[name*="email"], input[placeholder*="email"], input[placeholder*="tài khoản"], input[placeholder*="điện thoại"]');
+                const p = document.querySelector('input[type="password"]');
+                const s = document.querySelector('button[type="submit"], input[type="submit"], button:has-text("Đăng nhập"), button:has-text("Sign in"), button:has-text("Login")');
+                return {
+                    u_sel: u ? (u.id ? '#' + u.id : (u.name ? 'input[name="' + u.name + '"]' : null)) : null,
+                    p_sel: p ? (p.id ? '#' + p.id : (p.name ? 'input[name="' + p.name + '"]' : null)) : null,
+                    s_sel: s ? (s.id ? '#' + s.id : (s.className ? '.' + s.className.split(' ')[0] : 'button[type="submit"]')) : 'button[type="submit"]'
+                };
+            }""")
+            username_sel = username_sel or detected.get("u_sel")
+            password_sel = password_sel or detected.get("p_sel")
+            submit_sel = submit_sel or detected.get("s_sel")
+            
+        if not username_sel or not password_sel:
+            return {
+                "status": "NEED_SELECTORS",
+                "message": f"Đã tìm thấy tài khoản trong .env nhưng không thể tự phát hiện ô đăng nhập trên trang {url}. Vui lòng truyền selector: username_sel và password_sel."
+            }
+            
+        page.fill(username_sel, cred["username"])
+        page.fill(password_sel, cred["password"])
+        time.sleep(1)
+        
+        if submit_sel:
+            page.click(submit_sel)
+            page.wait_for_load_state("domcontentloaded", timeout=12000)
+            
+        masked_user = cred["username"][:3] + "***" + (cred["username"][-2:] if len(cred["username"]) > 5 else "")
+        return {
+            "status": "SUCCESS",
+            "domain": cred["domain"],
+            "account_used": masked_user,
+            "message": f"Đã tự động điền và gửi thông tin đăng nhập thành công cho domain '{cred['domain']}'.",
+            "current_url": page.url,
+            "title": page.title()
+        }
     except Exception as e:
         return {"status": "ERROR", "message": str(e)}
 
@@ -417,6 +551,30 @@ TOOLS = [
                 "output_path": {"type": "string", "description": "Absolute path to save PNG screenshot (optional)"}
             }
         }
+    },
+    # Account & Credential Management Tools
+    {
+        "name": "browser_auto_login",
+        "description": "[Secure Auth] Automatically resolves matching username and password from .env for the target website domain and performs login.",
+        "inputSchema": {
+            "type": "object",
+            "properties": {
+                "url": {"type": "string", "description": "Login page URL (e.g. 'https://hacom.vn/dang-nhap', 'https://phongvu.vn/dang-nhap')"},
+                "headless": {"type": "boolean", "description": "Run in headless mode (default: false to allow resolving captcha/OTP if needed)", "default": False},
+                "username_selector": {"type": "string", "description": "Optional CSS selector for username/email field (auto-detected if omitted)"},
+                "password_selector": {"type": "string", "description": "Optional CSS selector for password field (auto-detected if omitted)"},
+                "submit_selector": {"type": "string", "description": "Optional CSS selector for submit button (auto-detected if omitted)"}
+            },
+            "required": ["url"]
+        }
+    },
+    {
+        "name": "list_available_accounts",
+        "description": "[Secure Auth] Lists all services and website domains that have accounts configured in the .env file (passwords remain masked).",
+        "inputSchema": {
+            "type": "object",
+            "properties": {}
+        }
     }
 ]
 
@@ -478,6 +636,19 @@ def handle_request(req):
                 text_out = json.dumps(res, ensure_ascii=False, indent=2)
             elif tool_name == "browser_screenshot":
                 res = browser_take_screenshot(args.get("output_path"))
+                text_out = json.dumps(res, ensure_ascii=False, indent=2)
+            # Credential / Auth tools
+            elif tool_name == "browser_auto_login":
+                res = browser_auto_login(
+                    url=args.get("url", ""),
+                    headless=args.get("headless", False),
+                    username_sel=args.get("username_selector"),
+                    password_sel=args.get("password_selector"),
+                    submit_sel=args.get("submit_selector")
+                )
+                text_out = json.dumps(res, ensure_ascii=False, indent=2)
+            elif tool_name == "list_available_accounts":
+                res = list_configured_accounts()
                 text_out = json.dumps(res, ensure_ascii=False, indent=2)
             else:
                 text_out = f"Tool '{tool_name}' không tồn tại."

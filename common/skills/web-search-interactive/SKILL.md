@@ -49,3 +49,21 @@ Khi người dùng yêu cầu đăng ký hoặc thao tác trên form:
 > 1. Thiết lập `headless=False` khi gọi `browser_navigate` để hiển thị cửa sổ Chrome.
 > 2. Điền sẵn các trường thông tin cơ bản.
 > 3. Thông báo cho người dùng hỗ trợ giải CAPTCHA hoặc nhập mã OTP trên màn hình.
+
+---
+
+## 3. Tự Động Đăng Nhập Website Bằng File Cấu Hình `.env` (Secure Auth)
+
+Khi cần thực hiện tác vụ trên website yêu cầu đăng nhập tài khoản:
+1. **Kiểm tra tài khoản có sẵn**:
+   - Gọi `list_available_accounts()` để xem danh sách dịch vụ đã được cấu hình trong file `.env`.
+2. **Tự động đăng nhập (Auto-Login)**:
+   - Gọi `browser_auto_login(url="https://domain.com/login", headless=False)`.
+   - Tool sẽ:
+     * Tự động trích xuất domain (vd: `hacom.vn` $\rightarrow$ `HACOM`).
+     * Tra cứu tài khoản tương ứng trong `.env` (`HACOM_USERNAME`, `HACOM_PASSWORD`).
+     * Tự động tìm ô username/email và ô password trên trang để điền vào.
+     * Bấm nút "Đăng nhập" và trả về kết quả đã đăng nhập (mật khẩu được bảo vệ ẩn hoàn toàn).
+3. **Bảo mật tuyệt đối**:
+   - File `.env` chứa mật khẩu thật **phải nằm trong `.gitignore`** (không bao giờ push lên Git).
+   - Chỉ push file mẫu [**`.env.example`**](../../.env.example) để người dùng trên máy khác biết cách điền.

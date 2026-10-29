@@ -18,6 +18,19 @@ Máy chủ MCP cung cấp 2 chế độ (Dual-Engine) cho AI Agent:
 | `browser_fill_form` | Interactive | Điền dữ liệu vào các ô input theo CSS selector. |
 | `browser_click` | Interactive | Click nút bấm, link hoặc thẻ submit. |
 | `browser_screenshot` | Interactive | Chụp ảnh màn hình lưu lại để đối soát trạng thái giao diện. |
+| `browser_auto_login` | Secure Auth | Tự động phân tích domain URL, đọc tài khoản/mật khẩu tương ứng từ `.env` và đăng nhập. |
+| `list_available_accounts` | Secure Auth | Liệt kê các domain đã có tài khoản trong `.env` (mật khẩu luôn được che giấu). |
+
+---
+
+## 2. Quản Lý Tài Khoản Đăng Nhập An Toàn (`.env`)
+
+1. Sao chép file `.env.example` thành `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+2. Điền thông tin tài khoản cho các domain mong muốn (vd: `HACOM_USERNAME`, `HACOM_PASSWORD`, `PHONGVU_USERNAME`...).
+3. File `.env` đã được đưa vào `.gitignore`, tuyệt đối an toàn và không bao giờ bị lộ lên GitHub. Khi Agent gặp trang web cần đăng nhập, nó sẽ tự động tìm kiếm tài khoản phù hợp với domain đó để sử dụng.
 
 ---
 

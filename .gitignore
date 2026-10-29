@@ -1,0 +1,24 @@
+# Environment Variables & Secrets (BẢO VỆ MẬT KHẨU - CẤM PUSH)
+.env
+.env.local
+.env.*
+!.env.example
+credentials.json
+accounts.txt
+
+# Browser Sessions & Cookies
+storage_state.json
+browser_cookies/
+*.png
+
+# Python Runtime & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.venv/
+venv/
+
+# Temporary / Scratch Files
+scratch/
+*.log

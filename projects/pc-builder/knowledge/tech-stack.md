@@ -1,18 +1,46 @@
-# PC Hardware Knowledge & Workload Sizing
+# Dynamic PC Hardware Sizing & Budget Allocation Matrix
 
-## 1. Trọng Số Linh Kiện Theo Tác Vụ
+Tài liệu hướng dẫn phân bổ tỷ trọng phần cứng một cách linh hoạt, không cố định cấu hình hay phân khúc giá.
 
-### A. Data Analyst / Data Science & Docker Multi-Agent (AI chạy Cloud/API)
-- **CPU**: Ưu tiên cao nhất. Tối thiểu 10C/16T (i5-13400F) hoặc tối ưu 14C/20T (i5-13500, i5-14500). Docker và Multi-Agent spawn nhiều worker đồng thời.
-- **RAM**: Tối thiểu 32GB (2x16GB) Bus 3200MHz DDR4 hoặc 5600MHz DDR5. Bắt buộc bo mạch chủ có 4 khe RAM để nâng cấp lên 64GB.
-- **SSD**: Chuẩn NVMe PCIe Gen 4x4 (Kingston NV3, WD Blue SN5000, tốc độ đọc >5000MB/s).
-- **GPU**: Hạ cấu hình xuống GTX 1650 4GB hoặc Radeon RX 6500 XT 4GB để dồn ngân sách cho CPU & RAM.
+---
 
-### B. Local Deep Learning / LLM
-- **GPU**: Yếu tố cốt lõi. Tối thiểu 12GB - 16GB VRAM (RTX 3060 12GB, RTX 4060 Ti 16GB, RTX 4070 Ti Super).
-- **RAM**: 32GB - 64GB DDR5.
-- **Nguồn**: 650W - 850W Gold.
+## 1. Các Phân Khúc Ngân Sách Phổ Biến
 
-### C. Gaming Phổ Thông & AAA
-- **CPU**: 6C/12T (i5-12400F, Ryzen 5 5600, Ryzen 5 7600).
-- **GPU**: RTX 4060 8GB / RX 6600 8GB trở lên.
+| Phân Khúc | Mức Giá Tham Khảo | Định Hướng Cốt Lõi |
+| :--- | :--- | :--- |
+| **Tiết kiệm / Học sinh - Sinh viên** | 8 – 12 triệu VNĐ | Tối ưu chi phí, dùng CPU tích hợp đồ họa (i3, Ryzen 5 5600G) hoặc card xuất hình cơ bản (GTX 1650 cũ/mới). 16GB RAM, 500GB SSD. |
+| **Phổ thông / Gaming eSports** | 13 – 18 triệu VNĐ | CPU 6C/12T (i5-12400F, Ryzen 5 5600) + VGA RTX 3050 / RX 6600. Đủ chiến mượt LOL, Valorant, CS2, FO4 ở độ phân giải Full HD. |
+| **Tầm trung / Data Science & Dev** | 18 – 28 triệu VNĐ | CPU nhiều nhân/luồng (i5-13500, i5-14600K, Ryzen 7 7700), 32GB–64GB RAM, 1TB Gen 4 SSD, nguồn 650W. Card đồ họa tùy thuộc vào việc có train model cục bộ hay chạy cloud. |
+| **Cao cấp / AAA 2K & Đồ họa 3D** | 30 – 45 triệu VNĐ | CPU i7 / Ryzen 7 + VGA RTX 4070 Super / RX 7800 XT, RAM DDR5 32GB bus cao, tản nhiệt nước AIO 240/360mm. |
+| **High-End / Workstation & Local LLM** | > 50 triệu VNĐ | CPU i9 / Ryzen 9 / Threadripper + VGA RTX 4080 Super / RTX 4090 (24GB VRAM để chạy model AI 70B Quantized hoặc 32B FP16). |
+
+---
+
+## 2. Ma Trận Phân Bổ Tỷ Trọng Ngân Sách Theo Nhu Cầu
+
+Khi người dùng cung cấp mức ngân sách tổng ($B$), phân bổ linh kiện theo tỷ lệ:
+
+### A. Gaming AAA / Đồ Họa Nặng
+- **VGA (Card đồ họa)**: 45% – 55% ngân sách (ưu tiên số 1, quyết định trực tiếp FPS).
+- **CPU**: 20% – 25% ngân sách (đủ mạnh để không nghẽn VGA).
+- **RAM**: 10% – 12% (16GB – 32GB).
+- **SSD + Mainboard + Nguồn + Vỏ**: 20% – 25%.
+
+### B. Data Analyst / Data Science / Docker Containers (AI chạy Cloud/API)
+- **CPU**: 35% – 45% ngân sách (ưu tiên nhiều nhân/luồng thực sự để gánh container).
+- **RAM**: 20% – 25% ngân sách (tối thiểu 32GB, bắt buộc mainboard 4 khe để nâng cấp 64GB).
+- **SSD**: 12% – 15% (NVMe Gen 4 đọc dữ liệu lớn >5000MB/s).
+- **VGA**: 10% – 15% (hạ xuống card phổ thông xuất hình mượt hoặc eSports nhẹ).
+- **Nguồn + Vỏ + Tản**: 12% – 15%.
+
+### C. Local Deep Learning / Offline LLM / Stable Diffusion
+- **VGA**: 55% – 65% ngân sách (bắt buộc NVIDIA có VRAM từ 12GB trở lên).
+- **CPU**: 15% – 20% ngân sách.
+- **RAM**: 15% – 20% (32GB – 64GB).
+- **Lưu trữ + Nguồn + Vỏ**: 15% – 20% (nguồn tối thiểu 750W–850W Gold).
+
+### D. Văn Phòng / Kế Toán / Học Tập Cơ Bản
+- **CPU**: 40% – 50% ngân sách (chọn mã có đồ họa tích hợp iGPU: i3-12100, i5-12400).
+- **VGA**: 0% (không lắp card rời).
+- **RAM**: 15% – 20% (16GB Dual-Channel).
+- **SSD + Mainboard + Nguồn + Vỏ**: 35% – 40%.

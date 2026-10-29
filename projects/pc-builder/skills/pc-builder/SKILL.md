@@ -75,8 +75,10 @@ Mọi cấu hình phải vượt qua các chốt chặn kiểm tra:
 1. **Socket CPU & Chipset**:
    - Intel Gen 12/13/14 $\rightarrow$ `LGA1700` (H610, B760, Z790).
    - AMD Ryzen 7000/9000 $\rightarrow$ `AM5` (A620, B650, X670).
-2. **Chuẩn RAM**:
+2. **Chuẩn RAM & Bắt Buộc Dual-Channel (Kit 2 Thanh)**:
    - Đối chiếu Mainboard hỗ trợ DDR4 hay DDR5 để chọn đúng loại RAM.
+   - **LUÔN ƯU TIÊN DUAL RAM**: Khi tìm kiếm và báo giá, **bắt buộc chọn Kit 2 thanh** (`2x8GB`, `2x16GB`, `2x32GB`) thay vì 1 thanh đơn để kích hoạt Dual-Channel, tăng gấp đôi băng thông bộ nhớ.
+   - Ưu tiên chọn Mainboard có **4 khe RAM** để vừa chạy được Dual-Channel vừa còn 2 khe trống nâng cấp trong tương lai.
 3. **Tính Công Suất Nguồn Thực Tế**:
    - Sử dụng script: `python ./scripts/calc_wattage.py --cpu "<mã_cpu>" --gpu "<mã_gpu>"`
    - Bắt buộc nguồn có chứng nhận tối thiểu **80 Plus Bronze**.
@@ -89,6 +91,9 @@ Mọi cấu hình phải vượt qua các chốt chặn kiểm tra:
 
 Sử dụng công cụ `web_search` và `fetch_web_page` của tầng Global để quét giá thị trường tại các đại lý lớn:
 * `web_search("giá <tên_linh_kiện> anphatpc OR gearvn OR hacom OR kccshop OR nguyencongpc")`
+* *Ví dụ tìm RAM (luôn tìm Kit 2 thanh Dual Channel):*
+  - `web_search("giá kit ram 16gb 2x8gb 3200 anphatpc gearvn")`
+  - `web_search("giá kit ram 32gb 2x16gb 3200 memoryzone kccshop")`
 
 Báo cáo gửi người dùng luôn có:
 1. Bảng linh kiện chi tiết (CPU, Main, RAM, SSD, VGA, Nguồn, Tản, Vỏ) kèm giá và lý do chọn.

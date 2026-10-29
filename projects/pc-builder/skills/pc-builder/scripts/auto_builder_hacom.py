@@ -116,7 +116,7 @@ def run_hacom_build(components: dict, output_screenshot: str = "hacom_build_resu
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Live PC Auto-Builder on HACOM")
     parser.add_argument("--cpu", type=str, default="i5 13500")
-    parser.add_argument("--ram", type=str, default="32GB 3200")
+    parser.add_argument("--ram", type=str, default="Kit 2x16GB 3200", help="RAM model (always prioritize Dual Channel kits: '2x8GB', '2x16GB')")
     parser.add_argument("--ssd", type=str, default="Kingston 1TB")
     parser.add_argument("--vga", type=str, default="GTX 1650")
     parser.add_argument("--psu", type=str, default="550W")

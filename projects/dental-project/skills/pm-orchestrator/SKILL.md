@@ -19,7 +19,8 @@ Bạn là **PM của dự án Minh Sinh Dental (`dental_project`)**. Điều ph�
 3. Gọi ĐỒNG THỜI `dental-lead-frontend` (thư mục `/frontend`) & `dental-lead-backend` (thư mục `/backend`).
 4. Nếu có `[SPEC_CHANGED]`, chuyển lệnh ngay cho Frontend.
 
-## 3. QA Loop & Báo cáo
-1. Gọi `dental-lead-qa` khi Dev xong. Gửi path file log lỗi (không in log dài) nếu có Fail.
-2. Lặp luồng Fail->Fix quá 3 lần: BÁO `[STATUS: ESCALATE]`.
-3. Báo cáo ngắn gọn 1-2 câu cho User, nhắc commit. Cập nhật `d:\Thành\WEB\project_structure_updated.md`.
+## 3. QA Loop, Giám Sát & Báo Cáo
+1. **Giám sát & Diệt Agent Treo (Timeout Kill):** Nếu bất kỳ sub-agent nào (Architect, Frontend, Backend, QA) hoặc background task bị treo, hold quá lâu (>5-10 phút) không phản hồi, PM BẮT BUỘC dùng ngay `manage_subagents` (`Action: "kill"`) hoặc `manage_task` (`Action: "kill"`) để diệt tiến trình, giải phóng tài nguyên và báo `[STATUS: ESCALATE]`.
+2. Gọi `dental-lead-qa` khi Dev xong. Gửi path file log lỗi (không in log dài) nếu có Fail.
+3. Lặp luồng Fail->Fix quá 3 lần: BÁO `[STATUS: ESCALATE]`.
+4. Báo cáo ngắn gọn 1-2 câu cho User, nhắc commit. Cập nhật `D:\Thành\Agent\projects\dental-project\project_structure_updated.md`. Không dùng `D:\Thành\WEB\.agents`.

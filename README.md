@@ -72,7 +72,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## ⚡ 5 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 6 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -84,8 +84,11 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 4. **Shift-Left Testing & Escape Hatch:**
    - Frontend & Backend bắt buộc tự chạy linter và fix lỗi nội bộ trước khi bàn giao cho QA.
    - Nếu tự fix quá 3 lần không xong, kích hoạt nút thoát hiểm `[STATUS: ESCALATE]` để xin ý kiến con người, chống lặp vô tận đốt token.
-5. **Auto-Cleanup:**
+5. **Auto-Cleanup & Peek-and-Script:**
    - Mọi file script dùng 1 lần (one-off scratch scripts) sinh ra trong quá trình dev/test phải được tự động dọn sạch.
+   - Với file Excel/CSV, tuyệt đối cấm dump toàn bộ vào context chat, chỉ Peek 3 dòng mẫu và xử lý tổng hợp bằng script.
+6. **Diệt Agent Treo & Chạy Quá Giờ (Timeout & Kill Zombie Sub-Agents):**
+   - Mọi sub-agent và tác vụ nền đều có giới hạn thời gian chạy (ngưỡng 5-10 phút). Nếu sub-agent bị treo, hold quá lâu hoặc không phản hồi, PM BẮT BUỘC dùng ngay `manage_subagents` (`Action: "kill"`) hoặc `manage_task` (`Action: "kill"`) để diệt tiến trình, giải phóng tài nguyên và báo `[STATUS: ESCALATE]`.
 
 ---
 
@@ -125,6 +128,15 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
   - `vietjet-policy-reader`: Đọc hiểu tài liệu chính sách, trích xuất ma trận đơn giá hoa hồng.
   - `vietjet-catalog-inspector`: Thẩm định danh mục Master Data, thực hiện Gap Analysis.
   - `vietjet-excel-builder`: Tự động hóa xây dựng bảng tính Excel tổng hợp báo cáo.
+
+### 5. Dự án Tự Động Hóa Soạn Thảo BRD Vietjet (`vietjet-brd`)
+- **Đường dẫn BRD:** `D:\Vietjet\2026\COM - Sale Reports\BRD`
+- **Tài liệu nguồn:** `D:\Vietjet\2026\COM - Sale Reports\20260108_REPORT REQUEST TO IT.xlsx`
+- **Bộ Skills & Công cụ:**
+  - `vietjet-brd-architect`: Agent chuyên trách phân tích và tự động soạn thảo tài liệu BRD chuẩn Vietjet.
+  - `scripts/brd_builder.py`: Engine sinh file docx tự động từ JSON / Excel, bảo toàn 100% trang bìa, thủ tục A-F, font Times New Roman, màu đỏ `#EE0000`, xám `#D7D7D7`.
+  - `scripts/excel_reader.py`: Script trích xuất spec yêu cầu trực tiếp từ file Excel sang BRD.
+  - `templates/template_vietjet_brd.docx`: Master template chuẩn trích xuất từ tài liệu chính thức Vietjet.
 
 ---
 

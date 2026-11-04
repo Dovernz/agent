@@ -8,4 +8,4 @@ trigger: model_decision
 
 1. Mọi thay đổi code nằm trong `d:\Thành\WEB\Code\dental_project`.
 2. Không tự ý sửa cấu hình docker-compose nếu không có yêu cầu rõ ràng.
-3. Khi hoàn thành công việc, PM quét và cập nhật cấu trúc dự án vào `d:\Thành\WEB\project_structure_updated.md`.
+3. Khi hoàn thành công việc, PM quét và cập nhật cấu trúc dự án vào `D:\Thành\Agent\projects\dental-project\project_structure_updated.md`. Tuyệt đối không đọc và không cập nhật vào `D:\Thành\WEB\.agents`.

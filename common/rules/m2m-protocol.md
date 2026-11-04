@@ -8,13 +8,14 @@ trigger: always_on
 
 Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Extreme Token Saving) sau:
 
-1. **Giao tiếp Zero-Fat:** Tuyệt đối không chào hỏi, giải thích dài dòng, hay lặp lại câu hỏi. CHỈ dùng Cờ tín hiệu.
+1. **Giao tiếp Zero-Fat:** Tuyệt đối không chào hỏi, giải thích dài dòng, hay lặp lại câu hỏi. CHỈ dùng Cờ tín hiệu hoặc JSON Payload tối giản.
 2. **Cờ tín hiệu chuẩn hóa:**
    - `[ACK]`: Đã nhận lệnh.
    - `[STATUS: DONE]`: Hoàn thành.
    - `[STATUS: FAIL] {"log_file": "..."}`: Thất bại. (Chỉ gửi đường dẫn, cấm in log ra chat).
    - `[STATUS: ESCALATE]`: Lặp quá 3 lần hoặc sự cố nghẽn luồng, dừng lại tránh đốt Token.
    - `[SPEC_CHANGED]`: Báo thay đổi Spec.
+   - `[STATUS: TIMEOUT_KILLED]`: Đã tự động kill sub-agent/task bị treo quá giờ.
 3. **Tiết kiệm Context Code:** Khi fix bug, KHÔNG in lại file code ra chat. Tự dùng tool ghi thẳng vào file ổ cứng.
 4. **Đồng bộ Model (Inherit):** Mọi Sub-agent được gọi lên BẮT BUỘC dùng chế độ cấu hình `Model: inherit` để kế thừa chính xác Model gốc mà User đang dùng. Tuyệt đối không tự ý đổi sang model khác.
 5. **Quy tắc Peek-and-Script (Bảo toàn Token cho File Dữ liệu / Excel / CSV):**
@@ -28,3 +29,12 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
      * PM / Orchestrator **BẮT BUỘC** gọi ngay công cụ `manage_subagents` với `Action: "kill"` (truyền `ConversationIds`) hoặc `Action: "kill_all"` để lập tức tiêu diệt sub-agent bị treo.
      * Với command / tiến trình chạy ngầm bị nghẽn, gọi ngay `manage_task` với `Action: "kill"` (truyền `TaskId`).
    - **Xử lý sau khi Kill:** Báo cờ `[STATUS: ESCALATE] {"reason": "Subagent/Task timeout killed"}` và xin ý kiến User hoặc chia nhỏ task để chạy lại, **TUYỆT ĐỐI KHÔNG** để sub-agent treo ngầm vô thời hạn làm cạn kiệt Quota và treo máy.
+7. **Kiểm Soát Phân Tầng Sub-Agent & Cấm Đệ Quy (Sub-Agent Boundary & Anti-Nesting Policy):**
+   - **Khóa quyền tự tạo:** Khi định nghĩa sub-agent bằng `define_subagent`, **BẮT BUỘC** thiết lập `EnableSubagentTools: false` cho tất cả các sub-agent cấp con (Lead, Worker, Tester).
+   - **Cấm tự do sinh Sub-Agent:** Các sub-agent do Agent tạo ra **TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP** tự ý tạo hoặc gọi thêm sub-agent cấp dưới nữa (ngăn chặn phân nhánh đệ quy không kiểm soát gây cạn kiệt CPU, RAM và Token).
+   - **Ngoại lệ duy nhất:** Chỉ những dự án có cấu hình đặc thù được khai báo tường minh trong file SKILL của Manager dự án đó mới được cấp quyền phân nhánh, và tối đa không quá 2 tầng phân cấp (Master Secretary $\rightarrow$ Project PM $\rightarrow$ Lead/Worker). Cấp Worker cuối cùng luôn luôn là `EnableSubagentTools: false`.
+8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON Payload:**
+   - Mọi giao tiếp giữa Thư ký (Master Secretary) và Project PM, hoặc giữa các Lead Agent với nhau **BẮT BUỘC** được bọc trong JSON Code Payload tối giản:
+     * Lệnh điều phối: `{"dispatch_to": "<TÊN_PM>", "action": "EXECUTE_TASK", "task_id": "...", "payload": {...}}`
+     * Báo cáo tiến độ: `{"status": "DONE|FAIL|ESCALATE", "task_id": "...", "summary": "...", "artifacts": [...]}`
+   - Nghiêm cấm hội thoại tự nhiên giữa các Agent để tiết kiệm 100% token context.

@@ -16,6 +16,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── mcp/
 │   │   └── web-search-interactive/  # MCP Server Dual-Engine (Fast HTTP + Playwright Browser)
 │   └── skills/
+│       ├── master-secretary/        # Thư ký Toàn quyền điều phối tự động sang các dự án
+│       ├── multiagent-requirement-to-excel/ # Phân tích yêu cầu nghiệp vụ phức tạp & tạo Excel
 │       └── web-search-interactive/  # Kỹ năng tìm kiếm và tự động hóa trình duyệt toàn cục
 ├── rules/                           # Rules toàn cục tự động nhận diện
 │   └── m2m-protocol.md
@@ -72,7 +74,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## ⚡ 6 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 8 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -89,6 +91,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
    - Với file Excel/CSV, tuyệt đối cấm dump toàn bộ vào context chat, chỉ Peek 3 dòng mẫu và xử lý tổng hợp bằng script.
 6. **Diệt Agent Treo & Chạy Quá Giờ (Timeout & Kill Zombie Sub-Agents):**
    - Mọi sub-agent và tác vụ nền đều có giới hạn thời gian chạy (ngưỡng 5-10 phút). Nếu sub-agent bị treo, hold quá lâu hoặc không phản hồi, PM BẮT BUỘC dùng ngay `manage_subagents` (`Action: "kill"`) hoặc `manage_task` (`Action: "kill"`) để diệt tiến trình, giải phóng tài nguyên và báo `[STATUS: ESCALATE]`.
+7. **Cấm Đệ Quy Sub-Agent (No-Recursion Policy):**
+   - Các sub-agent cấp con (Lead, Worker) được tạo ra mặc định **BỊ KHÓA** quyền tạo sub-agent (`EnableSubagentTools: false`). Tuyệt đối không tự ý phân nhánh đệ quy trừ khi có quy định đặc thù tại SKILL của Manager dự án.
+8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON:**
+   - Thư ký (Master Secretary) và Project PMs giao tiếp 100% bằng JSON Code Payload (`EXECUTE_TASK`, `STATUS: DONE`), không trò chuyện văn bản qua lại để tiết kiệm token tối đa.
 
 ---
 

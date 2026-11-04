@@ -17,6 +17,9 @@
     },
     {
       "path": "projects/vietjet-brd/skills"
+    },
+    {
+      "path": "projects/agent-supervisor/skills"
     }
   ]
 }

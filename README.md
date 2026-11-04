@@ -63,6 +63,20 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── knowledge/               # Thuật ngữ PSS, Taxonomy phụ thu, Tech Stack Databricks
 │   │   ├── rules/                   # Quy định không hardcode, bảo toàn tài chính
 │   │   └── skills/                  # Bộ 5 Lead Agents cho Ancillary & Databricks
+│   ├── vietjet-brd/                 # Dự án Tự Động Hóa Soạn Thảo BRD Vietjet
+│   │   ├── README.md
+│   │   ├── knowledge/               # Chuẩn BRD, Từ điển domain Vietjet
+│   │   ├── rules/                   # Quy chuẩn soạn thảo Word chuẩn nhận diện
+│   │   ├── scripts/                 # Engine sinh file docx tự động
+│   │   ├── templates/               # Master docx template chuẩn
+│   │   └── skills/                  # vietjet-brd-architect skill
+│   ├── agent-supervisor/            # Nhóm Giám Sát, Đo Đạc Token & Tối Ưu Hóa Kỹ Năng
+│   │   ├── README.md
+│   │   ├── knowledge/               # evaluation-metrics.md
+│   │   ├── rules/                   # supervisor-rules.md
+│   │   ├── scripts/                 # audit_performance.py
+│   │   ├── reports/                 # Lịch sử các báo cáo kiểm toán audit_report_*.md
+│   │   └── skills/                  # 4 Lead Agents kiểm toán & tối ưu
 │   └── _template/                   # Template mẫu chuẩn sẵn sàng nhân bản
 │       ├── README.md
 │       ├── knowledge/
@@ -143,6 +157,16 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
   - `scripts/brd_builder.py`: Engine sinh file docx tự động từ JSON / Excel, bảo toàn 100% trang bìa, thủ tục A-F, font Times New Roman, màu đỏ `#EE0000`, xám `#D7D7D7`.
   - `scripts/excel_reader.py`: Script trích xuất spec yêu cầu trực tiếp từ file Excel sang BRD.
   - `templates/template_vietjet_brd.docx`: Master template chuẩn trích xuất từ tài liệu chính thức Vietjet.
+
+### 6. Nhóm Agent Giám Sát, Đo Đạc Token & Tối Ưu Kỹ Năng (`agent-supervisor`)
+- **Đường dẫn:** `projects/agent-supervisor`
+- **Báo cáo kiểm toán:** `projects/agent-supervisor/reports/`
+- **Bộ Skills & Công cụ:**
+  - `supervisor-orchestrator`: Chánh thanh tra điều phối kiểm toán hiệu năng sau phiên chạy, tính điểm chất lượng.
+  - `token-cost-profiler`: Bóc tách và định lượng chính xác Input/Output/Thinking tokens từ transcript JSONL.
+  - `performance-evaluator`: Đánh giá độ trễ thực thi, tỷ lệ lỗi công cụ, số chu kỳ lặp QA loop.
+  - `skill-meta-optimizer`: Chuyên gia tối ưu hóa kỹ năng (Meta-Learning), đề xuất vá trực tiếp các tệp `SKILL.md`.
+  - `scripts/audit_performance.py`: Engine tự động đọc log transcript, tính token và xuất báo cáo Markdown.
 
 ---
 

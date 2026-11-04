@@ -22,6 +22,7 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 | **BRD, tài liệu yêu cầu nghiệp vụ, Tờ trình Word, báo cáo IT Vietjet** | Vietjet BRD | `vietjet-brd-architect` | `projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md` |
 | **Build PC, cấu hình máy tính, linh kiện, CPU, GPU, RAM, giá GearVN/HACOM** | PC Builder | `pc-builder` | `projects/pc-builder/skills/pc-builder/SKILL.md` |
 | **Phân tích yêu cầu chung thành file Excel đa tầng (Executive Report)** | Common Synthesis | `multiagent-requirement-to-excel` | `common/skills/multiagent-requirement-to-excel/SKILL.md` |
+| **Đánh giá hiệu năng, kiểm toán token, tính lượng token tiêu thụ, tối ưu skill, audit report** | Agent Supervisor | `supervisor-orchestrator` | `projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md` |
 
 ---
 

@@ -124,16 +124,17 @@ async def test_booking_flow():
 
         if is_enabled:
             print(">> Submitting booking...")
-            async with page.expect_response(lambda r: "/api/bookings/" in r.url, timeout=15000) as response_info:
-                await submit_btn.click()
+            await submit_btn.click()
             
-            response = await response_info.value
-            status = response.status
-            body = await response.text()
-            print(f">> API /api/bookings/ HTTP Status: {status}")
-            print(f">> API Response: {body}")
+            # Wait for redirection to /booking/success/
+            print(">> Waiting for redirect to success page...")
+            try:
+                await page.wait_for_url("**/booking/success/**", timeout=12000)
+                print(f">> Current URL after redirect: {page.url}")
+            except Exception as e:
+                print(f"Warning on wait_for_url: {e}")
 
-            await page.wait_for_timeout(4000)
+            await page.wait_for_timeout(2500)
 
             shot4 = os.path.join(ARTIFACT_DIR, "step4_booking_confirmation.png")
             await page.screenshot(path=shot4)

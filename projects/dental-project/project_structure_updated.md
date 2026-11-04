@@ -6,8 +6,8 @@ Tài liệu này lưu trữ tại `D:\Thành\Agent\projects\dental-project\proje
 
 | Dịch vụ | Cổng (Port) | Công nghệ | Nhiệm vụ chính |
 | :--- | :--- | :--- | :--- |
-| **WordPress** | **Cổng 80** (`http://localhost`) | PHP 8.2 + Apache + MariaDB | Trang chủ Landing Page, Giới thiệu phòng khám, Chuyên mục dịch vụ, Toàn bộ Blog tin tức SEO (Rank Math, Elementor/Gutenberg). Nút CTA chuyển thẳng sang Django. |
-| **Django Backend** | **Cổng 8000** (`http://localhost:8000`) | Python 3.12 + Django 6.1 | Quản trị phòng khám Unfold Admin, POS thu ngân, Quản lý khách hàng, REST API.<br>• **Đã tích hợp Form Đặt lịch (`/booking/`):** React Standalone Bundle.<br>• **Đã tích hợp Sơ đồ răng (`/dental-chart/`):** React SVG Standalone Bundle. |
+| **WordPress** | **Cổng 80** (`http://localhost`) | PHP 8.2 + Apache + MariaDB | Trang chủ Landing Page, Giới thiệu phòng khám, Chuyên mục dịch vụ, Toàn bộ Blog tin tức SEO (Rank Math, Elementor/Gutenberg, User nhân viên). Nút CTA chuyển thẳng sang Django. |
+| **Django Backend** | **Cổng 8000** (`http://localhost:8000`) | Python 3.12 + Django 6.1 | Quản trị phòng khám Unfold Admin, POS thu ngân, Quản lý khách hàng, REST API.<br>• **Đã tích hợp Form Đặt lịch (`/booking/`):** React Standalone Bundle.<br>• **Trang Xác nhận Đặt lịch (`/booking/success/<booking_id>/`):** Hoàn tất quy trình đặt lịch và điều hướng.<br>• **Đã tích hợp Sơ đồ răng (`/dental-chart/`):** React SVG Standalone Bundle.<br>• **Loại bỏ mục Bài viết trong Admin:** Đã unregister ArticleAdmin và ẩn khỏi menu sidebar Unfold do đã chuyển 100% sang WordPress. |
 
 ## 2. Cấu trúc Thư mục
 
@@ -17,14 +17,18 @@ dental_project/
 ├── backend/                        # Django Backend (Cổng 8000)
 │   ├── templates/
 │   │   ├── booking_standalone.html # Template phục vụ Form Đặt lịch trực tiếp
+│   │   ├── booking_success.html    # Trang thông báo và mã lịch hẹn thành công
 │   │   ├── dental_chart_standalone.html # Template phục vụ Sơ đồ răng trực tiếp
 │   │   └── admin/
 │   │       ├── customer_360.html   # Bệnh án 360 (Iframe sơ đồ răng trỏ nội bộ /dental-chart/)
-│   │       └── pos_system.html
+│   │       ├── admin_booking.html  # Đặt lịch tổng đài nội bộ (/booking/?user_id=...)
+│   │       └── pos_system.html     # POS Thu ngân
 │   ├── static/js/
 │   │   ├── booking_app.bundle.js   # Bundle React ma trận ghế khám (259 KB)
 │   │   └── dental_chart_app.bundle.js # Bundle React sơ đồ răng SVG (223 KB)
-│   └── core/urls.py                # Định tuyến /booking/ và /dental-chart/
+│   └── core/
+│       ├── urls.py                 # Định tuyến /booking/, /booking/success/<id>/, /dental-chart/
+│       └── settings.py             # Cấu hình sidebar Unfold (Đã gỡ Bài viết & Marketing)
 ├── wordpress/                      # WordPress Content (Cổng 80)
 │   └── wp-content/themes/minhsinh-dental/ # Custom Theme Minh Sinh Dental
 └── frontend/                       # Thư mục mã nguồn React gốc (Dùng khi cần compile lại bundle qua build_bundles.js)

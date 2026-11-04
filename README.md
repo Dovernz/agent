@@ -13,6 +13,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Inherit Model
 │   ├── docs/
 │   │   └── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
+│   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống (Peek data, ...)
 │   ├── mcp/
 │   │   └── web-search-interactive/  # MCP Server Dual-Engine (Fast HTTP + Playwright Browser)
 │   └── skills/

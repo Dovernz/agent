@@ -1,8 +1,9 @@
 #!/usr/bin/env python3
 """
-Performance & Token Auditor for Antigravity Multi-Agent System
+Performance, Token & Script Reusability Auditor for Antigravity Multi-Agent System
 Analyzes conversation transcripts, quantifies token usage, evaluates tool execution,
-and generates actionable optimization advice.
+detects repeatedly generated scripts for promotion to common/scripts, and generates
+actionable optimization advice.
 """
 
 import os
@@ -61,6 +62,7 @@ def analyze_transcript(transcript_path):
     total_thinking_chars = 0
     timestamps = []
     
+    created_scripts = {}
     hotspots = []
     
     for s in steps:
@@ -70,7 +72,6 @@ def analyze_transcript(transcript_path):
         created = s.get("created_at")
         if created:
             try:
-                # Parse ISO timestamp
                 ts = datetime.fromisoformat(created.replace('Z', '+00:00'))
                 timestamps.append(ts)
             except Exception:
@@ -90,9 +91,12 @@ def analyze_transcript(transcript_path):
         tool_calls = s.get("tool_calls", [])
         if isinstance(tool_calls, list):
             for tc in tool_calls:
-                tname = tc.get("toolAction") or tc.get("toolSummary") or "tool_call"
                 # check actual tool function
                 call_info = tc.get("call", {})
+                call_args = call_info.get("args", {}) if isinstance(call_info, dict) else {}
+                if not call_args:
+                    call_args = tc
+                    
                 tool_func = call_info.get("name") if isinstance(call_info, dict) else None
                 if not tool_func:
                     for k in ["run_command", "read_file", "write_file", "edit_file", "manage_subagents", "invoke_subagent"]:
@@ -103,6 +107,20 @@ def analyze_transcript(transcript_path):
                     tool_func = tc.get("toolSummary") or "custom_tool"
                     
                 tool_counts[tool_func] = tool_counts.get(tool_func, 0) + 1
+                
+                # Detect generated scripts from write_file
+                f_path = call_args.get("Path") or call_args.get("TargetFile")
+                if f_path and any(f_path.endswith(ext) for ext in [".py", ".ps1", ".sh", ".js", ".ts", ".sql"]):
+                    fname = os.path.basename(f_path)
+                    created_scripts[fname] = created_scripts.get(fname, 0) + 1
+                    
+                # Detect generated scripts from terminal commands (e.g. cat << 'EOF' > script.py or python -c "..." > script.py)
+                cmd_line = call_args.get("CommandLine", "")
+                if cmd_line:
+                    script_matches = re.findall(r'>+\s*([a-zA-Z0-9_\-\.\/\\\:]+\.(?:py|ps1|sh|js|ts|sql))', cmd_line)
+                    for sm in script_matches:
+                        fname = os.path.basename(sm)
+                        created_scripts[fname] = created_scripts.get(fname, 0) + 1
                 
         status = s.get("status")
         if status == "ERROR":
@@ -134,8 +152,27 @@ def analyze_transcript(transcript_path):
         score -= min(15, int((duration_sec - 600) / 120))
     score = max(30, score)
     
+    # Analyze scripts for promotion to common/scripts or project scripts
+    promotable_scripts = []
+    for sname, count in created_scripts.items():
+        # Identify common patterns (qa_*, inspect_*, test_*, rewrite_*, append_*, seed_*)
+        is_pattern = any(sname.startswith(p) for p in ["qa_", "test_", "inspect_", "rewrite_", "append_", "seed_", "audit_"])
+        if count >= 1 and is_pattern:
+            promotable_scripts.append({
+                "script_name": sname,
+                "generation_count": count,
+                "recommendation": "Đóng gói tham số hóa đưa vào `common/scripts/` hoặc `projects/<dự án>/scripts/`"
+            })
+            
     # Generate recommendations
     recommendations = []
+    if promotable_scripts:
+        script_list_str = ", ".join([f"`{item['script_name']}`" for item in promotable_scripts[:4]])
+        recommendations.append(
+            f"Phát hiện các script thường xuyên được tạo để chạy thử/test: {script_list_str}. "
+            "Đề xuất: Tham số hóa và chuyển thẳng vào `common/scripts/` hoặc thư mục `scripts/` của dự án để tái sử dụng ngay bằng lệnh CLI, "
+            "tiết kiệm ~1,500 - 3,500 tokens và 30-60 giây cho mỗi lần chạy lặp lại."
+        )
     if tool_counts.get("read_file", 0) > 10:
         recommendations.append("Phát hiện gọi `read_file` nhiều lần (>10 lượt). Cần siết chặt quy tắc Peek-and-Script, chỉ đọc Header + 3 dòng mẫu và dùng script ngoài context.")
     if tool_errors > 2:
@@ -152,6 +189,8 @@ def analyze_transcript(transcript_path):
         "steps_by_type": type_counts,
         "top_tools": dict(sorted(tool_counts.items(), key=lambda x: x[1], reverse=True)[:8]),
         "tool_errors": tool_errors,
+        "created_scripts": created_scripts,
+        "promotable_scripts": promotable_scripts,
         "token_metrics": {
             "estimated_prompt_tokens": prompt_tokens,
             "estimated_completion_tokens": completion_tokens,
@@ -172,7 +211,22 @@ def format_markdown_report(data):
     tools_md = "\n".join([f"| `{k}` | {v} |" for k, v in data["top_tools"].items()])
     recs_md = "\n".join([f"- 💡 {r}" for r in data["recommendations"]])
     
-    md = f"""# Báo Cáo Giám Sát Hiệu Năng & Đo Đạc Token (Agent Audit Report)
+    scripts_section = ""
+    if data.get("promotable_scripts"):
+        scripts_rows = "\n".join([f"| `{s['script_name']}` | {s['generation_count']} | {s['recommendation']} |" for s in data["promotable_scripts"]])
+        scripts_section = f"""
+---
+
+## ♻️ 3. Đánh Giá Khả Năng Tái Sử Dụng Mã Nguồn (Script Harvester & Promotion)
+
+Phát hiện các mã nguồn thường xuyên được sinh ra tự động trong phiên chạy:
+
+| Tên Script | Số lần tạo/gọi | Đề xuất tối ưu hóa tái sử dụng |
+| :--- | :--- | :--- |
+{scripts_rows}
+"""
+    
+    md = f"""# Báo Cáo Giám Sát Hiệu Năng, Đo Đạc Token & Tái Sử Dụng Script
 
 - **Thời gian lập báo cáo:** `{dt_str}`
 - **Tập tin transcript:** `{data['transcript_file']}`
@@ -200,10 +254,10 @@ def format_markdown_report(data):
 {tools_md}
 
 - **Số bước gặp lỗi (Tool Errors):** `{data['tool_errors']}`
-
+{scripts_section}
 ---
 
-## 🎯 3. Đề Xuất Tối Ưu Hóa & Nâng Cấp Skill (Meta-Learning Advice)
+## 🎯 4. Đề Xuất Tối Ưu Hóa & Nâng Cấp Skill (Meta-Learning Advice)
 
 {recs_md}
 """

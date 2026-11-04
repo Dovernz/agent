@@ -86,11 +86,30 @@ flowchart TD
     PM -->|Trả về JSON Status| Sec
     Sec -->|Giám sát Timeout >5-10m| Watchdog{"Quá giờ / Treo?"}
     Watchdog -->|Có| Kill["manage_subagents(kill)<br/>manage_task(kill)"]
-    Watchdog -->|Không| Aggregate["Tổng hợp kết quả"]
-    Kill --> Aggregate
-    Aggregate -->|Báo cáo súc tích 2-3 câu| User
+    Watchdog -->|Không| Complete["Tiếp nhận kết quả"]
+    Kill --> Complete
+    Complete -->|Báo cáo tức thì 2-3 câu| ReportUser["Báo cáo kết quả cho User"]
+    Complete -->|WaitMsBeforeAsync: 500 (Ngầm)| AutoAudit["Background Hook: audit_performance.py<br/>Lưu reports/audit_report_<timestamp>.md"]
 ```
 
 1. **Bước 1 (Tiếp nhận & Định tuyến):** Đọc yêu cầu từ User. Khớp với bảng Routing Matrix để xác định dự án đích và PM phụ trách.
 2. **Bước 2 (Giao việc & Giám sát):** Gửi gói M2M Task Dispatch (JSON) cho PM dự án. Kích hoạt bộ đếm thời gian. Nếu PM hoặc sub-agent của dự án bị treo quá 5-10 phút, kích hoạt ngay lệnh `manage_subagents` với `Action: "kill"`.
-3. **Bước 3 (Báo cáo User):** Nhận M2M JSON báo cáo từ PM, tổng hợp lại thành bản tường trình ngắn gọn (2-3 câu), nêu rõ các file/tính năng đã hoàn thành, đính kèm clickable links và nhắc User tự review/commit Git.
+3. **Bước 3 (Báo cáo User & Kích hoạt Audit ngầm):**
+   - **Báo cáo User tức thì:** Nhận M2M JSON báo cáo từ PM, tổng hợp thành bản tường trình ngắn gọn (2-3 câu), nêu rõ các file/tính năng đã hoàn thành, đính kèm clickable links và nhắc User tự review/commit Git.
+   - **Kích hoạt Audit ngầm:** Ngay khi nhận M2M JSON hoàn thành, kích hoạt tiến trình ngầm (Mục 5) đo đạc hiệu năng mà KHÔNG làm gián đoạn việc trả lời người dùng.
+
+---
+
+## 🔄 5. Chế Độ Tự Động Audit Ngầm (Post-Execution Background Hook)
+
+Ngay sau khi nhận được M2M JSON báo cáo hoàn tất (`[STATUS: DONE]`) từ bất kỳ Project PM nào:
+- **Kích hoạt ngầm không chặn (Non-blocking Background Task):** Master Secretary tự động gọi tool `run_command` với thiết lập `WaitMsBeforeAsync: 500`:
+  ```powershell
+  uv run python D:\Thành\Agent\projects\agent-supervisor\scripts\audit_performance.py
+  ```
+  *(Nếu môi trường chưa cài `uv`, dùng lệnh `python D:\Thành\Agent\projects\agent-supervisor\scripts\audit_performance.py`)*
+- **Nguyên tắc bất biến:**
+  - **KHÔNG chờ đợi tiến trình audit kết thúc:** Master Secretary phản hồi ngay cho User trong vòng tích tắc, không gây tăng độ trễ (zero user latency).
+  - **Tự động lưu vết:** Tiến trình audit ngầm tự phân tích `transcript.jsonl`, tính toán token (Prompt/Completion/Thinking), phát hiện tool errors và tự động kết xuất báo cáo vào:
+    `D:\Thành\Agent\projects\agent-supervisor\reports\audit_report_<timestamp>.md`.
+  - **Thông báo kèm theo:** Đính kèm 1 câu thông báo ngắn cho User: *"Hệ thống đã kích hoạt tiến trình audit hiệu năng & token ngầm tại `projects/agent-supervisor/reports/`."*

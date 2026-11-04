@@ -54,3 +54,37 @@ Mọi Agent làm việc trên dự án **Vietjet Ancillary (`vietjet-ancillary`)
 ## 4. Tiêu chuẩn Giao tiếp
 - Tuân thủ tuyệt đối `m2m-protocol.md` (Zero-Fat, cờ tín hiệu, kế thừa model).
 - Không tự ý commit Git. Giữ nguyên working tree để User tự kiểm tra và commit.
+
+---
+
+## 📋 Danh Mục Lệnh CLI Tái Sử Dụng (Reusable CLI Registry)
+
+Bảng tra cứu nhanh các lệnh chuẩn hóa phục vụ kiểm tra danh mục dữ liệu PSS và sinh file Excel báo cáo:
+
+### 1. Soi Dữ Liệu Master Data Chuẩn Peek-and-Script (`peek_data.py`)
+> Đọc Header và các dòng mẫu đầu tiên, tiết kiệm 99% token context cho các file danh mục lớn:
+
+- **Soi danh mục Phụ phí PSS (`surcharge.csv`):**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\common\scripts\peek_data.py" "d:\Vietjet\2026\Tờ trình\surcharge.csv" --rows 3
+  ```
+- **Soi danh mục Dịch vụ Đặc biệt PSS (`ssr.csv`):**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\common\scripts\peek_data.py" "d:\Vietjet\2026\Tờ trình\ssr.csv" --rows 3
+  ```
+- **Soi bảng phân loại cũ (`Ancillary Type.xlsx`):**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\common\scripts\peek_data.py" "d:\Vietjet\2026\Tờ trình\Ancillary Type.xlsx" --rows 3
+  ```
+
+### 2. Tự Động Sinh File Excel Báo Cáo Chuẩn Ban Tổng Giám Đốc
+> Tạo file Excel đa tầng (2-tier headers, bảng màu nhận diện Vietjet, freeze panes, định dạng tiền tệ và căn lề tự động):
+
+- **Xây dựng toàn bộ workbook 3 sheets đối chiếu Ancillary:**
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File "D:\Thành\Agent\projects\vietjet-ancillary\skills\excel-builder\scripts\build_consolidated_workbook.ps1" -TargetFolder "D:\Vietjet\2026\Tờ trình" -OutputFileName "Ancillary_Product_Groups_VN.xlsx"
+  ```
+- **Sinh bảng tính điều hành nhanh (Executive Summary):**
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File "D:\Thành\Agent\projects\vietjet-ancillary\skills\excel-builder\scripts\generate_executive_excel.ps1"
+  ```

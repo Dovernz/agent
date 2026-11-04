@@ -20,3 +20,49 @@ Mọi Agent làm việc trên dự án Vietjet Airflow BẮT BUỘC tuân thủ:
 - **Giao thức M2M & Model Inherit:**
   - Tuân thủ nghiêm ngặt `../../common/rules/m2m-protocol.md`.
   - Sub-agents BẮT BUỘC khai báo `Model: inherit` khi spawn.
+
+---
+
+## 📋 Danh Mục Lệnh CLI Tái Sử Dụng (Reusable CLI Registry)
+
+Bảng tra cứu nhanh các lệnh chuẩn hóa phục vụ kiểm thử DAG, nạp DagBag, phân tích dữ liệu Maureva và soi dữ liệu:
+
+### 1. Kiểm Thử Cú Pháp & Cấu Trúc AST DAG (Zero-Token Static Check)
+> Chạy kiểm tra AST, phát hiện chu trình phụ thuộc (cyclic dependency), quy chuẩn timezone Asia/Ho_Chi_Minh và params:
+
+- **Kiểm thử tĩnh AST file DAG:**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\projects\vietjet-airflow\scripts\fast_test_dag.py" "<đường_dẫn_file_dag.py>"
+  ```
+
+### 2. Nạp & Kiểm Thử DagBag Trong Docker Container `test-airflow-webserver-1`
+> Xác thực nạp DAG thực tế trong môi trường Airflow không gây lỗi Import Error:
+
+- **Chạy kiểm thử toàn diện kèm nạp DagBag trong Docker:**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\projects\vietjet-airflow\scripts\fast_test_dag.py" "<đường_dẫn_file_dag.py>" --docker
+  ```
+- **Kiểm tra trực tiếp Import Errors của DagBag trong container:**
+  ```powershell
+  docker exec test-airflow-webserver-1 python -c "from airflow.models import DagBag; bag = DagBag('/opt/airflow/dags'); print('Import errors count:', len(bag.import_errors)); [print(k, '-->', v) for k, v in bag.import_errors.items()]"
+  ```
+- **Kiểm tra danh sách DAG đã load thành công trong container:**
+  ```powershell
+  docker exec test-airflow-webserver-1 airflow dags list
+  ```
+
+### 3. Phân Tích & Bóc Tách Dữ Liệu Maureva (`inspect_maureva.py`)
+> Trích xuất và đối chiếu các trường doanh thu, coupon, phụ phí từ file CSV Maureva:
+
+- **Chạy script phân tích Maureva:**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\projects\vietjet-airflow\scripts\inspect_maureva.py"
+  ```
+
+### 4. Soi Dữ Liệu Cột & Mẫu File Tiết Kiệm Token (Peek Data Utility)
+> Soi nhanh file cấu hình, metadata CSV/JSON của pipeline Airflow mà không tràn ngữ cảnh:
+
+- **Soi file dữ liệu/metadata:**
+  ```powershell
+  & "C:\Users\thanhcaotien\.local\bin\uv.exe" run python "D:\Thành\Agent\common\scripts\peek_data.py" "<đường_dẫn_file>" --rows 3
+  ```

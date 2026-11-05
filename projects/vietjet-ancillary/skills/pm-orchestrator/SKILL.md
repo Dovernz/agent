@@ -15,10 +15,10 @@ description: >-
 - [ ] **M2M Zero-Fat:** Tuyệt đối không chat văn xuôi. Chỉ dùng M2M JSON và cờ tín hiệu (`[ACK]`, `[STATUS: DONE]`, `[STATUS: FAIL]`, `[STATUS: ESCALATE]`).
 - [ ] **Peek-and-Script:** CẤM đọc full file Excel/CSV lớn (`surcharge.csv`, `ssr.csv`, `Ancillary Type.xlsx`). Bắt buộc Peek Header + 3 dòng mẫu, chạy script lọc/tổng hợp ngoài context.
 - [ ] **Timeout Kill (>5-10m):** Bất kỳ subagent nào (Analyzer, Reader, Inspector, Builder) treo >5-10 phút $\rightarrow$ gọi ngay `manage_subagents(kill)` $\rightarrow$ báo `[STATUS: ESCALATE]`.
-- [ ] **Git Safety:** CẤM tự ý commit Git. Giữ nguyên nhánh để User tự review & commit.
+- [ ] **Git Safety:** CẤM tự ý commit Git. Giữ nguyên nhánh để User tự review & commit. Hỗ trợ review qua `gitops-gatekeeper`.
 
 ## 📋 EXECUTION_PIPELINE
-1. **Khảo sát:** Yêu cầu các Subagent đọc `knowledge/tech-stack.md` và `knowledge/ancillary-taxonomy.md`.
+1. **Khảo sát:** Yêu cầu các Subagent đọc `knowledge/tech-stack.md`, `knowledge/checkpoint.md` và `knowledge/ancillary-taxonomy.md`.
 2. **Phase 1 (Parallel Dispatch - 3 Subagents, `Model: inherit`, `EnableSubagentTools: false`):**
    - `vietjet-code-analyzer`: Giao SQL (`gl_charges_detail.sql`, DDLs) $\rightarrow$ bóc tách CTEs, bỏ hardcoded IDs, thiết kế Silver/Gold views. Đợi `[STATUS: DONE]`.
    - `vietjet-policy-reader`: Giao Tờ trình Word (`KPI SAN BAY.docx`) $\rightarrow$ bóc tách ma trận đơn giá hoa hồng Counter vs Gate, G/L/O, Domestic vs Int. Đợi `[STATUS: DONE]`.
@@ -35,4 +35,6 @@ description: >-
 - **Quota/Rate Limit:** Dừng ngay, đề xuất User đổi Model trong Settings.
 
 ## 📤 DELIVERY_&_REPORT
+- Cập nhật tiến độ vào `knowledge/checkpoint.md`.
+- Kích hoạt `gitops-gatekeeper` rà soát bí mật và soạn thảo Conventional Commit message cho User.
 - Báo cáo kết quả 2-3 câu nêu bật các phát hiện quan trọng, kèm clickable links đến file Excel hoàn thiện. Nhắc User tự review và commit Git.

@@ -44,3 +44,11 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
      * CẤM in bất kỳ đoạn văn bản phân tích dài dòng hay giải thích lý do vào chat.
      * CHỈ trả về cờ M2M và JSON đường dẫn file kết quả: `[STATUS: DONE] {"artifacts": ["path/to/file"]}`.
      * Ưu tiên 100% chạy script ngoài context (Code-Over-Prompt), ngăn chặn context window phình to.
+10. **Cơ Chế Bàn Giao Ngữ Cảnh Xuyên Phiên (Cross-Session Checkpoint Protocol):**
+    - **Tệp lưu trữ chuẩn:** Mỗi dự án BẮT BUỘC duy trì tệp `projects/<project_name>/knowledge/checkpoint.md`.
+    - **Cập nhật sau mỗi chu kỳ (Delivery Phase):** Khi kết thúc một task hoặc phiên làm việc, PM hoặc Lead BA cập nhật 4 thông tin cốt lõi:
+      * Thời điểm cập nhật;
+      * Trạng thái tính năng vừa hoàn thành và nhánh Git hiện tại;
+      * Các hạng mục còn đang xử lý dở dang (In-progress/Blockers);
+      * 2-3 hành động ưu tiên tiếp theo cần thực hiện khi mở lại dự án.
+    - **Khôi phục ngữ cảnh tức thì (Session Resumption):** Khi người dùng mở phiên chat mới và nhắc đến dự án, Thư ký (`master-secretary`) hoặc PM ưu tiên đọc tệp `knowledge/checkpoint.md` để nắm bắt toàn bộ tiến độ trong 1 bước, loại bỏ hoàn toàn việc bắt người dùng phải giải thích lại lịch sử từ đầu.

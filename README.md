@@ -10,11 +10,12 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 .agents/
 ├── common/                          # Giao thức, MCP, Scripts & Kỹ năng dùng chung toàn hệ thống
 │   ├── rules/
-│   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Inherit Model, Token Watchdog
+│   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Checkpoint Protocol (Rule 1-10)
 │   ├── docs/
-│   │   ├── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
+│   │   ├── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới (1-Click & Manual)
 │   │   └── architecture-blueprints.md # Kho lưu trữ thiết kế kiến trúc (Multi-agent to Excel, ...)
 │   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống
+│   │   ├── create_project.py        # Khởi tạo dự án mới 1-click (Auto-scan, Setup PM, Register skills)
 │   │   ├── scan_repo_techstack.py   # Khảo sát codebase, Docker, dependencies & sinh tech-stack.md
 │   │   ├── docker_doctor.py         # Kiểm toán Docker, phát hiện & giải phóng cổng 80/8000/3000...
 │   │   ├── peek_data.py             # Peek 3 dòng mẫu dữ liệu lớn, tiết kiệm 99% token
@@ -37,7 +38,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── dental-project/              # Dự án Phòng Khám Nha Khoa Minh Sinh
 │   │   ├── README.md
 │   │   ├── knowledge/
-│   │   │   └── tech-stack.md        # Cấu hình Tech Stack, quy chuẩn Docker, UI/UX
+│   │   │   ├── tech-stack.md        # Cấu hình Tech Stack, quy chuẩn Docker, UI/UX
+│   │   │   └── checkpoint.md        # Ghi nhớ ngữ cảnh xuyên phiên, tiến độ kiểm thử
 │   │   ├── rules/
 │   │   │   └── dental-rules.md
 │   │   └── skills/                  # PM điều phối (kết nối Universal Dev & Security Squad)
@@ -47,7 +49,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── knowledge/
 │   │   │   ├── tech-stack.md        # Workload sizing (Data Science, Docker, AI, Gaming)
 │   │   │   ├── hardware-compatibility.md # Ma trận tương thích CPU/Mainboard/PSU
-│   │   │   └── vietnam-retailers.md # Danh bạ web & link build PC Việt Nam
+│   │   │   ├── vietnam-retailers.md # Danh bạ web & link build PC Việt Nam
+│   │   │   └── checkpoint.md        # Ghi nhớ cấu hình chốt & ngân sách
 │   │   ├── rules/
 │   │   │   └── pc-rules.md          # Quy chuẩn phần cứng không nghẽn cổ chai
 │   │   └── skills/
@@ -55,7 +58,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── vietjet-airflow/             # Dự án Hạ Tầng Dữ Liệu & Airflow Pipelines Vietjet
 │   │   ├── README.md
 │   │   ├── knowledge/
-│   │   │   └── tech-stack.md        # Chuẩn Airflow 2.10, TaskFlow API, Timezone Asia/Ho_Chi_Minh
+│   │   │   ├── tech-stack.md        # Chuẩn Airflow 2.10, TaskFlow API, Timezone Asia/Ho_Chi_Minh
+│   │   │   └── checkpoint.md        # Ghi nhớ trạng thái DAGs & Docker DagBag
 │   │   ├── rules/
 │   │   │   └── airflow-rules.md     # Quy định Docker test & Zero-Fat M2M
 │   │   ├── schemas/                 # JSON Schemas cho Spec & Test Report
@@ -68,12 +72,12 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │       └── vj-lead-qa/          # vj-lead-qa
 │   ├── vietjet-ancillary/           # Dự án Vietjet PSS Ancillary & Databricks Migration
 │   │   ├── README.md
-│   │   ├── knowledge/               # Thuật ngữ PSS, Taxonomy phụ thu, Tech Stack Databricks
+│   │   ├── knowledge/               # Thuật ngữ PSS, Taxonomy phụ thu, Tech Stack Databricks, checkpoint.md
 │   │   ├── rules/                   # Quy định không hardcode, bảo toàn tài chính
 │   │   └── skills/                  # Bộ 5 Lead Agents cho Ancillary & Databricks
 │   ├── vietjet-brd/                 # Dự án Tự Động Hóa Soạn Thảo BRD Vietjet
 │   │   ├── README.md
-│   │   ├── knowledge/               # Chuẩn BRD, Từ điển domain Vietjet
+│   │   ├── knowledge/               # Chuẩn BRD, Từ điển domain Vietjet, checkpoint.md
 │   │   ├── rules/                   # Quy chuẩn soạn thảo Word chuẩn nhận diện
 │   │   ├── scripts/                 # Engine sinh file docx tự động
 │   │   ├── templates/               # Master docx template chuẩn
@@ -88,7 +92,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   └── _template/                   # Template mẫu chuẩn sẵn sàng nhân bản cho dự án mới
 │       ├── README.md
 │       ├── knowledge/
-│       │   └── tech-stack.md        # Khai báo tech stack riêng của dự án mới
+│       │   ├── tech-stack.md        # Khai báo tech stack riêng của dự án mới
+│       │   └── checkpoint.md        # Tệp ghi nhớ ngữ cảnh ban đầu
 │       ├── rules/
 │       └── skills/
 │           └── pm-orchestrator/     # PM chuyên biệt kế thừa Universal Dev Squad
@@ -98,7 +103,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## ⚡ 9 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 10 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -124,6 +129,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
      - Cắt bỏ hoàn toàn các câu giải thích phụ trợ;
      - Tất cả các agent chỉ trả về duy nhất payload JSON code tối giản (`status`, `result`, `error`);
      - Tối đa hóa việc đẩy dữ liệu trung gian vào file scratch/log trên đĩa thay vì in ra ngữ cảnh.
+10. **Bàn Giao Ngữ Cảnh Xuyên Phiên (Cross-Session Checkpoint Protocol):**
+    - Mỗi dự án bắt buộc duy trì `knowledge/checkpoint.md`.
+    - Khi kết thúc phiên: PM / BA cập nhật trạng thái, tính năng vừa xong và 2-3 bước ưu tiên kế tiếp.
+    - Khi mở phiên mới: Master Secretary hoặc PM đọc ngay `knowledge/checkpoint.md` để khôi phục tiến độ 100% mà không cần User giải thích lại.
 
 ---
 
@@ -145,7 +154,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 ### 1. Dự án Minh Sinh Dental (`dental-project`)
 - **Đường dẫn code:** `d:\Thành\WEB\Code\dental_project`
 - **Bộ Skills & Điều phối:**
-  - `dental-pm-orchestrator`: Nhận yêu cầu, đọc `knowledge/tech-stack.md`, điều phối luồng thực thi xuống **Universal Dev & Security Squad** (`lead-architect`, `lead-frontend`, `lead-backend`, `lead-qa`, `lead-cyber-security`), kiểm soát QA Loop, KHÔNG tự commit code.
+  - `dental-pm-orchestrator`: Nhận yêu cầu, đọc `knowledge/tech-stack.md`, điều phối luồng thực thi xuống **Universal Dev & Security Squad**, kiểm soát QA Loop, ghi nhận `checkpoint.md`, KHÔNG tự commit code.
 
 ### 2. Dự án Tư Vấn & Build Cấu Hình PC (`pc-builder`)
 - **Đường dẫn dự án:** `projects/pc-builder`
@@ -158,7 +167,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 - **Đường dẫn code:** `D:\Vietjet\Gitlab\vj-prod-airflow-cc`
 - **Môi trường Test:** `D:\Vietjet\Gitlab\test`
 - **Bộ Skills & Công cụ:**
-  - `vj-pm-orchestrator`: Nhận yêu cầu, điều phối Spec -> Coder -> QA, kiểm soát QA Loop, đồng bộ Model inherit, KHÔNG tự commit code.
+  - `vj-pm-orchestrator`: Nhận yêu cầu, điều phối Spec -> Coder -> QA, kiểm soát QA Loop, đồng bộ Model inherit, bàn giao qua `gitops-gatekeeper`, KHÔNG tự commit code.
   - `vj-lead-architect`: Phân tích yêu cầu, sinh JSON AST Spec tối giản theo chuẩn M2M, xác định connection/hook/params.
   - `vj-lead-coder`: Sinh mã DAG Python Airflow TaskFlow API (`@dag`, `@task`) chuẩn Vietjet (múi giờ `Asia/Ho_Chi_Minh`, batch dates `Param`).
   - `vj-lead-qa`: Chạy kiểm thử đa tầng (AST, cycle detection và nạp DagBag trong container Docker `test-airflow-webserver-1`), Auto-Cleanup file tạm, xuất JSON log lỗi.
@@ -167,7 +176,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 - **Đường dẫn code:** `d:\Vietjet\2026\Tờ trình`
 - **Tài liệu PSS & Stored Procedure:** `d:\Vietjet\Docs\PSS`
 - **Bộ Skills & Công cụ:**
-  - `vietjet-pm-orchestrator`: Nhận yêu cầu, điều phối 4 subagents, kiểm soát luồng tổng hợp.
+  - `vietjet-pm-orchestrator`: Nhận yêu cầu, điều phối 4 subagents, kiểm soát luồng tổng hợp, bàn giao qua `gitops-gatekeeper`.
   - `vietjet-code-analyzer`: Phân tích SP cũ, DDL views, bóc tách CTEs, thiết kế Databricks Medallion.
   - `vietjet-policy-reader`: Đọc hiểu tài liệu chính sách, trích xuất ma trận đơn giá hoa hồng.
   - `vietjet-catalog-inspector`: Thẩm định danh mục Master Data, thực hiện Gap Analysis.
@@ -196,6 +205,14 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ## ➕ Cách Tạo Nhóm Agent Cho Dự Án Mới
 
+### Cách 1: Tự Động 1-Click (Khuyên Dùng)
+Chạy script tự động hóa toàn bộ:
+```powershell
+uv run python D:\Thành\Agent\common\scripts\create_project.py --name "<ten-du-an>" --repo "<duong-dan-code>" --desc "<mo-ta-du-an>"
+```
+Script sẽ tự động nhân bản template, quét mã nguồn bằng `scan_repo_techstack.py`, tạo `tech-stack.md`, tạo `checkpoint.md`, và đăng ký vào cả `skills.json` của Agent Hub và `~/.gemini/config/skills.json`.
+
+### Cách 2: Thủ Công
 1. **Nhân bản thư mục `projects/_template`:**
    ```powershell
    Copy-Item -Path "projects\_template" -Destination "projects\<ten-du-an-moi>" -Recurse
@@ -203,6 +220,6 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 2. **Khai báo Tech Stack và PM của dự án:**
    - Cập nhật thông tin đường dẫn code, framework, DB, Docker service trong `projects/<ten-du-an-moi>/knowledge/tech-stack.md`.
    - Cập nhật quy tắc đặc thù trong `projects/<ten-du-an-moi>/rules/`.
-   - Cập nhật `pm-orchestrator` để tự động triệu hồi Universal Dev Squad (`lead-architect`, `lead-frontend`, `lead-backend`, `lead-qa`, `lead-cyber-security`). Không cần tạo lại các Lead Agent!
+   - Cập nhật `pm-orchestrator` để tự động triệu hồi Universal Dev Squad.
 3. **Đăng ký vào `skills.json`:**
    Thêm đường dẫn `projects/<ten-du-an-moi>/skills` vào file `.agents/skills.json`.

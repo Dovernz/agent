@@ -18,6 +18,7 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 | :--- | :--- | :--- | :--- |
 | **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS, bệnh án** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` |
 | **Khảo sát repo mới, tạo tech-stack.md, phân rã yêu cầu, User Story, đồng bộ ngữ cảnh** | Universal BA & Context | `lead-ba` | `common/skills/lead-ba/SKILL.md` |
+| **Tạo dự án mới, onboard repo mới, nhân bản template** | Auto-Onboarding Engine | `create_project.py` | `common/scripts/create_project.py` |
 | **Phát triển phần mềm chung (Fullstack, Web App, API, Frontend, Backend, UI/UX)** | Universal Dev Squad | `lead-architect` / `lead-backend` / `lead-frontend` | `common/skills/lead-architect/SKILL.md` |
 | **Kiểm tra bảo mật, lỗ hổng OWASP, scan secret/env, audit thư viện** | Cyber Security | `lead-cyber-security` | `common/skills/lead-cyber-security/SKILL.md` |
 | **Kiểm tra git, review commit an toàn, soạn conventional commit message** | GitOps & Release | `gitops-gatekeeper` | `common/skills/gitops-gatekeeper/SKILL.md` |
@@ -116,3 +117,19 @@ Ngay sau khi nhận được M2M JSON báo cáo hoàn tất (`[STATUS: DONE]`) t
   - **Tự động lưu vết:** Tiến trình audit ngầm tự phân tích `transcript.jsonl`, tính toán token (Prompt/Completion/Thinking), phát hiện tool errors và tự động kết xuất báo cáo vào:
     `D:\Thành\Agent\projects\agent-supervisor\reports\audit_report_<timestamp>.md`.
   - **Thông báo kèm theo:** Đính kèm 1 câu thông báo ngắn cho User: *"Hệ thống đã kích hoạt tiến trình audit hiệu năng & token ngầm tại `projects/agent-supervisor/reports/`."*
+
+---
+
+## 🧠 6. Quản Lý Ngữ Cảnh Xuyên Phiên (Session Resumption & Checkpoint)
+
+1. **Khôi phục tiến độ khi mở phiên mới:**
+   - Khi Người dùng hỏi về trạng thái dự án (ví dụ: *"Dự án Dental đang làm tới đâu rồi?"*, *"Tiếp tục làm Airflow"*):
+   - Master Secretary **BẮT BUỘC** đọc tệp `projects/<ten-du-an>/knowledge/checkpoint.md` trước tiên.
+   - Tóm lược ngay 2 dòng (Trạng thái hiện tại & Hạng mục kế tiếp) để báo cáo User và làm ngữ cảnh bàn giao cho Project PM.
+2. **Khởi tạo dự án tự động:**
+   - Khi Người dùng yêu cầu tạo hoặc onboard dự án mới:
+   - Gọi trực tiếp `create_project.py`:
+     ```powershell
+     uv run python D:\Thành\Agent\common\scripts\create_project.py --name "<ten-du-an>" --repo "<duong-dan-code>"
+     ```
+

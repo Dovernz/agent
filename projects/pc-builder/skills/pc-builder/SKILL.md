@@ -110,3 +110,9 @@ uv run --with playwright python ./scripts/auto_builder_hacom.py --cpu "<cpu>" --
 ```
 * Nếu người dùng muốn bật cửa sổ Chrome để xem trực tiếp, thêm cờ `--headed`.
 * Script sẽ tự động chọn linh kiện, chụp ảnh màn hình bảng tổng hợp và trích xuất tổng tiền trả về cho người dùng.
+
+---
+
+## 6. Ghi Nhớ Ngữ Cảnh Xuyên Phiên (Delivery & Checkpoint)
+* Khi hoàn tất tư vấn cấu hình, cập nhật cấu hình được chốt vào `knowledge/checkpoint.md`.
+* Kích hoạt `gitops-gatekeeper` nếu có script hoặc tài liệu mới cần commit.

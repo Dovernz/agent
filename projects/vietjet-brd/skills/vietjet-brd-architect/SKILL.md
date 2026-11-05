@@ -98,3 +98,7 @@ uv run --with python-docx python "D:\Thành\Agent\projects\vietjet-brd\scripts\b
 ### Bước 4: Kiểm tra và hoàn tất
 - Xác nhận file docx đã tạo thành công tại đúng thư mục đích.
 - Cung cấp clickable link và tóm tắt ngắn gọn các trường dữ liệu cho người dùng.
+
+### Bước 5: Cập nhật Checkpoint & Bàn giao
+- Cập nhật tiến độ vào `knowledge/checkpoint.md`.
+- Kích hoạt `gitops-gatekeeper` nếu có thay đổi mã nguồn/script cần commit vào kho lưu trữ.

@@ -8,33 +8,38 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ```text
 .agents/
-├── common/                          # Giao thức, MCP & tài liệu dùng chung toàn hệ thống
+├── common/                          # Giao thức, MCP, Scripts & Kỹ năng dùng chung toàn hệ thống
 │   ├── rules/
-│   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Inherit Model
+│   │   └── m2m-protocol.md          # Giao thức M2M tiết kiệm token cực hạn, Inherit Model, Token Watchdog
 │   ├── docs/
-│   │   └── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
-│   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống (Peek data, ...)
+│   │   ├── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
+│   │   └── architecture-blueprints.md # Kho lưu trữ thiết kế kiến trúc (Multi-agent to Excel, ...)
+│   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống
+│   │   ├── docker_doctor.py         # Kiểm toán Docker, phát hiện & giải phóng cổng 80/8000/3000...
+│   │   ├── peek_data.py             # Peek 3 dòng mẫu dữ liệu lớn, tiết kiệm 99% token
+│   │   └── validate_system.py       # Kiểm tra tính toàn vẹn 100% của toàn bộ hệ thống Agent
 │   ├── mcp/
 │   │   └── web-search-interactive/  # MCP Server Dual-Engine (Fast HTTP + Playwright Browser)
 │   └── skills/
 │       ├── master-secretary/        # Thư ký Toàn quyền điều phối tự động sang các dự án
-│       ├── multiagent-requirement-to-excel/ # Phân tích yêu cầu nghiệp vụ phức tạp & tạo Excel
-│       └── web-search-interactive/  # Kỹ năng tìm kiếm và tự động hóa trình duyệt toàn cục
+│       ├── web-search-interactive/  # Kỹ năng tìm kiếm và tự động hóa trình duyệt toàn cục
+│       ├── lead-architect/          # Universal: Kiến trúc sư trưởng thiết kế hệ thống & OpenAPI Spec
+│       ├── lead-frontend/           # Universal: Trưởng nhóm Frontend UI/UX Mobile-First
+│       ├── lead-backend/            # Universal: Trưởng nhóm Backend API, DB & Migration trong Docker
+│       ├── lead-qa/                 # Universal: Trưởng nhóm QA kiểm thử Shift-Left trong Docker
+│       ├── lead-cyber-security/     # Universal: Trưởng nhóm An toàn thông tin, SAST & Secret Audit
+│       └── gitops-gatekeeper/       # Universal: Gác cổng Git & Review bảo mật trước khi commit
 ├── rules/                           # Rules toàn cục tự động nhận diện
 │   └── m2m-protocol.md
-├── projects/                        # Các nhóm Agent chuyên biệt theo từng dự án
+├── projects/                        # Các nhóm Agent & Context chuyên biệt theo từng dự án
 │   ├── dental-project/              # Dự án Phòng Khám Nha Khoa Minh Sinh
 │   │   ├── README.md
 │   │   ├── knowledge/
 │   │   │   └── tech-stack.md        # Cấu hình Tech Stack, quy chuẩn Docker, UI/UX
 │   │   ├── rules/
 │   │   │   └── dental-rules.md
-│   │   └── skills/                  # Bộ 5 Lead Agents cho Nha Khoa
-│   │       ├── pm-orchestrator/     # dental-pm-orchestrator
-│   │       ├── lead-architect/      # dental-lead-architect
-│   │       ├── lead-frontend/       # dental-lead-frontend
-│   │       ├── lead-backend/        # dental-lead-backend
-│   │       └── lead-qa/             # dental-lead-qa
+│   │   └── skills/                  # PM điều phối (kết nối Universal Dev & Security Squad)
+│   │       └── pm-orchestrator/     # dental-pm-orchestrator
 │   ├── pc-builder/                  # Dự án Chuyên gia Tư vấn & Build PC
 │   │   ├── README.md
 │   │   ├── knowledge/
@@ -78,18 +83,20 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── scripts/                 # audit_performance.py
 │   │   ├── reports/                 # Lịch sử các báo cáo kiểm toán audit_report_*.md
 │   │   └── skills/                  # 4 Lead Agents kiểm toán & tối ưu
-│   └── _template/                   # Template mẫu chuẩn sẵn sàng nhân bản
+│   └── _template/                   # Template mẫu chuẩn sẵn sàng nhân bản cho dự án mới
 │       ├── README.md
 │       ├── knowledge/
+│       │   └── tech-stack.md        # Khai báo tech stack riêng của dự án mới
 │       ├── rules/
 │       └── skills/
+│           └── pm-orchestrator/     # PM chuyên biệt kế thừa Universal Dev Squad
 ├── skills.json                      # Đăng ký các nhóm skill active cho Antigravity
 └── README.md                        # Tài liệu tổng quan
 ```
 
 ---
 
-## ⚡ 8 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 9 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -110,19 +117,32 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
    - Các sub-agent cấp con (Lead, Worker) được tạo ra mặc định **BỊ KHÓA** quyền tạo sub-agent (`EnableSubagentTools: false`). Tuyệt đối không tự ý phân nhánh đệ quy trừ khi có quy định đặc thù tại SKILL của Manager dự án.
 8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON:**
    - Thư ký (Master Secretary) và Project PMs giao tiếp 100% bằng JSON Code Payload (`EXECUTE_TASK`, `STATUS: DONE`), không trò chuyện văn bản qua lại để tiết kiệm token tối đa.
+9. **Giám Sát Hạn Mức Token & Chế Độ Siêu Tinh Gọn (Token Budget Watchdog & Hyper-Zero-Fat):**
+   - Giám sát tổng dung lượng token trong phiên làm việc. Khi phiên vượt ngưỡng cảnh báo (120,000 tokens), hệ thống tự động kích hoạt chế độ **Hyper-Zero-Fat**:
+     - Cắt bỏ hoàn toàn các câu giải thích phụ trợ;
+     - Tất cả các agent chỉ trả về duy nhất payload JSON code tối giản (`status`, `result`, `error`);
+     - Tối đa hóa việc đẩy dữ liệu trung gian vào file scratch/log trên đĩa thay vì in ra ngữ cảnh.
+
+---
+
+## 🌐 Đội Ngũ Dev & Bảo Mật Toàn Cục (Universal Squad in `common/skills/`)
+
+Được thiết kế theo kiến trúc tái sử dụng triệt để, không còn phụ thuộc cứng vào bất kỳ dự án đơn lẻ nào:
+- **`lead-architect`**: Đọc `tech-stack.md` của bất kỳ dự án nào để thiết kế DB Schema, API Specification (OpenAPI 3.0), System Architecture.
+- **`lead-frontend`**: Thiết kế giao diện Mobile-First, tạo API Client từ OpenAPI spec, linter & format trong Docker.
+- **`lead-backend`**: Thiết kế REST/GraphQL APIs, xử lý DB Migrations & Seeding an toàn, thiết lập CORS & Auth trong Docker.
+- **`lead-qa`**: Chạy E2E / Unit testing tự động đa luồng trong Docker, code review, tear-down DB rác và dọn dẹp scratch script.
+- **`lead-cyber-security`**: Chuyên gia An toàn thông tin phòng thủ (Defensive Cyber Security), rà soát lỗ hổng OWASP Top 10, quét lọt lộ Secret/API key, audit phụ thuộc (`npm audit`, `pip check`), kiểm tra CORS/CSP và đề xuất bản vá bảo mật.
+- **`gitops-gatekeeper`**: Chuyên gia kiểm soát chất lượng Git, quét lọt lộ secret trước khi commit, đối chiếu status/diff và soạn thảo conventional commit message chuẩn xác.
 
 ---
 
 ## 🚀 Danh Sách Dự Án Đang Hoạt Động
 
-### 1. Dự án Minh Sinh Dental (`dental_project`)
+### 1. Dự án Minh Sinh Dental (`dental-project`)
 - **Đường dẫn code:** `d:\Thành\WEB\Code\dental_project`
-- **Bộ Skills:**
-  - `dental-pm-orchestrator`: Nhận yêu cầu, điều phối luồng, kiểm soát QA Loop, KHÔNG tự commit code.
-  - `dental-lead-architect`: Thiết kế schema DB trong Docker, sinh OpenAPI spec, Security Gate.
-  - `dental-lead-frontend`: Dàn trang Mobile-First, tự sinh API client từ OpenAPI, linter trong Docker.
-  - `dental-lead-backend`: Xây dựng API, cấu hình CORS/Security, DB Seeding dữ liệu giả, linter trong Docker.
-  - `dental-lead-qa`: Chạy E2E test trong Docker, code review, tear-down dữ liệu rác, dọn script tạm.
+- **Bộ Skills & Điều phối:**
+  - `dental-pm-orchestrator`: Nhận yêu cầu, đọc `knowledge/tech-stack.md`, điều phối luồng thực thi xuống **Universal Dev & Security Squad** (`lead-architect`, `lead-frontend`, `lead-backend`, `lead-qa`, `lead-cyber-security`), kiểm soát QA Loop, KHÔNG tự commit code.
 
 ### 2. Dự án Tư Vấn & Build Cấu Hình PC (`pc-builder`)
 - **Đường dẫn dự án:** `projects/pc-builder`
@@ -177,8 +197,9 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
    ```powershell
    Copy-Item -Path "projects\_template" -Destination "projects\<ten-du-an-moi>" -Recurse
    ```
-2. **Điền thông tin công nghệ:**
-   - Cập nhật đường dẫn code và framework trong `projects/<ten-du-an-moi>/knowledge/tech-stack.md`.
-   - Đổi tiền tố `[PROJECT_NAME]` trong các file `SKILL.md` (ví dụ: `shop-pm-orchestrator`, `shop-lead-frontend`...).
+2. **Khai báo Tech Stack và PM của dự án:**
+   - Cập nhật thông tin đường dẫn code, framework, DB, Docker service trong `projects/<ten-du-an-moi>/knowledge/tech-stack.md`.
+   - Cập nhật quy tắc đặc thù trong `projects/<ten-du-an-moi>/rules/`.
+   - Cập nhật `pm-orchestrator` để tự động triệu hồi Universal Dev Squad (`lead-architect`, `lead-frontend`, `lead-backend`, `lead-qa`, `lead-cyber-security`). Không cần tạo lại các Lead Agent!
 3. **Đăng ký vào `skills.json`:**
    Thêm đường dẫn `projects/<ten-du-an-moi>/skills` vào file `.agents/skills.json`.

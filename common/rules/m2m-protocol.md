@@ -38,3 +38,9 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
      * Lệnh điều phối: `{"dispatch_to": "<TÊN_PM>", "action": "EXECUTE_TASK", "task_id": "...", "payload": {...}}`
      * Báo cáo tiến độ: `{"status": "DONE|FAIL|ESCALATE", "task_id": "...", "summary": "...", "artifacts": [...]}`
    - Nghiêm cấm hội thoại tự nhiên giữa các Agent để tiết kiệm 100% token context.
+9. **Cơ Chế Cảnh Báo Ngân Sách Token Thời Gian Thực (Token Budget Watchdog & Hyper-Zero-Fat Mode):**
+   - **Giám sát ngưỡng token:** Ngưỡng cảnh báo mềm cho phiên làm việc là `120,000 tokens`.
+   - **Kích hoạt Hyper-Zero-Fat:** Khi nhận tín hiệu `[STATUS: TOKEN_BUDGET_WARNING]`, toàn bộ các Agent **BẮT BUỘC** chuyển sang chế độ Siêu Nén:
+     * CẤM in bất kỳ đoạn văn bản phân tích dài dòng hay giải thích lý do vào chat.
+     * CHỈ trả về cờ M2M và JSON đường dẫn file kết quả: `[STATUS: DONE] {"artifacts": ["path/to/file"]}`.
+     * Ưu tiên 100% chạy script ngoài context (Code-Over-Prompt), ngăn chặn context window phình to.

@@ -1,20 +1,16 @@
-# BÁO CÁO CẬP NHẬT TIẾN ĐỘ DỰ ÁN NHA KHOA MINH SINH
+# TIẾN ĐỘ DỰ ÁN NHA KHOA MINH SINH - CƠ CHẾ PHÂN QUYỀN ĐỘNG (GRANULAR RBAC)
 
-**Branch:** `wordpress_udpate`  
-**Ngày:** 05/11/2026
+**Branch hiện tại:** `wordpress_udpate`  
+**Ngày cập nhật:** 05/11/2026
 
-## 1. Các Nâng Cấp Đã Hoàn Thành
-- **Single Sign-On (SSO) Django $\rightarrow$ WordPress:**
-  - Token signed HMAC-SHA256 (hạn 60s).
-  - Tự động đăng nhập 1 chạm khi bấm từ Django Admin sang WordPress wp-admin.
-- **Phân Quyền Hệ Thống:**
-  - Chỉ Admin và Marketing (Group `Marketing` / user `marketing1`) được phép truy cập WordPress.
-  - Sidebar Django Unfold tự động ẩn menu WordPress đối với các vai trò khác (Lễ tân, Bác sĩ, Thu ngân).
-  - Chặn truy cập trực tiếp bằng HTTP 403 Forbidden.
-- **Tối Ưu SEO Nha Khoa:**
-  - Cài đặt plugin Rank Math SEO.
-  - Tích hợp Schema y khoa JSON-LD chuẩn Google (`Dentist`, `MedicalWebPage`, `MedicalScholarlyArticle`).
+## 1. Tính Năng Đã Hoàn Thiện
+- **Granular Dynamic RBAC (Phân quyền động theo Permission):**
+  - Không hardcode theo role/group cố định.
+  - Sidebar Django Unfold kiểm tra quyền động ở cả cấp Section và cấp Item.
+  - Khi một User (ví dụ Bác sĩ) được gán quyền `booking.manage_wordpress_posts` hoặc bất kỳ quyền nào của một section $\rightarrow$ Menu tương ứng lập tức hiển thị.
+  - Khi thu hồi quyền $\rightarrow$ Menu lập tức ẩn đi, link SSO bị chặn 403 Forbidden.
+- **Single Sign-On (SSO):** Hoạt động mượt mà cho mọi user có quyền bài viết.
+- **SEO & Schema Nha Khoa:** Rank Math SEO + Schema Dentist JSON-LD chuẩn Google Search.
 
-## 2. Tài Liệu Báo Cáo Nghiệm Thu
-Chi tiết báo cáo và toàn bộ bằng chứng hình ảnh (proof screenshots) xem tại:
+## 2. Báo Cáo Nghiệm Thu
 [`qa_booking_and_system_report.md`](file:///C:/Users/thanhcaotien/.gemini/antigravity/brain/e836e051-9249-4417-b718-8bbc5e0435fb/qa_booking_and_system_report.md)

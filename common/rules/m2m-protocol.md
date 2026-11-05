@@ -52,3 +52,10 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * Các hạng mục còn đang xử lý dở dang (In-progress/Blockers);
       * 2-3 hành động ưu tiên tiếp theo cần thực hiện khi mở lại dự án.
     - **Khôi phục ngữ cảnh tức thì (Session Resumption):** Khi người dùng mở phiên chat mới và nhắc đến dự án, Thư ký (`master-secretary`) hoặc PM ưu tiên đọc tệp `knowledge/checkpoint.md` để nắm bắt toàn bộ tiến độ trong 1 bước, loại bỏ hoàn toàn việc bắt người dùng phải giải thích lại lịch sử từ đầu.
+11. **Quy Tắc Tự Động Dọn Dẹp Tập Tin Rác & Ảnh Chụp Màn Hình (Workspace Hygiene & Auto-Cleanup Protocol):**
+    - **Cấm để lại file rác:** Toàn bộ các script tạm chạy 1 lần (`tmp_*.py`, `debug_*.py`, `qa_inspect*.py`, `scratch_*.py`) và các file ảnh chụp màn hình (`.png`, `.jpg`, `.webp`) do Playwright / E2E test sinh ra **BẮT BUỘC** phải được dọn dẹp sạch sẽ sau khi kiểm thử.
+    - **Lưu trữ ảnh bằng chứng hợp lệ:** Nếu ảnh chụp màn hình cần giữ lại làm bằng chứng nghiệm thu cho User, Agent **BẮT BUỘC** lưu vào thư mục Artifacts của Antigravity (`brain/<conversation-id>/`) hoặc nhúng vào artifact report. TUYỆT ĐỐI KHÔNG để các tệp ảnh `.png` vương vãi trong thư mục mã nguồn dự án làm rác Git working tree.
+    - **Chốt chặn kích hoạt tự động:** Trước khi báo cáo `[STATUS: DONE]`, `lead-qa` và `gitops-gatekeeper` **BẮT BUỘC** kích hoạt công cụ dọn rác:
+      ```powershell
+      uv run python "D:\Thành\Agent\common\scripts\hub_cleaner.py" "<duong_dan_repo_hoac_du_an>" --clean
+      ```

@@ -1,16 +1,16 @@
-# TIẾN ĐỘ DỰ ÁN NHA KHOA MINH SINH - CƠ CHẾ PHÂN QUYỀN ĐỘNG (GRANULAR RBAC)
+# BÁO CÁO CẬP NHẬT DỰ ÁN NHA KHOA MINH SINH
 
-**Branch hiện tại:** `wordpress_udpate`  
-**Ngày cập nhật:** 05/11/2026
+**Branch:** `wordpress_udpate`  
+**Ngày:** 05/11/2026
 
-## 1. Tính Năng Đã Hoàn Thiện
-- **Granular Dynamic RBAC (Phân quyền động theo Permission):**
-  - Không hardcode theo role/group cố định.
-  - Sidebar Django Unfold kiểm tra quyền động ở cả cấp Section và cấp Item.
-  - Khi một User (ví dụ Bác sĩ) được gán quyền `booking.manage_wordpress_posts` hoặc bất kỳ quyền nào của một section $\rightarrow$ Menu tương ứng lập tức hiển thị.
-  - Khi thu hồi quyền $\rightarrow$ Menu lập tức ẩn đi, link SSO bị chặn 403 Forbidden.
-- **Single Sign-On (SSO):** Hoạt động mượt mà cho mọi user có quyền bài viết.
-- **SEO & Schema Nha Khoa:** Rank Math SEO + Schema Dentist JSON-LD chuẩn Google Search.
+## 1. Nâng Cấp Giao Diện Phân Quyền Theo Menu (Menu-Based Granular Permissions)
+- Tích hợp widget phân quyền trực quan `MenuGranularPermissionsWidget` cho cả Nhóm quyền (`Group`) và Người dùng (`User`).
+- Phân chia thành 7 khối dropdown/accordion chuẩn 7 mục trên Sidebar phòng khám.
+- Toàn bộ giao diện hiển thị tiếng Việt nghiệp vụ rõ ràng, thiết kế y tế doanh nghiệp tối giản, **hoàn toàn không dùng icon/emoji trang trí**.
+- Tích hợp các nút Preset chuẩn phòng khám: Bác sĩ điều trị, Lễ tân tiếp đón, Thu ngân thanh toán, Marketing truyền thông, Toàn quyền, Bỏ chọn tất cả.
+- Thanh tìm kiếm nhanh từ khóa quyền hạn.
+- Đã kiểm thử tự động E2E thành công 100%.
 
 ## 2. Báo Cáo Nghiệm Thu
+Chi tiết báo cáo và toàn bộ bằng chứng hình ảnh xem tại:
 [`qa_booking_and_system_report.md`](file:///C:/Users/thanhcaotien/.gemini/antigravity/brain/e836e051-9249-4417-b718-8bbc5e0435fb/qa_booking_and_system_report.md)

@@ -17,6 +17,9 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống
 │   │   ├── hub_status.py            # Bảng điều khiển tiến độ, branch Git và checkpoint mọi dự án
 │   │   ├── hub_doctor.py            # Bác sĩ toàn diện kiểm toán Docker, Git, Ports, Token budget
+│   │   ├── hub_cleaner.py           # Dọn dẹp tự động scratch scripts & ảnh chụp màn hình Playwright
+│   │   ├── env_guardian.py          # Kiểm toán .env vs .env.example & quét phát hiện rò rỉ secret
+│   │   ├── mock_data_generator.py   # Máy sinh dữ liệu mồi đa nghiệp vụ (Dental, Airflow, Ecommerce)
 │   │   ├── git_safe_snapshot.py     # Tạo snapshot & tự động hoàn nguyên (rollback) an toàn mã nguồn
 │   │   ├── create_project.py        # Khởi tạo dự án mới 1-click (Auto-scan, Setup PM, Test scaffold)
 │   │   ├── scan_repo_techstack.py   # Khảo sát codebase, Docker, dependencies & sinh tech-stack.md
@@ -106,7 +109,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## ⚡ 10 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 11 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -136,6 +139,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
     - Mỗi dự án bắt buộc duy trì `knowledge/checkpoint.md`.
     - Khi kết thúc phiên: PM / BA cập nhật trạng thái, tính năng vừa xong và 2-3 bước ưu tiên kế tiếp.
     - Khi mở phiên mới: Master Secretary hoặc PM đọc ngay `knowledge/checkpoint.md` để khôi phục tiến độ 100% mà không cần User giải thích lại.
+11. **Tự Động Dọn Dẹp Tập Tin Rác & Ảnh Chụp Màn Hình (Workspace Hygiene & Auto-Cleanup):**
+    - Cấm lưu các script tạm chạy 1 lần (`tmp_*.py`, `debug_*.py`, `qa_inspect*.py`) và ảnh chụp màn hình Playwright (`.png`, `.jpg`) trong mã nguồn dự án.
+    - Ảnh chụp màn hình dùng làm bằng chứng nghiệm thu bắt buộc lưu vào thư mục Artifacts của Antigravity (`brain/<conversation-id>/`).
+    - Trước khi bàn giao và commit, `lead-qa` và `gitops-gatekeeper` tự động kích hoạt `hub_cleaner.py --clean` để quét sạch toàn bộ rác mã nguồn.
 
 ---
 

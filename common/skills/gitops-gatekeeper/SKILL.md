@@ -46,3 +46,13 @@ Khi nhận lệnh phối hợp từ PM hoặc Universal Dev Squad trong các tas
    ```powershell
    uv run python "D:\Thành\Agent\common\scripts\git_safe_snapshot.py" clear --repo "<duong_dan_repo>" --task "<task_id>"
    ```
+
+---
+
+## 🧹 3. Chốt Chặn Dọn Rác Tự Động (Workspace Janitor Gate - Rule 11)
+
+Trước khi soạn thảo câu lệnh `git commit` trình User phê duyệt, Gatekeeper BẮT BUỘC chạy lệnh:
+```powershell
+uv run python "D:\Thành\Agent\common\scripts\hub_cleaner.py" "<duong_dan_repo>" --clean
+```
+Bảo đảm không có bất kỳ file script dùng 1 lần (`tmp_*.py`, `qa_inspect*.py`) hay ảnh chụp màn hình `.png` vương vãi nào lọt vào Git stage.

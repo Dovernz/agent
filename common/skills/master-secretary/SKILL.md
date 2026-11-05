@@ -23,6 +23,9 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 | **Tạo dự án mới, onboard repo mới, nhân bản template** | Auto-Onboarding Engine | `create_project.py` | `common/scripts/create_project.py` |
 | **Phát triển phần mềm chung (Fullstack, Web App, API, Frontend, Backend, UI/UX)** | Universal Dev Squad | `lead-architect` / `lead-backend` / `lead-frontend` | `common/skills/lead-architect/SKILL.md` |
 | **Kiểm tra bảo mật, lỗ hổng OWASP, scan secret/env, audit thư viện** | Cyber Security | `lead-cyber-security` | `common/skills/lead-cyber-security/SKILL.md` |
+| **Kiểm toán biến môi trường, so khớp .env vs .env.example, quét secret leak** | Env Guardian | `env_guardian.py` | `common/scripts/env_guardian.py` |
+| **Sinh dữ liệu mồi, mock data seed DB, test records nha khoa, airflow, ecommerce** | Mock Data Generator | `mock_data_generator.py` | `common/scripts/mock_data_generator.py` |
+| **Dọn dẹp file rác, xóa scratch scripts, dọn ảnh chụp màn hình Playwright** | Workspace Janitor | `hub_cleaner.py` | `common/scripts/hub_cleaner.py` |
 | **Kiểm tra git, review commit an toàn, soạn conventional commit message** | GitOps & Release | `gitops-gatekeeper` | `common/skills/gitops-gatekeeper/SKILL.md` |
 | **Airflow, DAG, TaskFlow, cronjob, Docker DagBag, pipeline dữ liệu Vietjet** | Vietjet Airflow | `vj-pm-orchestrator` | `projects/vietjet-airflow/skills/vj-pm-orchestrator/SKILL.md` |
 | **Phụ thu, Ancillary, hành lý, Databricks, Medallion, Stored Procedure, PSS** | Vietjet Ancillary | `vietjet-pm-orchestrator` | `projects/vietjet-ancillary/skills/pm-orchestrator/SKILL.md` |

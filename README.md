@@ -18,6 +18,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── hub_status.py            # Bảng điều khiển tiến độ, branch Git và checkpoint mọi dự án
 │   │   ├── hub_doctor.py            # Bác sĩ toàn diện kiểm toán Docker, Git, Ports, Token budget
 │   │   ├── hub_cleaner.py           # Dọn dẹp tự động scratch scripts & ảnh chụp màn hình Playwright
+│   │   ├── linter_guard.py          # Chốt chặn kiểm tra cú pháp, ruff/eslint & secret leak trước khi commit/test
+│   │   ├── mock_server_launcher.py  # Khởi chạy Instant API Mock Server từ OpenAPI spec (hỗ trợ CORS & CRUD)
 │   │   ├── qa_report_builder.py     # Xuất báo cáo nghiệm thu Markdown kèm bằng chứng hình ảnh 1-click
 │   │   ├── dependency_patcher.py    # Quét & tự động nâng cấp phiên bản an toàn cho requirements/npm
 │   │   ├── env_guardian.py          # Kiểm toán .env vs .env.example & quét phát hiện rò rỉ secret

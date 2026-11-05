@@ -56,3 +56,14 @@ Trước khi soạn thảo câu lệnh `git commit` trình User phê duyệt, Ga
 uv run python "D:\Thành\Agent\common\scripts\hub_cleaner.py" "<duong_dan_repo>" --clean
 ```
 Bảo đảm không có bất kỳ file script dùng 1 lần (`tmp_*.py`, `qa_inspect*.py`) hay ảnh chụp màn hình `.png` vương vãi nào lọt vào Git stage.
+
+---
+
+## 🛡️ 4. Chốt Chặn Linter & Cú Pháp Tự Động (Pre-Commit Linter Guard)
+
+Trước khi xác nhận commit, Gatekeeper BẮT BUỘC chạy kiểm tra toàn diện cú pháp và bảo mật:
+```powershell
+uv run python "D:\Thành\Agent\common\scripts\linter_guard.py" "<duong_dan_repo>" --changed-only
+```
+- Nếu trả về `[STATUS: PASS]`: Đủ điều kiện tạo commit message.
+- Nếu trả về `[STATUS: FAIL]`: DỪNG NGAY, liệt kê các vi phạm (lỗi cú pháp, rò rỉ secret, hoặc ảnh chụp sai vị trí) và yêu cầu sửa trước khi commit.

@@ -18,6 +18,8 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── hub_status.py            # Bảng điều khiển tiến độ, branch Git và checkpoint mọi dự án
 │   │   ├── hub_doctor.py            # Bác sĩ toàn diện kiểm toán Docker, Git, Ports, Token budget
 │   │   ├── hub_cleaner.py           # Dọn dẹp tự động scratch scripts & ảnh chụp màn hình Playwright
+│   │   ├── qa_report_builder.py     # Xuất báo cáo nghiệm thu Markdown kèm bằng chứng hình ảnh 1-click
+│   │   ├── dependency_patcher.py    # Quét & tự động nâng cấp phiên bản an toàn cho requirements/npm
 │   │   ├── env_guardian.py          # Kiểm toán .env vs .env.example & quét phát hiện rò rỉ secret
 │   │   ├── mock_data_generator.py   # Máy sinh dữ liệu mồi đa nghiệp vụ (Dental, Airflow, Ecommerce)
 │   │   ├── git_safe_snapshot.py     # Tạo snapshot & tự động hoàn nguyên (rollback) an toàn mã nguồn
@@ -109,7 +111,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## ⚡ 11 Nguyên Tắc Cốt Lõi (Core Principles)
+## ⚡ 12 Nguyên Tắc Cốt Lõi (Core Principles)
 
 1. **Docker-First (Bảo vệ Máy Host):**
    - Mọi thao tác kiểm tra DB, chạy linter, chạy test, build hoặc install package **BẮT BUỘC** chạy bên trong Docker container. Tuyệt đối không làm ô nhiễm môi trường máy gốc.
@@ -143,6 +145,9 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
     - Cấm lưu các script tạm chạy 1 lần (`tmp_*.py`, `debug_*.py`, `qa_inspect*.py`) và ảnh chụp màn hình Playwright (`.png`, `.jpg`) trong mã nguồn dự án.
     - Ảnh chụp màn hình dùng làm bằng chứng nghiệm thu bắt buộc lưu vào thư mục Artifacts của Antigravity (`brain/<conversation-id>/`).
     - Trước khi bàn giao và commit, `lead-qa` và `gitops-gatekeeper` tự động kích hoạt `hub_cleaner.py --clean` để quét sạch toàn bộ rác mã nguồn.
+12. **Git Là Nguồn Chân Lý Duy Nhất (Git-As-Single-Source-Of-Truth - SSoT):**
+    - Toàn bộ tiến độ dự án, commit hash và checkpoint lịch sử được đọc trực tiếp 100% từ thư mục Git (`projects/<project>/knowledge/checkpoint.md`, `git log -1`).
+    - Không lưu dữ liệu trùng lặp hay cache trạng thái tạm ngoài luồng trên ổ cứng máy tính. Sau khi commit và push lên remote Git, máy tính chỉ lưu giữ bản sao làm việc sạch sẽ của Git.
 
 ---
 

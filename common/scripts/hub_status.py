@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
 """
 hub_status.py
-Portfolio Overview & Live Status Dashboard for Antigravity Agent Hub
-Scans all project checkpoints, detects Git branches and uncommitted changes,
-and produces a consolidated Markdown table in milliseconds.
+Portfolio Overview & Live Git-First Status Dashboard for Antigravity Agent Hub
+Scans all project checkpoints and reads live Git commit history directly from the Git repository.
+Implements the 'Git-As-Single-Source-of-Truth' (SSoT) architecture.
 """
 
 import os
@@ -19,28 +19,55 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != 'utf-8':
     except Exception:
         pass
 
-def get_git_info(repo_path):
-    if not repo_path or not os.path.exists(repo_path):
-        return {"branch": "N/A", "clean": True, "uncommitted_count": 0}
-    try:
-        branch_cmd = subprocess.run(
-            ["git", "-C", repo_path, "rev-parse", "--abbrev-ref", "HEAD"],
-            capture_output=True, text=True, timeout=3
-        )
-        branch = branch_cmd.stdout.strip() if branch_cmd.returncode == 0 else "N/A"
-        
-        status_cmd = subprocess.run(
-            ["git", "-C", repo_path, "status", "--porcelain"],
-            capture_output=True, text=True, timeout=3
-        )
-        lines = [l for l in status_cmd.stdout.splitlines() if l.strip()]
-        return {
-            "branch": branch,
-            "clean": len(lines) == 0,
-            "uncommitted_count": len(lines)
-        }
-    except Exception:
-        return {"branch": "N/A", "clean": True, "uncommitted_count": 0}
+def get_git_info(repo_path, hub_dir=None, project_rel=None):
+    info = {
+        "branch": "Local Hub",
+        "clean": True,
+        "uncommitted_count": 0,
+        "last_commit": "N/A"
+    }
+    
+    # 1. If project has external code repository
+    if repo_path and os.path.exists(repo_path):
+        try:
+            branch_cmd = subprocess.run(
+                ["git", "-C", repo_path, "rev-parse", "--abbrev-ref", "HEAD"],
+                capture_output=True, text=True, timeout=3
+            )
+            if branch_cmd.returncode == 0:
+                info["branch"] = branch_cmd.stdout.strip()
+                
+            status_cmd = subprocess.run(
+                ["git", "-C", repo_path, "status", "--porcelain"],
+                capture_output=True, text=True, timeout=3
+            )
+            lines = [l for l in status_cmd.stdout.splitlines() if l.strip()]
+            info["clean"] = len(lines) == 0
+            info["uncommitted_count"] = len(lines)
+            
+            log_cmd = subprocess.run(
+                ["git", "-C", repo_path, "log", "-1", "--format=%h - %s (%cr)"],
+                capture_output=True, text=True, timeout=3
+            )
+            if log_cmd.returncode == 0:
+                info["last_commit"] = log_cmd.stdout.strip()
+            return info
+        except Exception:
+            pass
+            
+    # 2. Fallback to Agent Hub repository commit for this project
+    if hub_dir and project_rel:
+        try:
+            log_cmd = subprocess.run(
+                ["git", "-C", hub_dir, "log", "-1", "--format=%h - %s (%cr)", "--", project_rel],
+                capture_output=True, text=True, timeout=3
+            )
+            if log_cmd.returncode == 0 and log_cmd.stdout.strip():
+                info["last_commit"] = log_cmd.stdout.strip()
+        except Exception:
+            pass
+            
+    return info
 
 def parse_checkpoint(checkpoint_path):
     info = {
@@ -109,9 +136,9 @@ def main():
     projects = [p for p in os.listdir(projects_dir) if os.path.isdir(os.path.join(projects_dir, p)) and p != "_template"]
     projects.sort()
     
-    print("# 📊 Bảng Điều Khiển Trạng Thái Toàn Cục (Agent Hub Portfolio)")
-    print(f"> Tổng số dự án đang quản lý: **{len(projects)} dự án**  \n")
-    print("| Dự Án | Branch Git | Trạng Thái Working Tree | Cập Nhật Lần Cuối | Trọng Tâm Hiện Tại |")
+    print("# 📊 Bảng Điều Khiển Trạng Thái Toàn Cục (Git-As-Single-Source-of-Truth)")
+    print(f"> Dữ liệu đọc trực tiếp 100% từ Git Repository | Tổng số: **{len(projects)} dự án**\n")
+    print("| Dự Án | Branch Git | Working Tree | Commit Gần Nhất (Từ Git Log) | Trọng Tâm Nghiệp Vụ |")
     print("| :--- | :--- | :--- | :--- | :--- |")
     
     details = []
@@ -122,13 +149,14 @@ def main():
         ts_path = os.path.join(p_dir, "knowledge", "tech-stack.md")
         
         repo_path = extract_repo_path(ts_path)
-        git_info = get_git_info(repo_path)
+        git_info = get_git_info(repo_path, hub_dir=root_dir, project_rel=f"projects/{p_name}")
         cp_info = parse_checkpoint(cp_path)
         
-        branch_badge = f"`{git_info['branch']}`" if git_info['branch'] != "N/A" else "Local Hub"
+        branch_badge = f"`{git_info['branch']}`"
         tree_badge = "🟢 Sạch" if git_info['clean'] else f"🟡 {git_info['uncommitted_count']} tệp sửa"
+        commit_badge = f"`{git_info['last_commit'][:35]}...`" if len(git_info['last_commit']) > 35 else f"`{git_info['last_commit']}`"
         
-        print(f"| **{p_name}** | {branch_badge} | {tree_badge} | `{cp_info['last_updated']}` | {cp_info['status']} |")
+        print(f"| **{p_name}** | {branch_badge} | {tree_badge} | {commit_badge} | {cp_info['status']} |")
         
         details.append({
             "name": p_name,
@@ -138,11 +166,12 @@ def main():
         })
         
     print("\n---")
-    print("## 📌 Kế Hoạch Tiếp Theo Từng Dự Án\n")
+    print("## 📌 Chi Tiết Cam Kết Git & Kế Hoạch Tiếp Theo\n")
     for d in details:
         print(f"### 🔹 {d['name']}")
         if d['repo']:
-            print(f"- **Mã nguồn:** `{d['repo']}` (Branch: `{d['git']['branch']}`)")
+            print(f"- **Mã nguồn ngoài:** `{d['repo']}` (Branch: `{d['git']['branch']}`)")
+        print(f"- **Git Commit gần nhất:** `{d['git']['last_commit']}`")
         if d['cp']['in_progress'] and d['cp']['in_progress'] != "Không có":
             print(f"- **Dở dang:** {d['cp']['in_progress']}")
         if d['cp']['next_steps']:

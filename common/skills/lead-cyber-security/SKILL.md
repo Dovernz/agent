@@ -27,8 +27,12 @@ Bạn là **Kỹ sư Trưởng An Toàn & Bảo Mật Mã Nguồn (Cyber Securit
 - Quét toàn bộ mã nguồn và file cấu hình: Tìm các chuỗi khóa cứng (hardcoded passwords, API tokens, JWT secrets, private keys).
 - Đảm bảo các file nhạy cảm (`.env`, `*.pem`, `Pass.txt`, `credentials.json`) được khai báo đầy đủ trong `.gitignore`.
 
-### C. Kiểm Tra An Toàn Chuỗi Cung Ứng (Dependency Audit)
-- Chạy lệnh kiểm tra lỗ hổng thư viện (TRONG DOCKER):
+### C. Kiểm Tra & Tự Động Vá Lỗ Hổng Phụ Thuộc (Dependency Audit & Auto-Patch)
+- Chạy công cụ rà soát và tự động nâng cấp phiên bản an toàn:
+  ```powershell
+  uv run python "D:\Thành\Agent\common\scripts\dependency_patcher.py" "<duong_dan_repo>" --patch
+  ```
+- Hoặc kiểm tra chi tiết trong Docker:
   * Node/React: `docker-compose exec <frontend_service> npm audit --audit-level=high`
   * Python/Django: `docker-compose exec <backend_service> pip check` / `pip-audit`
 - Đề xuất nâng cấp version các package có lỗ hổng bảo mật nghiêm trọng.

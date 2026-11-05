@@ -11,12 +11,18 @@ Bạn là **Kỹ sư Trưởng Đảm Bảo Chất Lượng Toàn Cục (Univers
 ---
 
 ## 🎯 1. Quy Trình Thực Thi
-- [x] **Kiểm thử Tự Động (Docker-First):** Đọc bảng `Reusable CLI Registry` trong `tech-stack.md` của dự án và chạy bộ test suite tương ứng (ví dụ: `python scripts/test_suite.py --all`). Mọi lệnh test BẮT BUỘC chạy trong Docker.
-- [x] **Code Review Khách Quan & Linter Guard:**
+- [x] **Kiểm thử Tự Động (Universal Test Matrix Runner & Docker-First):**
+  * Kích hoạt ma trận kiểm thử toàn diện đa tầng (Unit, Integration, Lint):
+    ```powershell
+    uv run python "D:\Thành\Agent\common\scripts\test_matrix_runner.py" "<duong_dan_repo>" --json
+    ```
+  * Hoặc chạy trực tiếp test suite nội bộ trong container Docker theo bảng `Reusable CLI Registry` trong `tech-stack.md`. Mọi lệnh test BẮT BUỘC chạy trong Docker.
+- [x] **Code Review Khách Quan, Linter Guard & Hiệu Năng DB:**
   * Chạy `linter_guard.py` để quét tự động lỗi cú pháp và secret leaks:
     ```powershell
     uv run python "D:\Thành\Agent\common\scripts\linter_guard.py" "<duong_dan_repo>" --json
     ```
+  * Chạy `db_query_profiler.py` khi có log truy vấn DB để đảm bảo không bị dính N+1 query.
   * Kiểm tra mã nguồn do Frontend/Backend viết xem có đạt tiêu chuẩn Clean Code (DRY, hàm ngắn, không hardcode, kiểm tra an toàn theo `lead-cyber-security`).
 - [x] **Tear-Down & Auto-Cleanup (Rule 11 Compliance):**
   * Dọn dẹp bản ghi rác vừa tạo ra trong DB sau khi chạy test E2E.

@@ -67,3 +67,13 @@ uv run python "D:\Thành\Agent\common\scripts\linter_guard.py" "<duong_dan_repo>
 ```
 - Nếu trả về `[STATUS: PASS]`: Đủ điều kiện tạo commit message.
 - Nếu trả về `[STATUS: FAIL]`: DỪNG NGAY, liệt kê các vi phạm (lỗi cú pháp, rò rỉ secret, hoặc ảnh chụp sai vị trí) và yêu cầu sửa trước khi commit.
+
+---
+
+## 📝 5. Tự Động Sinh Release Notes & Changelog (`release_notes_builder.py`)
+
+Khi User chuẩn bị release phiên bản mới hoặc cập nhật tài liệu phát hành:
+```powershell
+uv run python "D:\Thành\Agent\common\scripts\release_notes_builder.py" "<duong_dan_repo>" --tag "<version_tag>" --output "<duong_dan_repo>/CHANGELOG.md"
+```
+Gatekeeper tự động tổng hợp toàn bộ lịch sử commit theo chuẩn Conventional Commits (Features, Fixes, Perf, Refactor) thành tài liệu Changelog chuẩn quốc tế.

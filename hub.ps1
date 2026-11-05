@@ -1,0 +1,69 @@
+<#
+.SYNOPSIS
+    Antigravity Agent Hub Central CLI Launcher (hub.ps1)
+.DESCRIPTION
+    Quick-access launcher for all common hub operations, health checks,
+    linting, testing, and mock servers.
+#>
+
+param(
+    [Parameter(Position=0)]
+    [string]$Command = "help",
+
+    [Parameter(ValueFromRemainingArguments=$true)]
+    [string[]]$RemainingArgs
+)
+
+$ScriptDir = Split-Path -Parent $MyInvocation.MyCommand.Path
+
+switch ($Command.ToLower()) {
+    "status" {
+        uv run python "$ScriptDir\common\scripts\hub_status.py" @RemainingArgs
+    }
+    "doctor" {
+        uv run python "$ScriptDir\common\scripts\hub_doctor.py" @RemainingArgs
+    }
+    "clean" {
+        $target = if ($RemainingArgs.Count -gt 0) { $RemainingArgs[0] } else { "." }
+        $rest = if ($RemainingArgs.Count -gt 1) { $RemainingArgs[1..($RemainingArgs.Count - 1)] } else { @() }
+        uv run python "$ScriptDir\common\scripts\hub_cleaner.py" $target --clean @rest
+    }
+    "lint" {
+        uv run python "$ScriptDir\common\scripts\linter_guard.py" @RemainingArgs
+    }
+    "mock" {
+        uv run python "$ScriptDir\common\scripts\mock_server_launcher.py" @RemainingArgs
+    }
+    "db-profile" {
+        uv run python "$ScriptDir\common\scripts\db_query_profiler.py" @RemainingArgs
+    }
+    "test" {
+        uv run python "$ScriptDir\common\scripts\test_matrix_runner.py" @RemainingArgs
+    }
+    "changelog" {
+        uv run python "$ScriptDir\common\scripts\release_notes_builder.py" @RemainingArgs
+    }
+    "create" {
+        uv run python "$ScriptDir\common\scripts\create_project.py" @RemainingArgs
+    }
+    "validate" {
+        uv run python "$ScriptDir\common\scripts\validate_system.py" @RemainingArgs
+    }
+    default {
+        Write-Host "=================================================================" -ForegroundColor Cyan
+        Write-Host "  ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub.ps1)" -ForegroundColor Yellow
+        Write-Host "=================================================================" -ForegroundColor Cyan
+        Write-Host "  Các lệnh tiện ích nhanh:`n"
+        Write-Host "  .\hub.ps1 status          Xem bảng điều khiển tiến độ Git và checkpoint các dự án" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 doctor          Kiểm tra toàn diện Docker, ports, Git, token watchdog" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 clean [path]    Dọn dẹp tập tin rác, script test và ảnh thừa (Rule 11)" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 lint [path]     Kiểm tra cú pháp Python/JSON và quét lộ secret" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 mock [spec]     Khởi chạy Instant API Mock Server (CORS, CRUD, OpenAPI)" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 db-profile      Phân tích truy vấn chậm và mẫu truy vấn N+1" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 test [path]     Chạy đa tầng test matrix (Unit, Integration, Lint)" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 changelog       Tự động tạo Release Notes từ Git Conventional Commits" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 create          Khởi tạo 1-click nhóm agent cho dự án mới từ template" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 validate        Kiểm tra tính hợp lệ 100% của toàn bộ 25 skills và 7 dự án" -ForegroundColor Green
+        Write-Host "=================================================================" -ForegroundColor Cyan
+    }
+}

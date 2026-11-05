@@ -20,6 +20,9 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── hub_cleaner.py           # Dọn dẹp tự động scratch scripts & ảnh chụp màn hình Playwright
 │   │   ├── linter_guard.py          # Chốt chặn kiểm tra cú pháp, ruff/eslint & secret leak trước khi commit/test
 │   │   ├── mock_server_launcher.py  # Khởi chạy Instant API Mock Server từ OpenAPI spec (hỗ trợ CORS & CRUD)
+│   │   ├── db_query_profiler.py     # Phân tích truy vấn SQL chậm (>100ms) và phát hiện mẫu truy vấn lặp N+1
+│   │   ├── test_matrix_runner.py    # Điều phối ma trận kiểm thử đa tầng (Unit, Integration, Lint)
+│   │   ├── release_notes_builder.py # Tự động tạo Release Notes & cập nhật CHANGELOG.md từ Git Log
 │   │   ├── qa_report_builder.py     # Xuất báo cáo nghiệm thu Markdown kèm bằng chứng hình ảnh 1-click
 │   │   ├── dependency_patcher.py    # Quét & tự động nâng cấp phiên bản an toàn cho requirements/npm
 │   │   ├── env_guardian.py          # Kiểm toán .env vs .env.example & quét phát hiện rò rỉ secret
@@ -107,9 +110,30 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │       ├── rules/
 │       └── skills/
 │           └── pm-orchestrator/     # PM chuyên biệt kế thừa Universal Dev Squad
+├── hub.bat                          # Central CLI Launcher cho Windows CMD
+├── hub.ps1                          # Central CLI Launcher cho Windows PowerShell
 ├── skills.json                      # Đăng ký các nhóm skill active cho Antigravity
 └── README.md                        # Tài liệu tổng quan
 ```
+
+---
+
+## 🚀 Lệnh Nhanh Central CLI (`hub` / `hub.ps1`)
+
+Thay vì gõ các đường dẫn dài, User hoặc Agent có thể gọi nhanh từ thư mục gốc của Agent Hub:
+
+| Lệnh | Ý nghĩa | Script thực thi |
+| :--- | :--- | :--- |
+| `hub status` | Xem dashboard tiến độ Git & checkpoint tất cả dự án | `hub_status.py` |
+| `hub doctor` | Bác sĩ toàn diện kiểm toán Docker, ports, Git, token | `hub_doctor.py` |
+| `hub clean [path]` | Quét dọn script tạm và ảnh thừa (Rule 11) | `hub_cleaner.py` |
+| `hub lint [path]` | Kiểm tra cú pháp Python/JSON, quét secret leaks | `linter_guard.py` |
+| `hub mock [spec]` | Bật Instant API Mock Server với CORS & CRUD | `mock_server_launcher.py` |
+| `hub db-profile [log]` | Phân tích truy vấn SQL chậm và lỗi N+1 | `db_query_profiler.py` |
+| `hub test [path]` | Chạy đa tầng ma trận kiểm thử (Unit, Lint, Docker) | `test_matrix_runner.py` |
+| `hub changelog [repo]`| Tự động tạo Release Notes từ Conventional Commits | `release_notes_builder.py` |
+| `hub create` | Khởi tạo 1-click nhóm agent cho dự án mới | `create_project.py` |
+| `hub validate` | Kiểm tra tính toàn vẹn 100% của toàn bộ hệ thống | `validate_system.py` |
 
 ---
 

@@ -18,6 +18,8 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 | :--- | :--- | :--- | :--- |
 | **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS, bệnh án** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` |
 | **Khảo sát repo mới, tạo tech-stack.md, phân rã yêu cầu, User Story, đồng bộ ngữ cảnh** | Universal BA & Context | `lead-ba` | `common/skills/lead-ba/SKILL.md` |
+| **Tổng quan dự án, tiến độ các dự án, danh mục portfolio, kiểm tra branch git** | Portfolio Dashboard | `hub_status.py` | `common/scripts/hub_status.py` |
+| **Khám sức khỏe hệ thống, kiểm tra docker, port, token budget, hub doctor** | Unified System Doctor | `hub_doctor.py` | `common/scripts/hub_doctor.py` |
 | **Tạo dự án mới, onboard repo mới, nhân bản template** | Auto-Onboarding Engine | `create_project.py` | `common/scripts/create_project.py` |
 | **Phát triển phần mềm chung (Fullstack, Web App, API, Frontend, Backend, UI/UX)** | Universal Dev Squad | `lead-architect` / `lead-backend` / `lead-frontend` | `common/skills/lead-architect/SKILL.md` |
 | **Kiểm tra bảo mật, lỗ hổng OWASP, scan secret/env, audit thư viện** | Cyber Security | `lead-cyber-security` | `common/skills/lead-cyber-security/SKILL.md` |

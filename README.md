@@ -15,7 +15,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới (1-Click & Manual)
 │   │   └── architecture-blueprints.md # Kho lưu trữ thiết kế kiến trúc (Multi-agent to Excel, ...)
 │   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống
-│   │   ├── create_project.py        # Khởi tạo dự án mới 1-click (Auto-scan, Setup PM, Register skills)
+│   │   ├── hub_status.py            # Bảng điều khiển tiến độ, branch Git và checkpoint mọi dự án
+│   │   ├── hub_doctor.py            # Bác sĩ toàn diện kiểm toán Docker, Git, Ports, Token budget
+│   │   ├── git_safe_snapshot.py     # Tạo snapshot & tự động hoàn nguyên (rollback) an toàn mã nguồn
+│   │   ├── create_project.py        # Khởi tạo dự án mới 1-click (Auto-scan, Setup PM, Test scaffold)
 │   │   ├── scan_repo_techstack.py   # Khảo sát codebase, Docker, dependencies & sinh tech-stack.md
 │   │   ├── docker_doctor.py         # Kiểm toán Docker, phát hiện & giải phóng cổng 80/8000/3000...
 │   │   ├── peek_data.py             # Peek 3 dòng mẫu dữ liệu lớn, tiết kiệm 99% token

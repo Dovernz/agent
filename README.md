@@ -15,6 +15,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── project-onboarding.md    # Hướng dẫn tạo nhóm agent cho dự án mới
 │   │   └── architecture-blueprints.md # Kho lưu trữ thiết kế kiến trúc (Multi-agent to Excel, ...)
 │   ├── scripts/                     # ♻️ Thư viện Script dùng chung toàn hệ thống
+│   │   ├── scan_repo_techstack.py   # Khảo sát codebase, Docker, dependencies & sinh tech-stack.md
 │   │   ├── docker_doctor.py         # Kiểm toán Docker, phát hiện & giải phóng cổng 80/8000/3000...
 │   │   ├── peek_data.py             # Peek 3 dòng mẫu dữ liệu lớn, tiết kiệm 99% token
 │   │   └── validate_system.py       # Kiểm tra tính toàn vẹn 100% của toàn bộ hệ thống Agent
@@ -22,6 +23,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   └── web-search-interactive/  # MCP Server Dual-Engine (Fast HTTP + Playwright Browser)
 │   └── skills/
 │       ├── master-secretary/        # Thư ký Toàn quyền điều phối tự động sang các dự án
+│       ├── lead-ba/                 # Universal: Chuyên gia Phân tích Nghiệp vụ, Tech Stack & Living Doc
 │       ├── web-search-interactive/  # Kỹ năng tìm kiếm và tự động hóa trình duyệt toàn cục
 │       ├── lead-architect/          # Universal: Kiến trúc sư trưởng thiết kế hệ thống & OpenAPI Spec
 │       ├── lead-frontend/           # Universal: Trưởng nhóm Frontend UI/UX Mobile-First
@@ -125,9 +127,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## 🌐 Đội Ngũ Dev & Bảo Mật Toàn Cục (Universal Squad in `common/skills/`)
+## 🌐 Đội Ngũ Dev, Nghiệp Vụ & Bảo Mật Toàn Cục (Universal Squad in `common/skills/`)
 
 Được thiết kế theo kiến trúc tái sử dụng triệt để, không còn phụ thuộc cứng vào bất kỳ dự án đơn lẻ nào:
+- **`lead-ba`**: Chuyên gia Phân tích Nghiệp vụ & Quản trị Ngữ cảnh Toàn cục (Universal BA & Living Doc). Tự động quét repo sinh `tech-stack.md`, bóc tách User Stories & Acceptance Criteria, đồng bộ tài liệu sống sau mỗi chu kỳ chạy.
 - **`lead-architect`**: Đọc `tech-stack.md` của bất kỳ dự án nào để thiết kế DB Schema, API Specification (OpenAPI 3.0), System Architecture.
 - **`lead-frontend`**: Thiết kế giao diện Mobile-First, tạo API Client từ OpenAPI spec, linter & format trong Docker.
 - **`lead-backend`**: Thiết kế REST/GraphQL APIs, xử lý DB Migrations & Seeding an toàn, thiết lập CORS & Auth trong Docker.

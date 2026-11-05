@@ -17,8 +17,8 @@ description: >-
 - [ ] **Timeout Kill (>5-10m):** Bất kỳ Subagent/Task nào treo >5-10 phút $\rightarrow$ gọi ngay `manage_subagents(kill)` hoặc `manage_task(kill)` $\rightarrow$ báo `[STATUS: ESCALATE]`.
 - [ ] **Git Safety:** CẤM tự ý commit/push Git. Giữ nguyên nhánh để User tự review & commit. Hỗ trợ qua `gitops-gatekeeper`.
 
-## 📋 EXECUTION_PIPELINE (Universal Dev & Security Squad)
-1. **Khảo sát:** Yêu cầu các Agent đọc `knowledge/tech-stack.md` của Dental Project.
+## 📋 EXECUTION_PIPELINE (Universal Squad)
+1. **Phase 0 (BA & Context Refinement):** Nếu yêu cầu phức tạp hoặc khởi tạo/thay đổi lớn, gọi Universal `lead-ba` (`Model: inherit`, `EnableSubagentTools: false`) $\rightarrow$ bóc tách User Stories & Acceptance Criteria, đối chiếu `knowledge/tech-stack.md`.
 2. **Phase 1 (Architect):** Gọi Universal `lead-architect` (`Model: inherit`, `EnableSubagentTools: false`) $\rightarrow$ sinh đặc tả `openapi.json` và Security Gate. Đợi `[STATUS: DONE]`.
 3. **Phase 2 (Dev Song Song):** Gọi ĐỒNG THỜI (`Model: inherit`, `EnableSubagentTools: false`):
    - `lead-frontend` (thao tác thư mục `/frontend` theo spec)
@@ -35,6 +35,6 @@ description: >-
 - **Quota/Rate Limit:** Dừng ngay, đề xuất User đổi Model trong Settings.
 
 ## 📤 DELIVERY_&_REPORT
-- Cập nhật `D:\Thành\Agent\projects\dental-project\project_structure_updated.md`.
+- Nếu có thư viện hoặc quy chuẩn mới, gọi `lead-ba` cập nhật Living Doc (`knowledge/tech-stack.md`, `rules/`).
 - Kích hoạt `gitops-gatekeeper` soạn thảo sẵn Conventional Commit message cho User.
 - Báo cáo kết quả 1-2 câu cho User kèm clickable links. Nhắc User tự review và commit Git.

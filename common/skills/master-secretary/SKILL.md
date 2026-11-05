@@ -17,6 +17,7 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 | Từ khóa / Lĩnh vực nhận diện | Nhóm Dự Án Đích | PM / Agent Tiếp Nhận | Kỹ Năng / File Thực Thi |
 | :--- | :--- | :--- | :--- |
 | **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS, bệnh án** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` |
+| **Khảo sát repo mới, tạo tech-stack.md, phân rã yêu cầu, User Story, đồng bộ ngữ cảnh** | Universal BA & Context | `lead-ba` | `common/skills/lead-ba/SKILL.md` |
 | **Phát triển phần mềm chung (Fullstack, Web App, API, Frontend, Backend, UI/UX)** | Universal Dev Squad | `lead-architect` / `lead-backend` / `lead-frontend` | `common/skills/lead-architect/SKILL.md` |
 | **Kiểm tra bảo mật, lỗ hổng OWASP, scan secret/env, audit thư viện** | Cyber Security | `lead-cyber-security` | `common/skills/lead-cyber-security/SKILL.md` |
 | **Kiểm tra git, review commit an toàn, soạn conventional commit message** | GitOps & Release | `gitops-gatekeeper` | `common/skills/gitops-gatekeeper/SKILL.md` |

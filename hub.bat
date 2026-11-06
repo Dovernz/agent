@@ -8,6 +8,7 @@ if "%1"=="" goto help
 if "%1"=="help" goto help
 if "%1"=="status" goto status
 if "%1"=="doctor" goto doctor
+if "%1"=="smoke" goto smoke
 if "%1"=="clean" goto clean
 if "%1"=="lint" goto lint
 if "%1"=="mock" goto mock
@@ -36,6 +37,11 @@ exit /b %ERRORLEVEL%
 :doctor
 shift
 uv run python "%SCRIPT_DIR%common\scripts\hub_doctor.py" %*
+exit /b %ERRORLEVEL%
+
+:smoke
+shift
+uv run python "%SCRIPT_DIR%common\scripts\smoke_test_runner.py" %*
 exit /b %ERRORLEVEL%
 
 :clean
@@ -126,6 +132,7 @@ echo   Cac lenh tien ich nhanh:
 echo.
 echo   hub status          Xem bang dieu khien tien do Git va checkpoint cac du an
 echo   hub doctor          Kiem tra toan dien Docker, ports, Git, token watchdog
+echo   hub smoke           Kiem tra tuc thi (0.5s) HTTP/TCP endpoints cac dich vu va containers
 echo   hub clean [path]    Don dep tap tin rac, script test va anh thua (Rule 11)
 echo   hub lint [path]     Kiem tra cu phap Python/JSON va quet lo secret
 echo   hub mock [spec]     Khoi chay Instant API Mock Server (CORS, CRUD, OpenAPI)

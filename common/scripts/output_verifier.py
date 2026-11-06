@@ -152,6 +152,84 @@ def verify_sql(content: str, file_path: Path) -> Tuple[bool, int, List[str]]:
     return (score >= 70, max(0, score), issues)
 
 
+def verify_yaml(content: str, file_path: Path) -> Tuple[bool, int, List[str]]:
+    """Thẩm định cấu trúc và cú pháp của tệp cấu hình YAML (Docker Compose, CI/CD, Airflow)."""
+    issues = []
+    score = 100
+
+    # 1. Kiểm tra cấm dùng Tab (Quy chuẩn nghiêm ngặt của YAML)
+    for idx, line in enumerate(content.splitlines(), 1):
+        if "\t" in line:
+            issues.append(f"[YAML LỖI CÚ PHÁP] Phát hiện ký tự Tab (\\t) tại dòng {idx}. YAML bắt buộc dùng dấu cách (Spaces)")
+            score -= 25
+            break
+
+    # 2. Thử parse bằng thư viện yaml nếu có
+    try:
+        import yaml
+        try:
+            yaml.safe_load(content)
+        except Exception as e:
+            issues.append(f"[YAML PARSE ERROR] {e}")
+            score -= 40
+    except ImportError:
+        # Kiểm tra ngoặc vuông, ngoặc nhọn cân bằng
+        if content.count("{") != content.count("}"):
+            issues.append("[YAML LỖI CÚ PHÁP] Dấu ngoặc nhọn '{' và '}' không cân bằng")
+            score -= 20
+        if content.count("[") != content.count("]"):
+            issues.append("[YAML LỖI CÚ PHÁP] Dấu ngoặc vuông '[' và ']' không cân bằng")
+            score -= 20
+
+    if len(content.strip()) < 10:
+        issues.append("[YAML RỖNG] Tệp cấu hình quá ngắn")
+        score -= 50
+
+    return (score >= 70, max(0, score), issues)
+
+
+def verify_dockerfile(content: str, file_path: Path) -> Tuple[bool, int, List[str]]:
+    """Thẩm định tính hợp lệ của tệp Dockerfile."""
+    issues = []
+    score = 100
+
+    valid_instructions = {
+        "FROM", "RUN", "CMD", "LABEL", "MAINTAINER", "EXPOSE", "ENV",
+        "ADD", "COPY", "ENTRYPOINT", "VOLUME", "USER", "WORKDIR",
+        "ARG", "ONBUILD", "STOPSIGNAL", "HEALTHCHECK", "SHELL"
+    }
+
+    first_instruction = None
+    lines = content.splitlines()
+
+    for idx, line in enumerate(lines, 1):
+        line_clean = line.strip()
+        if not line_clean or line_clean.startswith("#"):
+            continue
+
+        parts = line_clean.split(None, 1)
+        inst = parts[0].upper()
+
+        if first_instruction is None:
+            first_instruction = inst
+            if inst not in ("FROM", "ARG"):
+                issues.append(f"[DOCKERFILE LỖI] Chỉ thị đầu tiên phải là FROM hoặc ARG (hiện tại: {inst} tại dòng {idx})")
+                score -= 30
+
+        if inst not in valid_instructions:
+            # Kiểm tra xem có phải continuation line không
+            prev_line = lines[idx - 2].strip() if idx > 1 else ""
+            if not prev_line.endswith("\\"):
+                issues.append(f"[DOCKERFILE LỖI CÚ PHÁP] Chỉ thị không hợp lệ '{inst}' tại dòng {idx}")
+                score -= 20
+
+    if first_instruction is None:
+        issues.append("[DOCKERFILE RỖNG] Tệp không chứa bất kỳ chỉ thị Docker nào")
+        score -= 60
+
+    return (score >= 70, max(0, score), issues)
+
+
 def verify_file(target_path: str) -> Dict:
     """Thẩm định tự động một tệp bất kỳ theo phần mở rộng."""
     f_path = Path(target_path).resolve()
@@ -177,10 +255,16 @@ def verify_file(target_path: str) -> Dict:
         }
 
     ext = f_path.suffix.lower()
+    fname = f_path.name.lower()
+
     if ext == ".py":
         passed, score, issues = verify_python(content, f_path)
     elif ext == ".json":
         passed, score, issues = verify_json(content, f_path)
+    elif ext in [".yaml", ".yml"]:
+        passed, score, issues = verify_yaml(content, f_path)
+    elif "dockerfile" in fname:
+        passed, score, issues = verify_dockerfile(content, f_path)
     elif ext in [".md", ".markdown", ".txt"]:
         passed, score, issues = verify_markdown(content, f_path)
     elif ext == ".sql":

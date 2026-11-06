@@ -15,6 +15,7 @@ Khi nhận prompt từ người dùng, phân tích từ khóa và mục tiêu đ
 
 | Từ khóa / Lĩnh vực nhận diện | Nhóm Dự Án Đích | PM / Agent Tiếp Nhận | Kỹ Năng / File Thực Thi |
 | :--- | :--- | :--- | :--- |
+| **Dự án chung, điều phối tổng thể Universal Squad, quản lý vòng đời phát triển** | Universal Project Manager | `lead-pm` | `common/skills/lead-pm/SKILL.md` |
 | **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS, bệnh án** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` |
 | **Khảo sát repo mới, tạo tech-stack.md, phân rã yêu cầu, User Story, đồng bộ ngữ cảnh** | Universal BA & Context | `lead-ba` | `common/skills/lead-ba/SKILL.md` |
 | **Tổng quan dự án, tiến độ các dự án, danh mục portfolio, kiểm tra branch git** | Portfolio Dashboard | `hub_status.py` | `common/scripts/hub_status.py` |

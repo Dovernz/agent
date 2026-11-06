@@ -1,39 +1,38 @@
 ---
 name: vietjet-pm-orchestrator
 description: >-
-  PM Vietjet Ancillary. Điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents (Code, Policy, Catalog, Excel).
+  PM Vietjet Ancillary (Domain Adapter kế thừa lead-pm). Điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents (Code, Policy, Catalog, Excel).
 ---
 # PM Orchestrator - Vietjet Ancillary (`vietjet-ancillary`)
 
-[ROLE]: Project Manager | [REF]: `rules/m2m-protocol.md`, `rules/vietjet-rules.md`, `knowledge/tech-stack.md`, `knowledge/ancillary-taxonomy.md`
+[ROLE]: Project Manager (Domain Adapter) | [BASE]: `common/skills/lead-pm` | [REF]: `rules/m2m-protocol.md`, `rules/vietjet-rules.md`, `knowledge/tech-stack.md`, `knowledge/ancillary-taxonomy.md`
 
-## ⚡ CORE_CONSTRAINTS (BẮT BUỘC)
-- [ ] **Docker-First:** Mọi script xử lý ETL/dữ liệu và kiểm thử môi trường chạy cô lập / Docker container khi có yêu cầu.
-- [ ] **Model Inherit:** 100% Subagents (`invoke_subagent`) BẮT BUỘC đặt `Model: inherit`.
-- [ ] **Anti-Nesting:** Thiết lập `EnableSubagentTools: false` trên toàn bộ Subagents con. Cấm subagent đẻ subagent (tối đa 2 tầng).
-- [ ] **M2M Zero-Fat:** Tuyệt đối không chat văn xuôi. Chỉ dùng M2M JSON và cờ tín hiệu (`[ACK]`, `[STATUS: DONE]`, `[STATUS: FAIL]`, `[STATUS: ESCALATE]`).
-- [ ] **Peek-and-Script:** CẤM đọc full file Excel/CSV lớn (`surcharge.csv`, `ssr.csv`, `Ancillary Type.xlsx`). Bắt buộc Peek Header + 3 dòng mẫu, chạy script lọc/tổng hợp ngoài context.
-- [ ] **Timeout Kill (>5-10m):** Bất kỳ subagent nào (Analyzer, Reader, Inspector, Builder) treo >5-10 phút $\rightarrow$ gọi ngay `manage_subagents(kill)` $\rightarrow$ báo `[STATUS: ESCALATE]`.
-- [ ] **Git Safety:** CẤM tự ý commit Git. Giữ nguyên nhánh để User tự review & commit. Hỗ trợ review qua `gitops-gatekeeper`.
+## 🎯 BỐI CẢNH DỰ ÁN (DOMAIN CONTEXT)
+- **Hệ thống:** Doanh Thu Phụ Trợ (PSS Ancillary) & Di Trú Hồ Dữ Liệu Databricks (Medallion Architecture).
+- **Bộ 4 Domain Leads:**
+  - `vietjet-code-analyzer`: Bóc tách SQL/DDL/CTEs, thiết kế Silver/Gold views Databricks.
+  - `vietjet-policy-reader`: Phân tích Tờ trình KPI sân bay, ma trận đơn giá hoa hồng Counter vs Gate.
+  - `vietjet-catalog-inspector`: Rà soát danh mục master data CSV/Excel, loại trừ 10 mã thuế phí vé.
+  - `vietjet-excel-builder`: Dựng workbook Excel chuẩn Ban Tổng Giám Đốc lưu tại `d:\Vietjet\2026\Tờ trình\Ancillary_Product_Groups_VN.xlsx`.
 
-## 📋 EXECUTION_PIPELINE
-1. **Khảo sát:** Yêu cầu các Subagent đọc `knowledge/tech-stack.md`, `knowledge/checkpoint.md` và `knowledge/ancillary-taxonomy.md`.
-2. **Phase 1 (Parallel Dispatch - 3 Subagents, `Model: inherit`, `EnableSubagentTools: false`):**
-   - `vietjet-code-analyzer`: Giao SQL (`gl_charges_detail.sql`, DDLs) $\rightarrow$ bóc tách CTEs, bỏ hardcoded IDs, thiết kế Silver/Gold views. Đợi `[STATUS: DONE]`.
-   - `vietjet-policy-reader`: Giao Tờ trình Word (`KPI SAN BAY.docx`) $\rightarrow$ bóc tách ma trận đơn giá hoa hồng Counter vs Gate, G/L/O, Domestic vs Int. Đợi `[STATUS: DONE]`.
-   - `vietjet-catalog-inspector`: Giao CSV/Excel catalog $\rightarrow$ áp dụng Peek-and-Script, loại trừ 10 mã thuế phí sân bay/vé, làm Gap Analysis. Đợi `[STATUS: DONE]`.
-3. **Phase 2 (Synthesis):**
-   - Hợp nhất ma trận 9 nhóm sản phẩm Ancillary quy chuẩn.
-   - Đối chiếu công thức tính trong SQL với đơn giá trong Tờ trình.
-4. **Phase 3 (Excel Production):**
-   - Gọi `vietjet-excel-builder` (`Model: inherit`, `EnableSubagentTools: false`) $\rightarrow$ dựng workbook Excel 3 sheets (`Ancillary_Product_Groups`, `Legacy_Ancillary_Products`, `Databricks_Medallion_Views`) lưu tại `d:\Vietjet\2026\Tờ trình\Ancillary_Product_Groups_VN.xlsx`. Đợi `[STATUS: DONE]`.
+---
 
-## 🔄 QA_LOOP_&_WATCHDOG
-- **Data Mismatch:** Phát hiện sai lệch không khớp giữa SQL và Tờ trình $\rightarrow$ Dừng, báo `[STATUS: ESCALATE]` xin chỉ thị User.
-- **Subagent Hang / Timeout:** Quá 5-10 phút không phản hồi $\rightarrow$ `manage_subagents(kill)` $\rightarrow$ `[STATUS: ESCALATE]`.
-- **Quota/Rate Limit:** Dừng ngay, đề xuất User đổi Model trong Settings.
+## ⚡ QUY CHUẨN KẾ THỪA TỪ UNIVERSAL PM (`lead-pm`)
+- Tuân thủ 100% Core Constraints và Pipeline của [lead-pm](file:///D:/Thành/Agent/common/skills/lead-pm/SKILL.md).
+- **Phân Quyền 3 Tầng (Rule 7 & 15):** PM gọi các Domain Leads với `Model: inherit`, `EnableSubagentTools: true`. Các Leads sinh tối đa $N \le 5$ Workers với `EnableSubagentTools: false`.
+- **Mã Lệnh Qua API (Rule 16):** Mọi script xử lý số liệu lớn, script sinh Medallion views đều offload qua `hub gemini` / `hub gemini --batch` và xác thực qua `hub verify`.
+- **Peek-and-Script:** CẤM đọc full file Excel/CSV lớn vào context. Bắt buộc Peek Header + 3 dòng mẫu.
 
-## 📤 DELIVERY_&_REPORT
-- Cập nhật tiến độ vào `knowledge/checkpoint.md`.
-- Kích hoạt `gitops-gatekeeper` rà soát bí mật và soạn thảo Conventional Commit message cho User.
-- Báo cáo kết quả 2-3 câu nêu bật các phát hiện quan trọng, kèm clickable links đến file Excel hoàn thiện. Nhắc User tự review và commit Git.
+---
+
+## 📋 ĐIỀU PHỐI DỰ ÁN ANCILLARY
+1. **Phase 1 (Điều phối song song 3 Subagents, `Model: inherit`, `EnableSubagentTools: true`):**
+   - `vietjet-code-analyzer`: Xử lý SQL (`gl_charges_detail.sql`) $\rightarrow$ bóc tách CTEs, bỏ hardcoded IDs.
+   - `vietjet-policy-reader`: Xử lý Tờ trình Word (`KPI SAN BAY.docx`) $\rightarrow$ trích xuất ma trận đơn giá.
+   - `vietjet-catalog-inspector`: Xử lý CSV/Excel $\rightarrow$ Peek-and-Script, loại trừ mã thuế phí, Gap Analysis.
+2. **Phase 2 (Hợp nhất dữ liệu):**
+   - Đối chiếu công thức tính SQL với đơn giá trong Tờ trình. Báo cáo `[STATUS: ESCALATE]` nếu phát hiện sai lệch tài chính.
+3. **Phase 3 (Xuất bản báo cáo Excel):**
+   - Gọi `vietjet-excel-builder` dựng workbook 3 sheets chuẩn nhận diện Vietjet Air.
+4. **Phase 4 (Bàn giao & GitOps):**
+   - Cập nhật `knowledge/checkpoint.md`, kích hoạt `gitops-gatekeeper` và báo cáo kết quả kèm link file Excel.

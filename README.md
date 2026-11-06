@@ -14,6 +14,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── scripts/                          # Bộ công cụ CLI dùng chung (hub, verify, gemini, fanout...)
 │   └── skills/                           # 🌐 BIỆT ĐỘI KỸ SƯ TOÀN CỤC (UNIVERSAL SQUAD)
 │       ├── master-secretary/             # Thư ký Toàn quyền điều phối dự án (Global Router)
+│       ├── lead-pm/                      # Universal PM Orchestrator điều phối vòng đời Phase 0-4
 │       ├── lead-ba/                      # Universal BA (Khảo sát repo, User Stories & AC)
 │       ├── lead-architect/               # Universal Architect (Thiết kế DB Schema & OpenAPI)
 │       ├── lead-backend/                 # Universal Backend Lead (API, DB Migration, Query Profiler)
@@ -62,37 +63,38 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │           └── pm-orchestrator/          # PM mẫu kế thừa Universal Squad cho dự án mới
 ├── hub.bat                               # Central CLI Launcher cho Windows CMD
 ├── hub.ps1                               # Central CLI Launcher cho Windows PowerShell
-├── skills.json                           # Registry đăng ký 22 kỹ năng với Antigravity
+├── skills.json                           # Registry đăng ký 23 kỹ năng với Antigravity
 └── README.md
 ```
 
 ---
 
-## 📋 Bảng Danh Mục Toàn Bộ 21 Agent Theo Chuyên Môn
+## 📋 Bảng Danh Mục Toàn Bộ 22 Agent Theo Chuyên Môn
 
 | STT | Tên Agent (Skill Identifier) | Vị Trí / Nhóm | Vai Trò & Chuyên Môn Cốt Lõi |
 | :---: | :--- | :--- | :--- |
 | **1** | `master-secretary` | Universal Squad | Thư ký điều phối trung ương, định tuyến thông minh giữa các dự án |
-| **2** | `lead-ba` | Universal Squad | Khảo sát mã nguồn, sinh `tech-stack.md`, bóc tách User Stories & AC |
-| **3** | `lead-architect` | Universal Squad | Thiết kế kiến trúc hệ thống, DB Schema, chuẩn hóa OpenAPI / Schemas |
-| **4** | `lead-backend` | Universal Squad | Lập trình API REST/GraphQL, DB Migration, chống N+1 query trong Docker |
-| **5** | `lead-frontend` | Universal Squad | Thiết kế UI/UX Mobile-First, tự sinh API client, chạy Mock Server |
-| **6** | `lead-qa` | Universal Squad | Chạy ma trận kiểm thử E2E/Unit trong Docker, code review, linter |
-| **7** | `lead-cyber-security` | Universal Squad | Rà soát OWASP Top 10, quét lọt lộ Secret/API keys, audit phụ thuộc |
-| **8** | `gitops-gatekeeper` | Universal Squad | Gác cổng Git, rà soát diff, soạn Conventional Commit chuẩn mực |
-| **9** | `dental-pm-orchestrator` | Minh Sinh Dental | PM điều phối phòng khám nha khoa (Django / React / Docker) |
-| **10** | `pc-builder` | PC Hardware | Chuyên gia tư vấn cấu hình PC, kiểm tra tương thích và so sánh giá VN |
-| **11** | `vj-pm-orchestrator` | Vietjet Airflow | PM hạ tầng dữ liệu và Airflow Pipelines (kết nối Universal Squad) |
-| **12** | `vietjet-pm-orchestrator`| Vietjet Ancillary | PM điều phối phân tích dữ liệu phụ trợ và di trú Databricks |
-| **13** | `code-analyzer` | Vietjet Ancillary | Bóc tách Stored Procedures Oracle sang Databricks PySpark Medallion |
-| **14** | `policy-reader` | Vietjet Ancillary | Đọc hiểu Tờ trình KPI hoa hồng sân bay (Counter vs Gate) |
-| **15** | `catalog-inspector` | Vietjet Ancillary | Đối chiếu Master Data danh mục phụ trợ (suất ăn, hành lý, chọn ghế) |
-| **16** | `excel-builder` | Vietjet Ancillary | Xuất báo cáo tài chính Excel 2 tầng header chuẩn nhận diện Vietjet |
-| **17** | `vietjet-brd-architect` | Vietjet BRD | Tự động hóa soạn thảo tài liệu Word BRD chuẩn nhận diện Vietjet Air |
-| **18** | `supervisor-orchestrator`| Agent Supervisor | Chánh thanh tra điều phối Post-Run Audit, chấm điểm hiệu năng |
-| **19** | `token-cost-profiler` | Agent Supervisor | Đo lường chi tiết Input/Output/Thinking tokens qua transcript log |
-| **20** | `performance-evaluator` | Agent Supervisor | Đo đạc độ trễ, tỷ lệ lỗi công cụ và số chu kỳ QA loop |
-| **21** | `skill-meta-optimizer` | Agent Supervisor | Tối ưu hóa prompt, nén token và thu hoạch reusable scripts |
+| **2** | `lead-pm` | Universal Squad | Universal PM Orchestrator điều phối toàn diện vòng đời phát triển Phase 0-4 |
+| **3** | `lead-ba` | Universal Squad | Khảo sát mã nguồn, sinh `tech-stack.md`, bóc tách User Stories & AC |
+| **4** | `lead-architect` | Universal Squad | Thiết kế kiến trúc hệ thống, DB Schema, chuẩn hóa OpenAPI / Schemas |
+| **5** | `lead-backend` | Universal Squad | Lập trình API REST/GraphQL, DB Migration, chống N+1 query trong Docker |
+| **6** | `lead-frontend` | Universal Squad | Thiết kế UI/UX Mobile-First, tự sinh API client, chạy Mock Server |
+| **7** | `lead-qa` | Universal Squad | Chạy ma trận kiểm thử E2E/Unit trong Docker, code review, linter |
+| **8** | `lead-cyber-security` | Universal Squad | Rà soát OWASP Top 10, quét lọt lộ Secret/API keys, audit phụ thuộc |
+| **9** | `gitops-gatekeeper` | Universal Squad | Gác cổng Git, rà soát diff, soạn Conventional Commit chuẩn mực |
+| **10** | `dental-pm-orchestrator` | Minh Sinh Dental | PM điều phối nha khoa (Domain Adapter kế thừa `lead-pm`, kết nối Universal Squad) |
+| **11** | `pc-builder` | PC Hardware | Chuyên gia tư vấn cấu hình PC, kiểm tra tương thích và so sánh giá VN |
+| **12** | `vj-pm-orchestrator` | Vietjet Airflow | PM hạ tầng dữ liệu và Airflow Pipelines (Domain Adapter kế thừa `lead-pm`) |
+| **13** | `vietjet-pm-orchestrator`| Vietjet Ancillary | PM điều phối Ancillary & Databricks (Domain Adapter kế thừa `lead-pm`) |
+| **14** | `code-analyzer` | Vietjet Ancillary | Bóc tách Stored Procedures Oracle sang Databricks PySpark Medallion |
+| **15** | `policy-reader` | Vietjet Ancillary | Đọc hiểu Tờ trình KPI hoa hồng sân bay (Counter vs Gate) |
+| **16** | `catalog-inspector` | Vietjet Ancillary | Đối chiếu Master Data danh mục phụ trợ (suất ăn, hành lý, chọn ghế) |
+| **17** | `excel-builder` | Vietjet Ancillary | Xuất báo cáo tài chính Excel 2 tầng header chuẩn nhận diện Vietjet |
+| **18** | `vietjet-brd-architect` | Vietjet BRD | Tự động hóa soạn thảo tài liệu Word BRD chuẩn nhận diện Vietjet Air |
+| **19** | `supervisor-orchestrator`| Agent Supervisor | Chánh thanh tra điều phối Post-Run Audit, chấm điểm hiệu năng |
+| **20** | `token-cost-profiler` | Agent Supervisor | Đo lường chi tiết Input/Output/Thinking tokens qua transcript log |
+| **21** | `performance-evaluator` | Agent Supervisor | Đo đạc độ trễ, tỷ lệ lỗi công cụ và số chu kỳ QA loop |
+| **22** | `skill-meta-optimizer` | Agent Supervisor | Tối ưu hóa prompt, nén token và thu hoạch reusable scripts |
 | *Tool*| `web-search-interactive`| Global Utility | Tìm kiếm Google Realtime & tự động hóa trình duyệt tương tác |
 
 ---
@@ -103,9 +105,10 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 | :--- | :--- | :--- |
 | `hub status` | Xem dashboard tiến độ Git & checkpoint tất cả dự án | `hub_status.py` |
 | `hub doctor` | Bác sĩ kiểm toán Docker, ports, Git, token watchdog | `hub_doctor.py` |
-| `hub gemini` | Chạy tác vụ nặng qua Gemini API ngoài (0đ, 7 keys pool) | `gemini_offloader.py` |
+| `hub smoke` | Kiểm tra tức thì (0.5s) HTTP/TCP endpoints toàn bộ dịch vụ & containers | `smoke_test_runner.py` |
+| `hub gemini` | Chạy tác vụ nặng qua Gemini API ngoài (0đ, 7 keys pool, `--batch` đa luồng) | `gemini_offloader.py` |
 | `hub usage` | Bảng điều khiển & theo dõi hạn mức quota 7 keys và từng model | `gemini_offloader.py` |
-| `hub verify [file]` | Cổng kiểm định chất lượng, cú pháp AST & bảo mật code | `output_verifier.py` |
+| `hub verify [file]` | Cổng kiểm định chất lượng, cú pháp AST, YAML, Dockerfile & bảo mật code | `output_verifier.py` |
 | `hub fanout [args]` | Lập kế hoạch phân rã N sub-agent & tầng API theo độ phức tạp | `task_fanout_planner.py` |
 | `hub clean [path]` | Quét dọn script tạm và ảnh rác Playwright (Rule 11) | `hub_cleaner.py` |
 | `hub lint [path]` | Kiểm tra cú pháp Python/JSON, quét lộ secret keys | `linter_guard.py` |

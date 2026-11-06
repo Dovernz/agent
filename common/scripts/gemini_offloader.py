@@ -28,6 +28,7 @@ import hashlib
 import argparse
 import urllib.request
 import urllib.error
+import concurrent.futures
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
 
@@ -48,17 +49,17 @@ MODEL_TIERS = {
     },
     "standard": {
         "primary": "gemini-3.6-flash",
-        "fallbacks": ["gemini-3.8-flash", "gemini-3.5-flash-lite"],
+        "fallbacks": ["gemini-3.5-flash", "gemini-3.5-flash-lite"],
         "desc": "Tác vụ tiêu chuẩn (Sinh code API, viết serializers, components UI) [20 RPD/project]"
     },
     "deep": {
         "primary": "gemini-3.8-flash",
-        "fallbacks": ["gemini-3.6-flash"],
+        "fallbacks": ["gemini-3.6-flash", "gemini-3.5-flash"],
         "desc": "Suy luận sâu & Kiến trúc (Tối ưu query phức tạp, phân tích DDL, RBAC) [20 RPD/project]"
     },
     "ultra": {
         "primary": "gemma-4-26b-a4b-it",
-        "fallbacks": ["gemma-4-31b-it", "gemini-3.5-flash-lite"],
+        "fallbacks": ["gemini-3.5-flash-lite"],
         "desc": "Tần suất cực cao (Xử lý regex, phân loại văn bản, mapping cột bảng) [14,400 RPD/project]"
     }
 }
@@ -310,7 +311,8 @@ def call_gemini_with_failover(
     explicit_model: Optional[str] = None,
     system_instruction: Optional[str] = None,
     temperature: float = 0.2,
-    use_cache: bool = True
+    use_cache: bool = True,
+    timeout: int = 45
 ) -> Dict:
     keys = load_keys_from_env()
     if not keys:
@@ -378,6 +380,7 @@ def call_gemini_with_failover(
         payload = {
             "contents": [
                 {
+                    "role": "user",
                     "parts": [{"text": full_prompt}]
                 }
             ],
@@ -404,7 +407,7 @@ def call_gemini_with_failover(
 
             try:
                 start_time = time.time()
-                with urllib.request.urlopen(req, timeout=90) as resp:
+                with urllib.request.urlopen(req, timeout=timeout) as resp:
                     resp_body = resp.read().decode("utf-8")
                     duration = time.time() - start_time
                     res_json = json.loads(resp_body)
@@ -497,6 +500,13 @@ def call_gemini_with_failover(
                     break
                 else:
                     continue
+            except (urllib.error.URLError, TimeoutError) as e:
+                if "timed out" in str(e).lower() or isinstance(e, TimeoutError):
+                    print(f"[WARN] ⏱️ Model '{current_model}' phản hồi quá lâu (> {timeout}s). Chuyển sang fallback model kế tiếp...")
+                    last_error = f"Timeout ({timeout}s) on {current_model}"
+                    break
+                last_error = str(e)
+                continue
             except Exception as e:
                 last_error = str(e)
                 continue
@@ -504,6 +514,86 @@ def call_gemini_with_failover(
     print(f"[STATUS: FAIL] Toàn bộ các model trong tier [{actual_tier}] và pool {len(keys)} khóa đều tạm thời bận.")
     print(f"Chi tiết lỗi cuối: {last_error}")
     sys.exit(1)
+
+
+def dispatch_batch_tasks(
+    batch_input: str,
+    default_tier: str = "auto",
+    timeout: int = 45,
+    no_cache: bool = False
+) -> List[Dict]:
+    """
+    Chạy đa luồng song song danh sách nhiều task cùng lúc qua Key Pool.
+    batch_input: Đường dẫn file JSON hoặc chuỗi JSON chứa danh sách task.
+    """
+    tasks = []
+    b_path = Path(batch_input)
+    if b_path.exists():
+        with open(b_path, "r", encoding="utf-8") as f:
+            tasks = json.load(f)
+    else:
+        try:
+            tasks = json.loads(batch_input)
+        except Exception as e:
+            print(f"[STATUS: FAIL] Không thể parse batch tasks JSON: {e}")
+            sys.exit(1)
+
+    if not isinstance(tasks, list) or not tasks:
+        print("[STATUS: FAIL] Danh sách tasks trong batch không hợp lệ hoặc rỗng.")
+        sys.exit(1)
+
+    keys = load_keys_from_env()
+    max_workers = min(len(tasks), max(1, len(keys)), 8)
+    print("\n" + "=" * 80)
+    print(f"🚀 BẮT ĐẦU XỬ LÝ SONG SONG {len(tasks)} TÁC VỤ QUA KEY POOL ({max_workers} LUỒNG)")
+    print("=" * 80)
+
+    results = []
+    start_total = time.time()
+
+    def _run_single_task(idx: int, t_info: Dict) -> Dict:
+        p = t_info.get("prompt", "")
+        o = t_info.get("out")
+        t = t_info.get("tier", default_tier)
+        f = t_info.get("file")
+        s = t_info.get("sys")
+        temp = t_info.get("temp", 0.2)
+        print(f"[BATCH_WORKER #{idx+1}] ⏳ Bắt đầu task: '{p[:45]}...' -> {o or 'Console'}")
+        t0 = time.time()
+        try:
+            res = call_gemini_with_failover(
+                prompt=p,
+                file_path=f,
+                out_file=o,
+                tier=t,
+                system_instruction=s,
+                temperature=temp,
+                use_cache=not no_cache,
+                timeout=timeout
+            )
+            elapsed = time.time() - t0
+            return {"index": idx + 1, "task": p, "out": o, "success": True, "elapsed": elapsed, "result": res}
+        except Exception as e:
+            elapsed = time.time() - t0
+            return {"index": idx + 1, "task": p, "out": o, "success": False, "elapsed": elapsed, "error": str(e)}
+
+    with concurrent.futures.ThreadPoolExecutor(max_workers=max_workers) as executor:
+        future_map = {executor.submit(_run_single_task, i, task): i for i, task in enumerate(tasks)}
+        for future in concurrent.futures.as_completed(future_map):
+            results.append(future.result())
+
+    results.sort(key=lambda x: x["index"])
+    total_elapsed = time.time() - start_total
+
+    print("\n" + "=" * 80)
+    print(f"📊 TỔNG KẾT BATCH EXECUTION: {len(tasks)} tasks hoàn tất trong {total_elapsed:.2f}s")
+    print("=" * 80)
+    for r in results:
+        status_icon = "✅" if r["success"] else "❌"
+        out_target = r.get("out") or "Console"
+        print(f"  {status_icon} Task #{r['index']} [{r['elapsed']:.2f}s] -> {out_target}")
+    print("=" * 80 + "\n")
+    return results
 
 
 def make_progress_bar(current: int, total: int, width: int = 10) -> str:
@@ -541,7 +631,7 @@ def show_pool_status(detailed_usage: bool = True):
     print(f"  🔹 Tier 'standard' (gemini-3.6-flash)      :  35 RPM |     140 Requests/Ngày")
     print(f"  🔹 Tier 'deep'    (gemini-3.8-flash)      :  35 RPM |     140 Requests/Ngày")
     print(f"  🔹 Tier 'ultra'   (gemma-4-26b-a4b-it)    : 210 RPM | 100,800 Requests/Ngày")
-    print(f"  🔹 Search Grounding (Google Live)        : 10,500 Lượt tìm kiếm Google / Ngày")
+    print(f"  🔹 Search Grounding (Google Live)        : Yêu cầu Billing Profile (Google Cloud Payment)")
     print("-" * 80)
     print("TRẠNG THÁI KẾT NỐI TỪNG KEY:")
     print(f"{'STT':<5} | {'Mã Khóa (Masked)':<24} | {'Trạng Thái':<16} | {'Cooldown'}")
@@ -607,6 +697,8 @@ def main():
     parser.add_argument("--model", "-m", help="Chỉ định đích danh tên model nếu không muốn dùng tier")
     parser.add_argument("--sys", "-s", help="System instruction tùy chọn")
     parser.add_argument("--temp", type=float, default=0.2, help="Temperature (0.0 - 1.0)")
+    parser.add_argument("--timeout", type=int, default=45, help="Thời gian chờ timeout tối đa cho mỗi request (mặc định: 45s)")
+    parser.add_argument("--batch", "-b", help="Chạy song song danh sách nhiều task từ file JSON hoặc JSON string")
     parser.add_argument("--pool-status", "--usage", action="store_true", help="Kiểm tra trạng thái các khóa và thống kê request đã dùng")
     parser.add_argument("--no-cache", action="store_true", help="Bỏ qua local response cache, ép gửi API request mới")
 
@@ -614,6 +706,15 @@ def main():
 
     if args.pool_status:
         show_pool_status()
+        return
+
+    if args.batch:
+        dispatch_batch_tasks(
+            batch_input=args.batch,
+            default_tier=args.tier,
+            timeout=args.timeout,
+            no_cache=args.no_cache
+        )
         return
 
     if not args.prompt:
@@ -628,7 +729,8 @@ def main():
         explicit_model=args.model,
         system_instruction=args.sys,
         temperature=args.temp,
-        use_cache=not args.no_cache
+        use_cache=not args.no_cache,
+        timeout=args.timeout
     )
 
 

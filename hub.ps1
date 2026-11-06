@@ -67,6 +67,9 @@ switch ($Command.ToLower()) {
     "verify" {
         uv run python "$ScriptDir\common\scripts\output_verifier.py" @RemainingArgs
     }
+    "smoke" {
+        uv run python "$ScriptDir\common\scripts\smoke_test_runner.py" @RemainingArgs
+    }
     "fanout" {
         uv run python "$ScriptDir\common\scripts\task_fanout_planner.py" @RemainingArgs
     }
@@ -77,6 +80,7 @@ switch ($Command.ToLower()) {
         Write-Host "  Các lệnh tiện ích nhanh:`n"
         Write-Host "  .\hub.ps1 status          Xem bảng điều khiển tiến độ Git và checkpoint các dự án" -ForegroundColor Green
         Write-Host "  .\hub.ps1 doctor          Kiểm tra toàn diện Docker, ports, Git, token watchdog" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 smoke           Kiểm tra tức thì (0.5s) HTTP/TCP endpoints các dịch vụ và containers" -ForegroundColor Green
         Write-Host "  .\hub.ps1 clean [path]    Dọn dẹp tập tin rác, script test và ảnh thừa (Rule 11)" -ForegroundColor Green
         Write-Host "  .\hub.ps1 lint [path]     Kiểm tra cú pháp Python/JSON và quét lộ secret" -ForegroundColor Green
         Write-Host "  .\hub.ps1 mock [spec]     Khởi chạy Instant API Mock Server (CORS, CRUD, OpenAPI)" -ForegroundColor Green

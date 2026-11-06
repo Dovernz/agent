@@ -23,3 +23,7 @@ venv/
 scratch/
 logs/
 *.log
+
+# Supervisor Generated Audit Reports
+projects/agent-supervisor/reports/*.md
+!projects/agent-supervisor/reports/.gitkeep

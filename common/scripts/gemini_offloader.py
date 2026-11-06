@@ -4,14 +4,15 @@
 Gemini Smart Key Pool & Dynamic Model Router (Zero-Dependency)
 ==============================================================================
 TÍNH NĂNG CỐT LÕI:
-1. Multi-Tier Model Allocation: Tự động phân bổ công việc theo đúng hạn mức Quota từ Google AI Studio:
+1. Auto-Triage & Complexity Classifier: Tự động đánh giá độ phức tạp của task để chọn Model phù hợp nhất.
+2. Multi-Tier Model Allocation: Tự động phân bổ công việc theo đúng hạn mức Quota từ Google AI Studio:
    - Tier Bulk / Fast: `gemini-3.5-flash-lite` (15 RPM, 500 RPD / project)
    - Tier Standard: `gemini-3.6-flash` (5 RPM, 20 RPD / project)
    - Tier Deep Reasoning: `gemini-3.8-flash` (5 RPM, 20 RPD / project)
    - Tier Ultra-Frequency: `gemma-4-26b-a4b-it` (30 RPM, 14,400 RPD / project)
-2. Smart Key Pool: Xoay vòng 7 Projects độc lập (Round-Robin).
-3. Cross-Model Fallback: Nếu một model chạm giới hạn 429, tự động fallback sang model dự phòng.
-4. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
+3. Smart Key Pool: Xoay vòng 7 Projects độc lập (Round-Robin).
+4. Cross-Model Fallback: Nếu một model chạm giới hạn 429, tự động fallback sang model dự phòng.
+5. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
 ==============================================================================
 """
 
@@ -58,7 +59,7 @@ MODEL_TIERS = {
     }
 }
 
-DEFAULT_TIER = "bulk"
+DEFAULT_TIER = "auto"
 API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
@@ -71,6 +72,51 @@ def get_state_file() -> Path:
     state_dir = get_repo_root() / "logs"
     state_dir.mkdir(parents=True, exist_ok=True)
     return state_dir / "gemini_pool_state.json"
+
+
+def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[str, str]:
+    """
+    Tự động thẩm định độ phức tạp của nhiệm vụ để điều phối vào Tier tối ưu nhất.
+    Trả về: (tier_name, reason)
+    """
+    p = prompt.lower()
+
+    # 1. Nếu có tệp đính kèm hoặc văn bản đầu vào lớn (>2000 ký tự) -> Tier BULK
+    if file_path or len(prompt) > 2000:
+        return "bulk", f"Khối lượng dữ liệu lớn ({len(prompt)} ký tự/tệp đính kèm) -> Giao cho Gemini 3.5 Flash-Lite (Hạn mức 3,500 req/ngày)"
+
+    # 2. Kiểm tra từ khóa kiến trúc & suy luận sâu -> Tier DEEP
+    deep_keywords = [
+        "kiến trúc", "architecture", "design pattern", "thuật toán", "algorithm",
+        "tối ưu truy vấn", "deadlock", "concurrency", "bảo mật sâu", "owasp",
+        "medallion", "dag dependency", "ast parser", "complex reasoning", "refactor lớn",
+        "scale", "scalability", "phân tán", "distributed"
+    ]
+    for k in deep_keywords:
+        if k in p:
+            return "deep", f"Phát hiện yêu cầu suy luận chuyên sâu/kiến trúc ('{k}') -> Giao cho Gemini 3.8 Flash (Thinking Mode)"
+
+    # 3. Kiểm tra từ khóa siêu tần suất, regex, linter, format chuỗi -> Tier ULTRA
+    ultra_keywords = [
+        "regex", "biểu thức chính quy", "format json", "chuyển đổi định dạng",
+        "trích xuất email", "trích xuất link", "lọc dòng", "lọc chuỗi", "clean string"
+    ]
+    for k in ultra_keywords:
+        if k in p:
+            return "ultra", f"Phát hiện tác vụ regex/format lặp lại ('{k}') -> Giao cho Gemma 4 26B (Hạn mức 100,800 req/ngày)"
+
+    # 4. Kiểm tra từ khóa lập trình tính năng chuẩn -> Tier STANDARD
+    standard_keywords = [
+        "viết api", "endpoint", "controller", "react", "vue", "tailwind", "css",
+        "crud", "django model", "form html", "unit test", "pytest", "test case",
+        "mock data", "seeding", "lập trình", "viết hàm"
+    ]
+    for k in standard_keywords:
+        if k in p:
+            return "standard", f"Phát hiện tác vụ code tính năng chuẩn ('{k}') -> Giao cho Gemini 3.6 Flash (Cân bằng tốc độ & chất lượng)"
+
+    # Mặc định: Tier BULK (3.5 Flash Lite - Hạn mức an toàn nhất)
+    return "bulk", "Tác vụ thông thường -> Giao cho Gemini 3.5 Flash-Lite (Tối ưu token & hạn mức lớn nhất)"
 
 
 def load_keys_from_env() -> List[str]:
@@ -175,8 +221,15 @@ def call_gemini_with_failover(
     pool = SmartKeyPool(keys)
     candidates = pool.get_candidate_keys()
 
-    # Xác định danh sách model ưu tiên theo tier
-    tier_info = MODEL_TIERS.get(tier.lower(), MODEL_TIERS[DEFAULT_TIER])
+    # Tự động thẩm định độ phức tạp nếu tier='auto'
+    if tier.lower() == "auto":
+        actual_tier, reason = auto_classify_task(prompt, file_path)
+        print(f"[ROUTER] 🎯 Tự động điều phối: {reason}")
+    else:
+        actual_tier = tier.lower()
+        print(f"[ROUTER] 🎯 Chỉ định thủ công Tier: [{actual_tier}]")
+
+    tier_info = MODEL_TIERS.get(actual_tier, MODEL_TIERS["bulk"])
     if explicit_model:
         models_to_try = [explicit_model] + tier_info["fallbacks"]
     else:
@@ -222,7 +275,6 @@ def call_gemini_with_failover(
                 method="POST"
             )
             try:
-                # Với model deep reasoning thì timeout lâu hơn
                 req_timeout = 35 if "3.8" in current_model else 15
                 with urllib.request.urlopen(req, timeout=req_timeout) as resp:
                     res = json.loads(resp.read().decode("utf-8"))
@@ -234,7 +286,7 @@ def call_gemini_with_failover(
                     c_tokens = usage.get("candidatesTokenCount", 0)
 
                     key_masked = f"{key[:8]}...{key[-4:]}"
-                    print(f"[STATUS: PASS] Hoàn thành qua Key #{key_id} ({key_masked}) | Model: {current_model} (Tier: {tier})")
+                    print(f"[STATUS: PASS] Hoàn thành qua Key #{key_id} ({key_masked}) | Model: {current_model} (Tier: {actual_tier})")
                     print(f"[INFO] Tokens ngoài luồng: {p_tokens} in / {c_tokens} out (Hoàn toàn 0đ - Tiết kiệm quota Antigravity).")
 
                     if out_file:
@@ -252,6 +304,7 @@ def call_gemini_with_failover(
                         "success": True,
                         "key_id": key_id,
                         "model": current_model,
+                        "tier": actual_tier,
                         "output": text_out,
                         "prompt_tokens": p_tokens,
                         "candidate_tokens": c_tokens
@@ -265,7 +318,6 @@ def call_gemini_with_failover(
                     pool.mark_rate_limited(key, cooldown_seconds=60)
                     continue
                 elif e.code == 404:
-                    # Model không khả dụng, chuyển sang model tiếp theo ngay
                     break
                 else:
                     continue
@@ -273,7 +325,7 @@ def call_gemini_with_failover(
                 last_error = str(e)
                 continue
 
-    print(f"[STATUS: FAIL] Toàn bộ các model trong tier [{tier}] và pool {len(keys)} khóa đều tạm thời bận.")
+    print(f"[STATUS: FAIL] Toàn bộ các model trong tier [{actual_tier}] và pool {len(keys)} khóa đều tạm thời bận.")
     print(f"Chi tiết lỗi cuối: {last_error}")
     sys.exit(1)
 
@@ -325,8 +377,8 @@ def main():
     parser.add_argument("--prompt", "-p", help="Câu lệnh / prompt cần xử lý")
     parser.add_argument("--file", "-f", help="Đường dẫn file đầu vào gửi kèm (txt, md, json...)")
     parser.add_argument("--out", "-o", help="Đường dẫn file lưu kết quả đầu ra (md, json...)")
-    parser.add_argument("--tier", "-t", default=DEFAULT_TIER, choices=list(MODEL_TIERS.keys()),
-                        help="Phân tầng mô hình: bulk (mặc định - 3.5k req), standard (3.6), deep (3.8), ultra (gemma)")
+    parser.add_argument("--tier", "-t", default=DEFAULT_TIER, choices=["auto"] + list(MODEL_TIERS.keys()),
+                        help="Phân tầng mô hình: auto (tự động thẩm định), bulk (3.5k req), standard (3.6), deep (3.8), ultra (gemma)")
     parser.add_argument("--model", "-m", help="Chỉ định đích danh tên model nếu không muốn dùng tier")
     parser.add_argument("--sys", "-s", help="System instruction tùy chọn")
     parser.add_argument("--temp", type=float, default=0.2, help="Temperature (0.0 - 1.0)")

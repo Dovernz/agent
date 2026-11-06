@@ -1,5 +1,10 @@
 # Antigravity Workspace Directives (Auto-Active Core)
 
+## 🌐 QUY TẮC NGÔN NGỮ (BẮT BUỘC TUYỆT ĐỐI)
+- **LUÔN LUÔN PHẢN HỒI BẰNG TIẾNG VIỆT** cho Người Dùng — không có ngoại lệ, kể cả khi User viết tiếng Anh.
+- Nội dung kỹ thuật (code, JSON, file path, CLI command) vẫn giữ nguyên định dạng gốc; chỉ phần giải thích & giao tiếp là Tiếng Việt.
+
+
 ## ⚡ CHỈ THỊ BẮT BUỘC: ÉP DÙNG API TỐI ĐA & BẢO TOÀN TOKEN
 
 1. **Khẩu lệnh kích hoạt (`/master-agent`, `/agent-system`, "sử dụng hệ thống agent"):**
@@ -19,3 +24,9 @@
 
 4. **Kỷ Luật Phản Hồi Zero-Fat:**
    - Trả lời tối đa 2-3 câu súc tích kèm clickable links đến file đã tạo. CẤM in lại khối code vào chat.
+
+## ⚡ QUY TẮC PHÂN MẢNH NGỮ CẢNH TỰ ĐỘNG (Rule 18)
+- **TRƯỚC KHI thực thi bất kỳ task dự án nào:** BẮT BUỘC gọi `hub shard auto "<user_prompt>"` để chỉ nạp đúng context dự án tương ứng.
+- **SAU KHI hoàn thành task:** BẮT BUỘC gọi `hub shard reset` để về shard `core` (tiết kiệm 89% token System Prompt).
+- **CẤM** giữ shard dự án chuyên dụng (dental/vietjet/pc-builder/supervisor) sang lượt chat khác khi không còn thực thi dự án đó.
+- Xem danh sách shard: `hub shard --list` | Chuyển thủ công: `hub shard set <id>`

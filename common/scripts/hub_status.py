@@ -182,5 +182,31 @@ def main():
             print("- **Hành động ưu tiên:** Sẵn sàng nhận chỉ thị mới.")
         print()
 
+# Kiểm tra trạng thái Gemini Smart Key Pool
+    try:
+        sys.path.insert(0, str(Path(__file__).resolve().parent))
+        from gemini_offloader import load_keys_from_env, SmartKeyPool
+        import time
+        keys = load_keys_from_env()
+        if keys:
+            pool = SmartKeyPool(keys)
+            state = pool._read_state()
+            idx = state.get("current_index", 0) % len(keys)
+            now = time.time()
+            cooldowns = state.get("cooldowns", {})
+            print("---")
+            print(f"## ⚡ Tình Trạng Gemini Smart Key Pool ({len(keys)} Projects)")
+            print(f"> Hạn mức toàn hệ thống: **{len(keys) * 15} RPM** | **{len(keys) * 1500} RPD** | Vị trí xoay vòng: **Key #{idx + 1}**\n")
+            print("| STT | Mã Khóa (Masked) | Trạng Thái | Ghi Chú |")
+            print("| :--- | :--- | :--- | :--- |")
+            for i, k in enumerate(keys, 1):
+                masked = f"`{k[:10]}...{k[-6:]}`"
+                cd = cooldowns.get(k, 0)
+                st = f"🟡 Cooldown ({int(cd - now)}s)" if now < cd else "🟢 Sẵn sàng (100%)"
+                print(f"| #{i} | {masked} | {st} | Project độc lập |")
+            print()
+    except Exception:
+        pass
+
 if __name__ == "__main__":
     main()

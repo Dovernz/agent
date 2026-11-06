@@ -63,3 +63,10 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
     - **Không lưu dữ liệu thừa trên máy:** Sau khi commit và push lên remote Git (`https://github.com/Dovernz/agent.git`), toàn bộ tiến độ, lịch sử và mã nguồn đã được bảo toàn vĩnh viễn trên đám mây Git.
     - **Đọc trực tiếp từ Git:** Mọi tác vụ tra cứu tiến độ (như `hub_status.py`, `master-secretary`) **BẮT BUỘC** đọc trực tiếp từ thư mục làm việc Git và nhật ký `git log -1`. Tuyệt đối không sinh thêm các file cache trạng thái hay file ghi nhớ ngoài luồng trên ổ cứng.
     - **Duy trì Working Tree sạch sẽ:** Khi hoàn tất công việc, thư mục làm việc của dự án phải sạch (`git status` clean), toàn bộ file rác/ảnh chụp màn hình được quét sạch qua `hub_cleaner.py`.
+13. **Truy Vấn Tức Thì Gemini Key Pool (Instant Pool Status Trigger):**
+    - Khi người dùng hỏi bất kỳ biến thể nào như: `pool status`, `trạng thái pool`, `kiểm tra pool`, `xem pool`, `gemini pool`, `quota api`:
+    - Agent **BẮT BUỘC** tự động chạy lệnh mà không bắt người dùng phải gõ terminal:
+      ```powershell
+      uv run python "D:\Thành\Agent\common\scripts\gemini_offloader.py" --pool-status
+      ```
+    - Hiển thị ngay lập tức bảng trạng thái Markdown gồm các cột STT, Mã Khóa, Trạng Thái (SẴN SÀNG / COOLDOWN), và Tổng Hạn Mức Toàn Hệ Thống.

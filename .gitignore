@@ -21,4 +21,5 @@ venv/
 
 # Temporary / Scratch Files
 scratch/
+logs/
 *.log

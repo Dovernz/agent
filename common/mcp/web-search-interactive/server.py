@@ -38,9 +38,9 @@ USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTM
 def load_env_credentials():
     env_vars = dict(os.environ)
     search_dirs = [os.getcwd(), os.path.dirname(os.getcwd())]
-    for d in [r"D:\Thành\WEB\.agents", r"D:\Thành\New"]:
-        if os.path.exists(d):
-            search_dirs.append(d)
+    agent_root = r"D:\Thành\Agent"
+    if os.path.exists(agent_root):
+        search_dirs.append(agent_root)
             
     for directory in search_dirs:
         env_path = os.path.join(directory, ".env")

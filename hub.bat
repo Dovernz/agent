@@ -19,6 +19,7 @@ if "%1"=="validate" goto validate
 if "%1"=="drift" goto drift
 if "%1"=="notify" goto notify
 if "%1"=="token-opt" goto token_opt
+if "%1"=="gemini" goto gemini
 
 echo [!] Lenh khong hop le: %1
 echo Go 'hub help' de xem huong dan.
@@ -94,6 +95,11 @@ shift
 uv run python "%SCRIPT_DIR%common\scripts\token_optimizer.py" %*
 exit /b %ERRORLEVEL%
 
+:gemini
+shift
+uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" %*
+exit /b %ERRORLEVEL%
+
 :help
 echo =================================================================
 echo   ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub)
@@ -111,6 +117,7 @@ echo   hub changelog [repo] Tu dong tao Release Notes tu Git Conventional Commit
 echo   hub drift           Kiem tra lech chuan API giua Backend Code va OpenAPI Spec
 echo   hub notify          Ban thong bao su co & canh bao qua Telegram/Discord/Slack
 echo   hub token-opt       Do luong, dinh vi diem nong va nen toi uu token su dung
+echo   hub gemini          Chay tac vu nang qua Gemini API ngoai (0d) tiet kiem token
 echo   hub create          Khoi tao 1-click nhom agent cho du an moi tu template
 echo   hub validate        Kiem tra tinh hop le 100%% cua toan bo 25 skills va 7 du an
 echo =================================================================

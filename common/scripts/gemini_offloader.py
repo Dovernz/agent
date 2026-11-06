@@ -17,6 +17,7 @@ TÍNH NĂNG CỐT LÕI:
 """
 
 import os
+import re
 import sys
 import time
 import json
@@ -292,9 +293,30 @@ def call_gemini_with_failover(
                     if out_file:
                         out_path = Path(out_file).resolve()
                         out_path.parent.mkdir(parents=True, exist_ok=True)
+                        clean_content = text_out
+                        # Nếu lưu file mã nguồn/dữ liệu cấu trúc, tự động bóc tách code block sạch
+                        ext = out_path.suffix.lower()
+                        if ext in [".py", ".json", ".sql", ".js", ".ts", ".html", ".css"]:
+                            code_match = re.search(r"```(?:[a-zA-Z0-9_-]+)?\s*\n(.*?)\n```", text_out, re.DOTALL)
+                            if code_match:
+                                clean_content = code_match.group(1).strip()
+
                         with open(out_path, "w", encoding="utf-8") as f:
-                            f.write(text_out)
+                            f.write(clean_content)
                         print(f"[OUTPUT_SAVED] Kết quả đã lưu tại: {out_path}")
+                        # Tự động thẩm định chất lượng tệp vừa lưu
+                        try:
+                            sys.path.insert(0, str(Path(__file__).resolve().parent))
+                            from output_verifier import verify_file
+                            v_res = verify_file(str(out_path))
+                            if v_res["passed"]:
+                                print(f"[VERIFIED: PASS] Thẩm định chất lượng tệp: {v_res['score']}/100 (Hợp lệ)")
+                            else:
+                                print(f"[VERIFIED: FAIL] Cảnh báo chất lượng ({v_res['score']}/100):")
+                                for iss in v_res["issues"]:
+                                    print(f"  ⚠️ {iss}")
+                        except Exception:
+                            pass
                     else:
                         print("--- KẾT QUẢ ---")
                         print(text_out)

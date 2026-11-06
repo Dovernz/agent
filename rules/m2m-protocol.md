@@ -70,3 +70,14 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       uv run python "D:\Thành\Agent\common\scripts\gemini_offloader.py" --pool-status
       ```
     - Hiển thị ngay lập tức bảng trạng thái Markdown gồm các cột STT, Mã Khóa, Trạng Thái (SẴN SÀNG / COOLDOWN), và Tổng Hạn Mức Toàn Hệ Thống.
+14. **Quy Trình Kiểm Định & Hội Đồng Thẩm Định Output (Output Verification & Multi-Tier Review Gate):**
+    - **Không tin tưởng mù quáng:** Tuyệt đối không tin tưởng ngay vào kết quả sinh thô từ API ngoài hoặc mã nguồn do Sub-agent tạo ra.
+    - **Cổng thẩm định tự động (Automated Verification Gate):** Bất kỳ tệp mã nguồn (`.py`, `.sql`) hoặc dữ liệu (`.json`, `.md`) nào trước khi đưa vào codebase BẮT BUỘC phải vượt qua cổng kiểm định:
+      ```powershell
+      uv run python "D:\Thành\Agent\common\scripts\output_verifier.py" "<duong_dan_tep>"
+      ```
+    - **Hội đồng Thẩm định & Đánh giá chuyên trách:**
+      * `lead-qa`: Chạy ma trận kiểm thử E2E/Unit test, bắt lỗi HTTP 500, đảm bảo tính đúng đắn logic.
+      * `lead-cyber-security`: Thẩm định an ninh, rà soát lệnh nguy hiểm (`eval`, `exec`, `os.system`), ngăn chặn SQL Injection và hardcoded secret.
+      * `lead-ba`: Đối chiếu kết quả với User Story và Tiêu chí chấp nhận (Acceptance Criteria) ban đầu.
+    - **Cơ chế Tự sửa lỗi (Self-Correction Loop):** Nếu cổng thẩm định báo `[VERIFIED: FAIL]`, Sub-agent tự động gửi lại log lỗi để API sửa (tối đa 2 lần). Nếu vẫn không đạt, kích hoạt Antigravity Agent can thiệp bằng logic cấp cao để hoàn thiện trước khi báo cáo User.

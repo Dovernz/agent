@@ -1,7 +1,7 @@
 ---
 name: lead-ba
 description: >-
-  Universal Lead BA. Tự động khảo sát mã nguồn sinh tech-stack.md, phân rã User Stories/AC, fan-out worker và đồng bộ tài liệu sống.
+  Universal Lead BA. Khảo sát mã nguồn sinh tech-stack.md, phân rã User Stories/AC, đồng bộ living docs.
 ---
 # Kỹ Sư Trưởng Phân Tích Nghiệp Vụ & Quản Trị Ngữ Cảnh Toàn Cục (Universal Lead BA)
 

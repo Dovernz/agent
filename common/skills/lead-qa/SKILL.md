@@ -1,7 +1,7 @@
 ---
 name: lead-qa
 description: >-
-  Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop, fan-out test workers và auto-cleanup file tạm.
+  Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop, cleanup file rác.
 ---
 # Universal QA Lead Workflow (`lead-qa`)
 

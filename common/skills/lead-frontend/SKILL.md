@@ -1,7 +1,7 @@
 ---
 name: lead-frontend
 description: >-
-  Universal Frontend Lead. Thiết kế UI/UX Mobile-First, sinh API client từ OpenAPI, mock API server, fan-out worker và kiểm thử frontend.
+  Universal Frontend Lead. Thiết kế UI/UX Mobile-First, sinh API client từ OpenAPI, mock server, test UI.
 ---
 # Universal Frontend Lead Workflow (`lead-frontend`)
 

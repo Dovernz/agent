@@ -1,7 +1,7 @@
 ---
 name: lead-backend
 description: >-
-  Universal Backend Lead. Xây dựng API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query, fan-out worker và linter trong Docker.
+  Universal Backend Lead. Viết API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query, Docker lint.
 ---
 # Universal Backend Lead Workflow (`lead-backend`)
 

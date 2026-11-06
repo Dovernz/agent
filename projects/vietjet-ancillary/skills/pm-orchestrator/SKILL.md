@@ -1,7 +1,7 @@
 ---
 name: vietjet-pm-orchestrator
 description: >-
-  PM Vietjet Ancillary (Domain Adapter kế thừa lead-pm). Điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents (Code, Policy, Catalog, Excel).
+  PM Vietjet Ancillary. Kế thừa lead-pm, điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents.
 ---
 # PM Orchestrator - Vietjet Ancillary (`vietjet-ancillary`)
 

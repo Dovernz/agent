@@ -1,7 +1,7 @@
 ---
 name: vietjet-catalog-inspector
 description: >-
-  Vietjet Ancillary Catalog Inspector. Đối chiếu master data danh mục phụ trợ bằng Peek-and-Script tiết kiệm token ngoài context.
+  Vietjet Catalog Inspector. Đối chiếu master data danh mục phụ trợ bằng Peek-and-Script tiết kiệm token ngoài context.
 ---
 # Master Data & Catalog Inspector - Vietjet Ancillary
 

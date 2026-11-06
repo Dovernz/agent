@@ -1,7 +1,7 @@
 ---
 name: vietjet-excel-builder
 description: >-
-  Vietjet Ancillary Excel Builder. Tự động xuất báo cáo Excel chuẩn Ban Tổng Giám đốc (2-tier headers, bảng màu nhận diện).
+  Vietjet Excel Builder. Tự động xuất báo cáo Excel chuẩn Ban Tổng Giám đốc (2-tier headers, bảng màu nhận diện).
 ---
 # Executive Spreadsheet Engineer - Vietjet Ancillary
 

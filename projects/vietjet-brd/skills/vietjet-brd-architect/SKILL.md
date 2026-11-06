@@ -1,7 +1,7 @@
 ---
 name: vietjet-brd-architect
 description: >-
-  Vietjet BRD Architect. Soạn thảo tài liệu BRD chuẩn Vietjet Air từ prompt/Excel, bảo tồn định dạng Word docx hoàn hảo.
+  Vietjet BRD Architect. Soạn thảo tài liệu BRD chuẩn Vietjet Air từ prompt/Excel, bảo toàn định dạng Word docx.
 ---
 # Vietjet BRD Architect Skill (`vietjet-brd-architect`)
 

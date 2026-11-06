@@ -1,7 +1,7 @@
 ---
 name: dental-pm-orchestrator
 description: >-
-  PM Minh Sinh Dental (Domain Adapter kế thừa lead-pm). Điều phối dự án nha khoa, tích hợp Universal Squad (Django/React/Docker), quản lý QA loop.
+  PM Minh Sinh Dental. Kế thừa lead-pm, điều phối nha khoa (Django/React/Docker ports 80/8000), quản lý QA loop.
 ---
 # PM Orchestrator - Minh Sinh Dental (`dental-project`)
 

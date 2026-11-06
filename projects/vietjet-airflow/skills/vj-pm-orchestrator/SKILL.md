@@ -1,7 +1,7 @@
 ---
 name: vj-pm-orchestrator
 description: >-
-  PM Vietjet Airflow (Domain Adapter kế thừa lead-pm). Điều phối hạ tầng dữ liệu Airflow, tích hợp Universal Squad, kiểm soát DAGs trong Docker.
+  PM Vietjet Airflow. Kế thừa lead-pm, điều phối hạ tầng Airflow 2.10 DAGs trong Docker (ports 8080/5434).
 ---
 # PM Orchestrator - Vietjet Airflow (`vietjet-airflow`)
 

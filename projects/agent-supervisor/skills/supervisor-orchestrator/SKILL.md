@@ -1,7 +1,7 @@
 ---
 name: supervisor-orchestrator
 description: >-
-  Supervisor & System Auditor. Điều phối Post-Run Audit, đo lường token tiêu thụ, kiểm toán hiệu năng và đề xuất tối ưu hóa.
+  Supervisor & System Auditor. Điều phối Post-Run Audit, đo lường token tiêu thụ, kiểm toán hiệu năng hệ thống.
 ---
 # PM Orchestrator - Agent Supervisor & Auditor (`supervisor-orchestrator`)
 

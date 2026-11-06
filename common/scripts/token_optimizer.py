@@ -39,32 +39,30 @@ def estimate_tokens(text: str) -> int:
 
 # High-signal, zero-fat skill descriptions preserving 100% routing capabilities & triggers
 OPTIMIZED_DESCRIPTIONS = {
-    "common/skills/gitops-gatekeeper/SKILL.md": "GitOps & Release Gatekeeper. Quét diff, rà soát secret/file tạm, soạn Conventional Commit và release notes chuẩn mực.",
-    "common/skills/lead-architect/SKILL.md": "Universal Architect Lead. Khảo sát DB schema, thiết kế kiến trúc hệ thống, sinh đặc tả OpenAPI/Swagger và kiểm tra drift API.",
-    "common/skills/lead-ba/SKILL.md": "Universal Lead BA. Tự động khảo sát mã nguồn sinh tech-stack.md, phân rã User Stories/AC, và đồng bộ tài liệu sống.",
-    "common/skills/lead-backend/SKILL.md": "Universal Backend Lead. Xây dựng API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query và linter trong Docker.",
-    "common/skills/lead-cyber-security/SKILL.md": "Cyber Security Lead. Kiểm tra OWASP Top 10, rà soát secret/API keys, kiểm định RBAC/JWT, audit phụ thuộc và vá bảo mật.",
-    "common/skills/lead-frontend/SKILL.md": "Universal Frontend Lead. Thiết kế UI/UX Mobile-First, sinh API client từ OpenAPI, mock API server và kiểm thử frontend.",
-    "common/skills/lead-qa/SKILL.md": "Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop và auto-cleanup file tạm.",
-    "common/skills/master-secretary/SKILL.md": "Master Secretary & Orchestrator. Tiếp nhận yêu cầu, định tuyến đến đúng PM dự án (Minh Sinh Dental, Vietjet Airflow, Ancillary, BRD, PC Builder) bằng M2M protocol.",
-    "common/skills/web-search-interactive/SKILL.md": "Web Search & Browser Automation. Tìm kiếm web nhanh, cào dữ liệu HTTP và tương tác trình duyệt tự động.",
-    "projects/_template/skills/pm-orchestrator/SKILL.md": "Template PM Orchestrator. Điều phối dự án, phân rã việc cho Universal Squad qua M2M protocol, quản lý QA Loop.",
-    "projects/agent-supervisor/skills/performance-evaluator/SKILL.md": "Performance Evaluator. Đo đạc độ trễ (latency), tỷ lệ lỗi tool, số chu kỳ QA loop và cảnh báo nghẽn tiến trình.",
-    "projects/agent-supervisor/skills/skill-meta-optimizer/SKILL.md": "Skill Meta-Optimizer. Đánh giá kiểm toán, nén prompt, tối ưu token, cập nhật quy tắc và thu hoạch reusable scripts vào common/scripts.",
-    "projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md": "Supervisor & System Auditor. Điều phối Post-Run Audit, đo lường token tiêu thụ, kiểm toán hiệu năng và đề xuất tối ưu hóa.",
-    "projects/agent-supervisor/skills/token-cost-profiler/SKILL.md": "Token Profiler. Bóc tách transcript log, tính toán Input/Output/Thinking tokens và định vị các điểm nóng đốt token.",
-    "projects/dental-project/skills/pm-orchestrator/SKILL.md": "PM Minh Sinh Dental. Điều phối dự án nha khoa, phân rã việc cho Universal Squad (Django/React), quản lý QA loop.",
-    "projects/pc-builder/skills/pc-builder/SKILL.md": "PC Hardware Architect. Tư vấn cấu hình PC theo ngân sách/nhu cầu, kiểm tra tương thích phần cứng và so sánh giá bán lẻ VN.",
-    "projects/vietjet-airflow/skills/vj-lead-architect/SKILL.md": "Airflow Architect Lead. Phân tích pipeline, cấu trúc hóa DAG schema và sinh JSON spec chuẩn Vietjet Airflow.",
-    "projects/vietjet-airflow/skills/vj-lead-coder/SKILL.md": "Airflow Coder Lead. Viết DAG Python chuẩn TaskFlow API, timezone Asia/Ho_Chi_Minh, xử lý Airflow hooks và connections.",
-    "projects/vietjet-airflow/skills/vj-lead-qa/SKILL.md": "Airflow QA Lead. Kiểm thử DAG đa tầng (AST syntax, cycle check, Docker DagBag) và xuất báo cáo QA M2M.",
-    "projects/vietjet-airflow/skills/vj-pm-orchestrator/SKILL.md": "PM Vietjet Airflow. Điều phối hạ tầng dữ liệu Airflow, phân công Lead Squad (Architect, Coder, QA), kiểm soát QA Loop.",
-    "projects/vietjet-ancillary/skills/catalog-inspector/SKILL.md": "Vietjet Ancillary Catalog Inspector. Đối chiếu master data danh mục phụ trợ bằng Peek-and-Script tiết kiệm token ngoài context.",
-    "projects/vietjet-ancillary/skills/code-analyzer/SKILL.md": "Vietjet Ancillary Code Analyzer. Phân tích Stored Procedures/DDL, bóc tách CTEs, tối ưu ETL và thiết kế Databricks Medallion.",
-    "projects/vietjet-ancillary/skills/excel-builder/SKILL.md": "Vietjet Ancillary Excel Builder. Tự động xuất báo cáo Excel chuẩn Ban Tổng Giám đốc (2-tier headers, bảng màu nhận diện).",
-    "projects/vietjet-ancillary/skills/pm-orchestrator/SKILL.md": "PM Vietjet Ancillary. Điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents (Code, Policy, Catalog, Excel).",
-    "projects/vietjet-ancillary/skills/policy-reader/SKILL.md": "Vietjet Ancillary Policy Reader. Đọc hiểu Tờ trình KPI, trích xuất ma trận đơn giá hoa hồng sân bay (Counter vs Gate).",
-    "projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md": "Vietjet BRD Architect. Soạn thảo tài liệu BRD chuẩn Vietjet Air từ prompt/Excel, bảo tồn định dạng Word docx hoàn hảo."
+    "common/skills/gitops-gatekeeper/SKILL.md": "GitOps Gatekeeper. Quét diff, rà soát secret/file rác, soạn Conventional Commit và release notes.",
+    "common/skills/lead-architect/SKILL.md": "Universal Architect. Khảo sát DB schema, thiết kế hệ thống, sinh OpenAPI/Swagger và kiểm tra drift API.",
+    "common/skills/lead-ba/SKILL.md": "Universal Lead BA. Khảo sát mã nguồn sinh tech-stack.md, phân rã User Stories/AC, đồng bộ living docs.",
+    "common/skills/lead-backend/SKILL.md": "Universal Backend Lead. Viết API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query, Docker lint.",
+    "common/skills/lead-cyber-security/SKILL.md": "Cyber Security Lead. Kiểm tra OWASP Top 10, quét secret/API keys, audit RBAC/JWT, vá lỗ hổng phụ thuộc.",
+    "common/skills/lead-frontend/SKILL.md": "Universal Frontend Lead. Thiết kế UI/UX Mobile-First, sinh API client từ OpenAPI, mock server, test UI.",
+    "common/skills/lead-pm/SKILL.md": "Universal PM. Điều phối vòng đời Phase 0-4, quản lý Universal Squad, phân quyền 3 tầng, kiểm soát QA Loop và offload API.",
+    "common/skills/lead-qa/SKILL.md": "Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop, cleanup file rác.",
+    "common/skills/master-agent/SKILL.md": "Master Agent & Central Orchestrator. Đầu não điều phối, tiếp nhận tự nhiên từ User, định tuyến PM bằng M2M protocol và tổng hợp kết quả. Kích hoạt: /master-agent, /agent-system.",
+    "common/skills/web-search-interactive/SKILL.md": "Web Search & Browser Automation. Tìm kiếm Google realtime, cào dữ liệu HTTP và tương tác trình duyệt tự động.",
+    "projects/_template/skills/pm-orchestrator/SKILL.md": "Template PM Orchestrator. Kế thừa lead-pm, điều phối dự án, phân rã việc qua M2M protocol, quản lý QA Loop.",
+    "projects/agent-supervisor/skills/performance-evaluator/SKILL.md": "Performance Evaluator. Đo độ trễ (latency), tỷ lệ lỗi tool, chu kỳ QA loop và cảnh báo nghẽn tiến trình.",
+    "projects/agent-supervisor/skills/skill-meta-optimizer/SKILL.md": "Skill Meta-Optimizer. Đánh giá kiểm toán, nén prompt, tối ưu token, cập nhật rule và thu hoạch reusable scripts.",
+    "projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md": "Supervisor & System Auditor. Điều phối Post-Run Audit, đo lường token tiêu thụ, kiểm toán hiệu năng hệ thống.",
+    "projects/agent-supervisor/skills/token-cost-profiler/SKILL.md": "Token Profiler. Bóc tách transcript log, tính toán Input/Output/Thinking tokens và định vị điểm nóng đốt token.",
+    "projects/dental-project/skills/pm-orchestrator/SKILL.md": "PM Minh Sinh Dental. Kế thừa lead-pm, điều phối nha khoa (Django/React/Docker ports 80/8000), quản lý QA loop.",
+    "projects/pc-builder/skills/pc-builder/SKILL.md": "PC Hardware Architect. Tư vấn cấu hình PC theo ngân sách/nhu cầu, kiểm tra tương thích phần cứng và so sánh giá VN.",
+    "projects/vietjet-airflow/skills/vj-pm-orchestrator/SKILL.md": "PM Vietjet Airflow. Kế thừa lead-pm, điều phối hạ tầng Airflow 2.10 DAGs trong Docker (ports 8080/5434).",
+    "projects/vietjet-ancillary/skills/catalog-inspector/SKILL.md": "Vietjet Catalog Inspector. Đối chiếu master data danh mục phụ trợ bằng Peek-and-Script tiết kiệm token ngoài context.",
+    "projects/vietjet-ancillary/skills/code-analyzer/SKILL.md": "Vietjet Code Analyzer. Phân tích Stored Procedures/DDL, bóc tách CTEs, tối ưu ETL và thiết kế Databricks Medallion.",
+    "projects/vietjet-ancillary/skills/excel-builder/SKILL.md": "Vietjet Excel Builder. Tự động xuất báo cáo Excel chuẩn Ban Tổng Giám đốc (2-tier headers, bảng màu nhận diện).",
+    "projects/vietjet-ancillary/skills/pm-orchestrator/SKILL.md": "PM Vietjet Ancillary. Kế thừa lead-pm, điều phối dự án Ancillary & Databricks Migration qua 4 Lead Agents.",
+    "projects/vietjet-ancillary/skills/policy-reader/SKILL.md": "Vietjet Policy Reader. Đọc hiểu Tờ trình KPI, trích xuất ma trận đơn giá hoa hồng sân bay (Counter vs Gate).",
+    "projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md": "Vietjet BRD Architect. Soạn thảo tài liệu BRD chuẩn Vietjet Air từ prompt/Excel, bảo toàn định dạng Word docx."
 }
 
 
@@ -366,7 +364,7 @@ def main():
     parser.add_argument("--dry-run", action="store_true", help="Test changes without writing to disk")
 
     args = parser.parse_args()
-    hub_root = Path(args.hub).resolve()
+    hub_root = Path(args.hub.strip('"')).resolve()
     auditor = TokenAuditor(hub_root)
 
     if args.apply_compression:

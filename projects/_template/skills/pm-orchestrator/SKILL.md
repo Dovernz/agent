@@ -1,7 +1,7 @@
 ---
 name: [PROJECT_NAME]-pm-orchestrator
 description: >-
-  Template PM Orchestrator (Domain Adapter kế thừa lead-pm). Điều phối dự án, phân rã việc cho Universal Squad qua M2M protocol, quản lý QA Loop.
+  Template PM Orchestrator. Kế thừa lead-pm, điều phối dự án, phân rã việc qua M2M protocol, quản lý QA Loop.
 ---
 # Project Manager (Orchestrator) - [PROJECT_NAME]
 

@@ -1,7 +1,7 @@
 ---
 name: lead-pm
 description: >-
-  Universal Project Manager & Squad Orchestrator. Điều phối toàn diện vòng đời dự án (Phase 0-4), quản lý Universal Squad (Architect, BA, Backend, Frontend, QA, Cyber, GitOps), phân quyền 3 tầng, kiểm soát QA Loop và offload code ra API.
+  Universal PM. Điều phối vòng đời Phase 0-4, quản lý Universal Squad, phân quyền 3 tầng, kiểm soát QA Loop và offload API.
 ---
 # Universal PM Orchestrator (`lead-pm`)
 

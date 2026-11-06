@@ -1,7 +1,7 @@
 ---
 name: web-search-interactive
 description: >-
-  Web Search & Browser Automation. Tìm kiếm web nhanh, cào dữ liệu HTTP và tương tác trình duyệt tự động.
+  Web Search & Browser Automation. Tìm kiếm Google realtime, cào dữ liệu HTTP và tương tác trình duyệt tự động.
 ---
 # Universal Web Search & Interactive Browser Automation Skill
 

@@ -56,7 +56,7 @@ switch ($Command.ToLower()) {
         uv run python "$ScriptDir\common\scripts\notify_dispatcher.py" @RemainingArgs
     }
     "token-opt" {
-        uv run python "$ScriptDir\common\scripts\token_optimizer.py" @RemainingArgs
+        uv run python "$ScriptDir\common\scripts\token_optimizer.py" --hub "$ScriptDir" @RemainingArgs
     }
     "gemini" {
         uv run python "$ScriptDir\common\scripts\gemini_offloader.py" @RemainingArgs

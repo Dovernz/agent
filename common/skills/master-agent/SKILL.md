@@ -1,7 +1,7 @@
 ---
 name: master-agent
 description: >-
-  Master Agent & Central Orchestrator. Đầu não điều phối tối cao, tiếp nhận yêu cầu tự nhiên từ User, định tuyến đến đúng PM dự án (Minh Sinh Dental, Vietjet Airflow, Ancillary, BRD, PC Builder) bằng M2M protocol và tổng hợp kết quả trả về bằng ngôn ngữ tự nhiên. Kích hoạt khi người dùng gõ /master-agent, /agent-system, hoặc nói 'sử dụng hệ thống agent'.
+  Master Agent & Central Orchestrator. Đầu não điều phối, tiếp nhận tự nhiên từ User, định tuyến PM bằng M2M protocol và tổng hợp kết quả. Kích hoạt: /master-agent, /agent-system.
 ---
 # Master Agent & Central Orchestrator (`master-agent`)
 

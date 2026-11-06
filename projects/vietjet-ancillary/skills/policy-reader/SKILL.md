@@ -1,7 +1,7 @@
 ---
 name: vietjet-policy-reader
 description: >-
-  Vietjet Ancillary Policy Reader. Đọc hiểu Tờ trình KPI, trích xuất ma trận đơn giá hoa hồng sân bay (Counter vs Gate).
+  Vietjet Policy Reader. Đọc hiểu Tờ trình KPI, trích xuất ma trận đơn giá hoa hồng sân bay (Counter vs Gate).
 ---
 # Policy & Requirements Reader - Vietjet Ancillary
 

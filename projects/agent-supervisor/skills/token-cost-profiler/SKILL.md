@@ -1,7 +1,7 @@
 ---
 name: token-cost-profiler
 description: >-
-  Token Profiler. Bóc tách transcript log, tính toán Input/Output/Thinking tokens và định vị các điểm nóng đốt token.
+  Token Profiler. Bóc tách transcript log, tính toán Input/Output/Thinking tokens và định vị điểm nóng đốt token.
 ---
 # Token Cost Profiler Workflow (`token-cost-profiler`)
 

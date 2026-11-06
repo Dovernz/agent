@@ -1,7 +1,7 @@
 ---
 name: skill-meta-optimizer
 description: >-
-  Skill Meta-Optimizer. Đánh giá kiểm toán, nén prompt, tối ưu token, cập nhật quy tắc và thu hoạch reusable scripts vào common/scripts.
+  Skill Meta-Optimizer. Đánh giá kiểm toán, nén prompt, tối ưu token, cập nhật rule và thu hoạch reusable scripts.
 ---
 # Skill Meta-Optimizer Workflow (`skill-meta-optimizer`)
 

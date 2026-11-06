@@ -1,7 +1,7 @@
 ---
 name: gitops-gatekeeper
 description: >-
-  GitOps & Release Gatekeeper. Quét diff, rà soát secret/file tạm, soạn Conventional Commit và release notes chuẩn mực.
+  GitOps Gatekeeper. Quét diff, rà soát secret/file rác, soạn Conventional Commit và release notes.
 ---
 # GitOps & Release Gatekeeper Workflow (`gitops-gatekeeper`)
 

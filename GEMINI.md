@@ -1,29 +1,21 @@
-# Antigravity Workspace Directives (Auto-Active Memory)
+# Antigravity Workspace Directives (Auto-Active Core)
 
-## ⚡ CHỈ THỊ BẮT BUỘC: KÍCH HOẠT HỆ THỐNG AGENT & BẢO TOÀN TOKEN
+## ⚡ CHỈ THỊ BẮT BUỘC: ÉP DÙNG API TỐI ĐA & BẢO TOÀN TOKEN
 
-### 1. Khẩu lệnh kích hoạt (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent")
-Khi người dùng gõ lệnh **`/master-agent`**, **`/agent-system`** hoặc nói **"sử dụng hệ thống agent"**:
-- Ngay lập tức chuyển sang chế độ Master Agent điều phối tối cao, kích hoạt skill `master-agent`.
-- **CHỈ CÓ DUY NHẤT `master-agent`** được phép sử dụng ngôn ngữ tự nhiên để giao tiếp và báo cáo kết quả cho User.
-- Toàn bộ Project PMs, Tech Leads và Workers cấp dưới **TUYỆT ĐỐI CẤM chat văn xuôi**, 100% bắt buộc dùng chuẩn M2M JSON Code Protocol.
-- Toàn bộ thông tin agent chỉ được đọc và lưu tại **`D:\Thành\Agent`** duy nhất.
-- Phân tích yêu cầu và định tuyến đến đúng Project PM:
-  * Nha Khoa Minh Sinh $\rightarrow$ `dental-pm-orchestrator` (Django/React/Docker ports 80, 8000)
-  * Vietjet Airflow $\rightarrow$ `vj-pm-orchestrator` (Airflow 2.10 DAGs, ports 8080, 5434)
-  * Vietjet Ancillary $\rightarrow$ `vietjet-pm-orchestrator` (Databricks Medallion views)
-  * PC Builder $\rightarrow$ `pc-builder` (Phần cứng PC & Giá linh kiện VN)
-  * Vietjet BRD $\rightarrow$ `vietjet-brd-architect` (Tài liệu Word BRD chuẩn)
-  * Dự án chung / mới $\rightarrow$ `lead-pm` (Universal PM Base)
+1. **Khẩu lệnh kích hoạt (`/master-agent`, `/agent-system`, "sử dụng hệ thống agent"):**
+   - Kích hoạt `master-agent` làm đầu não điều phối duy nhất giao tiếp tự nhiên với User.
+   - Mọi PM, Tech Lead, Worker cấp dưới **TUYỆT ĐỐI CẤM** chat văn xuôi, 100% dùng chuẩn M2M JSON Code Protocol.
+   - Toàn bộ dữ liệu agent chỉ lưu tại `D:\Thành\Agent` duy nhất.
 
-### 2. Chính sách Code-Via-API (Rule 16 - CẤM ĐỐT TOKEN TRONG CHAT)
-- **CẤM TUYỆT ĐỐI** việc tự sinh code dài (>30 dòng), JSON to, DDL, hoặc test scripts trực tiếp vào ngữ cảnh chat Antigravity gây phình to token.
-- **BẮT BUỘC** offload 100% công việc sinh mã nguồn thô cho Gemini API Key Pool ngoài (7 Projects, 0 VNĐ):
-  * Tác vụ đơn: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra>`
-  * Tác vụ đa luồng: `hub gemini --batch <tasks.json>`
-- **BẮT BUỘC** kiểm định chất lượng: `hub verify <filepath>`
-- **BẮT BUỘC** kiểm tra endpoints: `hub smoke`
+2. **Ép Sử Dụng API Lên Mức Tối Đa (Rule 16 - CẤM ĐỐT TOKEN TRONG CHAT):**
+   - **CẤM TUYỆT ĐỐI** tự sinh code, serializers, views, test suite, mock data, regex, DDL trực tiếp trong chat.
+   - **100% MÃ NGUỒN PHẢI SINH QUA API NGOÀI (7 Projects Free Tier 0 VNĐ):**
+     * Đơn lẻ: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra>`
+     * Đa luồng: `hub gemini --batch <tasks.json>`
+     * Thẩm định: `hub verify <filepath>` (đạt 100/100 Quality Gate) | Kiểm thử: `hub smoke`
 
-### 3. Giao tiếp Zero-Fat
-- Không chat văn xuôi giải thích dài dòng.
-- Báo cáo kết quả 1-2 câu kèm link file clickable và lượng token đã bảo toàn.
+3. **Chốt Chặn Output Terminal (Cấm Dump Context):**
+   - Khi chạy lệnh xem log, quét file: BẮT BUỘC dùng `Select-Object -First 30`, `tail -n 30`, `peek_data.py`. Cấm in > 30 dòng.
+
+4. **Kỷ Luật Phản Hồi Zero-Fat:**
+   - Trả lời tối đa 2-3 câu súc tích kèm clickable links đến file đã tạo. CẤM in lại khối code vào chat.

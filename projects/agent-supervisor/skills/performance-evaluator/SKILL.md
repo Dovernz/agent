@@ -1,7 +1,7 @@
 ---
 name: performance-evaluator
 description: >-
-  Performance Evaluator. Đo đạc độ trễ (latency), tỷ lệ lỗi tool, số chu kỳ QA loop và cảnh báo nghẽn tiến trình.
+  Performance Evaluator. Đo độ trễ (latency), tỷ lệ lỗi tool, chu kỳ QA loop và cảnh báo nghẽn tiến trình.
 ---
 # Performance Evaluator Workflow (`performance-evaluator`)
 

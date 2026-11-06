@@ -1,7 +1,7 @@
 ---
 name: lead-architect
 description: >-
-  Universal Architect Lead. Khảo sát DB schema, thiết kế kiến trúc hệ thống, sinh đặc tả OpenAPI/Swagger, fan-out worker và kiểm tra drift API.
+  Universal Architect. Khảo sát DB schema, thiết kế hệ thống, sinh OpenAPI/Swagger và kiểm tra drift API.
 ---
 # Universal Architect Lead Workflow (`lead-architect`)
 

@@ -3,6 +3,11 @@ setlocal enabledelayedexpansion
 
 REM Antigravity Agent Hub Central CLI Launcher (hub.bat)
 set SCRIPT_DIR=%~dp0
+set HUB_DIR=%SCRIPT_DIR%
+if "%HUB_DIR:~-1%"=="\" set HUB_DIR=%HUB_DIR:~0,-1%
+
+set REST_ARGS=
+for /f "tokens=1* delims= " %%a in ("%*") do set REST_ARGS=%%b
 
 if "%1"=="" goto help
 if "%1"=="help" goto help
@@ -30,18 +35,15 @@ echo Go 'hub help' de xem huong dan.
 exit /b 1
 
 :status
-shift
-uv run python "%SCRIPT_DIR%common\scripts\hub_status.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\hub_status.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :doctor
-shift
-uv run python "%SCRIPT_DIR%common\scripts\hub_doctor.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\hub_doctor.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :smoke
-shift
-uv run python "%SCRIPT_DIR%common\scripts\smoke_test_runner.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\smoke_test_runner.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :clean
@@ -51,77 +53,63 @@ if not "%1"=="" (
     set TARGET=%1
     shift
 )
-uv run python "%SCRIPT_DIR%common\scripts\hub_cleaner.py" %TARGET% --clean %*
+uv run python "%SCRIPT_DIR%common\scripts\hub_cleaner.py" %TARGET% --clean %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :lint
-shift
-uv run python "%SCRIPT_DIR%common\scripts\linter_guard.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\linter_guard.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :mock
-shift
-uv run python "%SCRIPT_DIR%common\scripts\mock_server_launcher.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\mock_server_launcher.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :db_profile
-shift
-uv run python "%SCRIPT_DIR%common\scripts\db_query_profiler.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\db_query_profiler.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :test
-shift
-uv run python "%SCRIPT_DIR%common\scripts\test_matrix_runner.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\test_matrix_runner.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :changelog
-shift
-uv run python "%SCRIPT_DIR%common\scripts\release_notes_builder.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\release_notes_builder.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :create
-shift
-uv run python "%SCRIPT_DIR%common\scripts\create_project.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\create_project.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :validate
-shift
-uv run python "%SCRIPT_DIR%common\scripts\validate_system.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\validate_system.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :drift
-shift
-uv run python "%SCRIPT_DIR%common\scripts\api_drift_detector.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\api_drift_detector.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :notify
-shift
-uv run python "%SCRIPT_DIR%common\scripts\notify_dispatcher.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\notify_dispatcher.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :token_opt
-shift
-uv run python "%SCRIPT_DIR%common\scripts\token_optimizer.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\token_optimizer.py" --hub "%HUB_DIR%" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :gemini
-shift
-uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :verify
-shift
-uv run python "%SCRIPT_DIR%common\scripts\output_verifier.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\output_verifier.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :fanout
-shift
-uv run python "%SCRIPT_DIR%common\scripts\task_fanout_planner.py" %*
+uv run python "%SCRIPT_DIR%common\scripts\task_fanout_planner.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :usage
-shift
-uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" --pool-status %*
+uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" --pool-status %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :help

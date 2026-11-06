@@ -1,7 +1,7 @@
 ---
 name: lead-cyber-security
 description: >-
-  Cyber Security Lead. Kiểm tra OWASP Top 10, rà soát secret/API keys, kiểm định RBAC/JWT, audit phụ thuộc, fan-out security workers và vá bảo mật.
+  Cyber Security Lead. Kiểm tra OWASP Top 10, quét secret/API keys, audit RBAC/JWT, vá lỗ hổng phụ thuộc.
 ---
 # Cyber Security Lead Workflow (`lead-cyber-security`)
 

@@ -1,7 +1,7 @@
 ---
 name: vietjet-code-analyzer
 description: >-
-  Vietjet Ancillary Code Analyzer. Phân tích Stored Procedures/DDL, bóc tách CTEs, tối ưu ETL và thiết kế Databricks Medallion.
+  Vietjet Code Analyzer. Phân tích Stored Procedures/DDL, bóc tách CTEs, tối ưu ETL và thiết kế Databricks Medallion.
 ---
 # Code & ETL Analyzer - Vietjet Ancillary
 

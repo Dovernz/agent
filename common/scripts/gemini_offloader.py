@@ -94,7 +94,7 @@ def get_cache_file() -> Path:
     return state_dir / "gemini_response_cache.json"
 
 
-def get_cached_response(cache_key: str, max_age_seconds: int = 7200) -> Optional[Dict]:
+def get_cached_response(cache_key: str, max_age_seconds: int = 86400) -> Optional[Dict]:
     c_file = get_cache_file()
     if c_file.exists():
         try:
@@ -120,8 +120,8 @@ def set_cached_response(cache_key: str, data: Dict):
                 cache = {}
         cache[cache_key] = data
         now = time.time()
-        # Dọn dẹp cache cũ hơn 24 giờ
-        cache = {k: v for k, v in cache.items() if now - v.get("timestamp", 0) < 86400}
+        # Dọn dẹp cache cũ hơn 3 ngày (259,200s)
+        cache = {k: v for k, v in cache.items() if now - v.get("timestamp", 0) < 259200}
         with open(c_file, "w", encoding="utf-8") as f:
             json.dump(cache, f, indent=2)
     except Exception:

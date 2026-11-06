@@ -1,7 +1,7 @@
 ---
 name: pc-builder
 description: >-
-  PC Hardware Architect. Tư vấn cấu hình PC theo ngân sách/nhu cầu, kiểm tra tương thích phần cứng và so sánh giá bán lẻ VN.
+  PC Hardware Architect. Tư vấn cấu hình PC theo ngân sách/nhu cầu, kiểm tra tương thích phần cứng và so sánh giá VN.
 ---
 # Adaptive PC Builder & Hardware Architect Skill
 

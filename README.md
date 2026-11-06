@@ -1,33 +1,99 @@
 # Multi-Project Agent Hub (`.agents`)
 
-Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt theo từng dự án**, tích hợp trực tiếp với Google Antigravity và Biệt đội Kỹ sư Toàn cục (Universal Squad).
+Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt theo từng dự án**, tích hợp trực tiếp với Google Antigravity, Biệt đội Kỹ sư Toàn cục (Universal Squad), và Gemini Smart Key Pool (7 Projects).
 
 ---
 
-## 🏗️ Cấu Trúc Hệ Thống
+## 🏗️ Cấu Trúc Hệ Thống Chi Tiết (Agent Architecture Map)
 
 ```text
 .agents/
-├── common/
-│   ├── rules/                # Giao thức M2M & Zero-Fat
-│   ├── docs/                 # Tài liệu kiến trúc & onboarding
-│   ├── scripts/              # Thư viện script CLI & công cụ tự động hóa dùng chung
-│   ├── mcp/                  # MCP servers mở rộng (web-search-interactive)
-│   └── skills/               # Universal Squad (Architect, Backend, Frontend, QA, BA, Cyber, GitOps)
-├── rules/                    # Quy tắc kích hoạt tự động toàn cục (m2m-protocol.md)
-├── projects/
-│   ├── dental-project/       # Nha Khoa Minh Sinh (Django / React / Docker)
-│   ├── pc-builder/           # Chuyên gia Tư vấn Cấu hình PC & Giá linh kiện
-│   ├── vietjet-airflow/      # Hạ Tầng Dữ Liệu & DAG Pipelines Vietjet Air
-│   ├── vietjet-ancillary/    # Doanh Thu Phụ Trợ PSS & Di Trú Databricks
-│   ├── vietjet-brd/          # Soạn Thảo BRD Chuẩn Hãng Hàng Không Vietjet
-│   ├── agent-supervisor/     # Giám Sát, Đo Đạc Token & Tối Ưu Hóa Kỹ Năng
-│   └── _template/            # Template mẫu 1-click cho dự án mới
-├── hub.bat                   # CLI Launcher cho Windows CMD
-├── hub.ps1                   # CLI Launcher cho Windows PowerShell
-├── skills.json               # Registry đăng ký kỹ năng với Antigravity
+├── common/                               # Hạ tầng & Biệt đội Kỹ sư Dùng chung (Universal Squad)
+│   ├── rules/
+│   │   └── m2m-protocol.md               # Giao thức M2M, Zero-Fat & Bounded Fan-Out (Rule 1-15)
+│   ├── scripts/                          # Bộ công cụ CLI dùng chung (hub, verify, gemini, fanout...)
+│   └── skills/                           # 🌐 BIỆT ĐỘI KỸ SƯ TOÀN CỤC (UNIVERSAL SQUAD)
+│       ├── master-secretary/             # Thư ký Toàn quyền điều phối dự án (Global Router)
+│       ├── lead-ba/                      # Universal BA (Khảo sát repo, User Stories & AC)
+│       ├── lead-architect/               # Universal Architect (Thiết kế DB Schema & OpenAPI)
+│       ├── lead-backend/                 # Universal Backend Lead (API, DB Migration, Query Profiler)
+│       ├── lead-frontend/                # Universal Frontend Lead (UI/UX Mobile-First, Mock Client)
+│       ├── lead-qa/                      # Universal QA Lead (Test matrix E2E/Unit trong Docker)
+│       ├── lead-cyber-security/          # Cyber Security Lead (Rà soát OWASP, Secret leak, RBAC)
+│       ├── gitops-gatekeeper/            # GitOps Gatekeeper (Rà soát diff, soạn Conventional Commit)
+│       └── web-search-interactive/       # Web Search Realtime & Playwright Browser Automation Tool
+├── rules/
+│   └── m2m-protocol.md                   # Rule kích hoạt tự động toàn cục
+├── projects/                             # CÁC NHÓM AGENT & NGỮ CẢNH CHUYÊN BIỆT THEO DỰ ÁN
+│   ├── dental-project/                   # 🦷 DỰ ÁN PHÒNG KHÁM NHA KHOA MINH SINH
+│   │   ├── knowledge/ & rules/           # tech-stack.md, checkpoint.md, dental-rules.md
+│   │   └── skills/
+│   │       └── pm-orchestrator/          # PM Nha Khoa Minh Sinh (kết nối trực tiếp Universal Squad)
+│   ├── pc-builder/                       # 💻 DỰ ÁN TƯ VẤN & BUILD CẤU HÌNH PC
+│   │   ├── knowledge/ & rules/           # hardware-compatibility.md, vietnam-retailers.md, pc-rules.md
+│   │   └── skills/
+│   │       └── pc-builder/               # Chuyên gia Phần cứng PC & So sánh giá linh kiện VN
+│   ├── vietjet-airflow/                  # ✈️ DỰ ÁN HẠ TẦNG DỮ LIỆU VIETJET AIRFLOW
+│   │   ├── knowledge/ & rules/           # tech-stack.md, checkpoint.md, airflow-rules.md
+│   │   ├── schemas/ & templates/         # dag_spec.json, vietjet_dag_base.py
+│   │   └── skills/
+│   │       └── vj-pm-orchestrator/       # PM Vietjet Airflow (kết nối trực tiếp Universal Squad)
+│   ├── vietjet-ancillary/                # 📊 DỰ ÁN DOANH THU PHỤ TRỢ & DI TRÚ DATABRICKS
+│   │   ├── knowledge/ & rules/           # Thuật ngữ PSS, chính sách hoa hồng KPI, checkpoint.md
+│   │   └── skills/
+│   │       ├── pm-orchestrator/          # PM điều phối nghiệp vụ Ancillary
+│   │       ├── code-analyzer/            # Bóc tách Stored Procedures sang Databricks Medallion
+│   │       ├── policy-reader/            # Trích xuất ma trận đơn giá hoa hồng từ Tờ trình KPI
+│   │       ├── catalog-inspector/        # Đối chiếu Master Data danh mục phụ trợ hàng không
+│   │       └── excel-builder/            # Tự động xuất báo cáo Excel 2 tầng header chuẩn Vietjet
+│   ├── vietjet-brd/                      # 📑 DỰ ÁN TỰ ĐỘNG HÓA SOẠN THẢO BRD VIETJET
+│   │   ├── templates/ & scripts/         # Engine sinh file docx, master template Vietjet chuẩn
+│   │   └── skills/
+│   │       └── vietjet-brd-architect/    # Chuyên gia soạn thảo tài liệu Word BRD Vietjet
+│   ├── agent-supervisor/                 # 🛡️ NHÓM GIÁM SÁT, ĐO ĐẠC TOKEN & TỐI ƯU HỆ THỐNG
+│   │   ├── knowledge/ & reports/         # evaluation-metrics.md, lịch sử báo cáo kiểm toán
+│   │   └── skills/
+│   │       ├── supervisor-orchestrator/  # Chánh thanh tra điều phối kiểm toán hiệu năng
+│   │       ├── token-cost-profiler/      # Bóc tách và định lượng tokens từ transcript JSONL
+│   │       ├── performance-evaluator/    # Đánh giá độ trễ và tỷ lệ lỗi QA loop
+│   │       └── skill-meta-optimizer/     # Tối ưu hóa prompt & thu hoạch reusable scripts
+│   └── _template/                        # 📦 MẪU CHUẨN SẴN SÀNG 1-CLICK NHÂN BẢN
+│       └── skills/
+│           └── pm-orchestrator/          # PM mẫu kế thừa Universal Squad cho dự án mới
+├── hub.bat                               # Central CLI Launcher cho Windows CMD
+├── hub.ps1                               # Central CLI Launcher cho Windows PowerShell
+├── skills.json                           # Registry đăng ký 22 kỹ năng với Antigravity
 └── README.md
 ```
+
+---
+
+## 📋 Bảng Danh Mục Toàn Bộ 21 Agent Theo Chuyên Môn
+
+| STT | Tên Agent (Skill Identifier) | Vị Trí / Nhóm | Vai Trò & Chuyên Môn Cốt Lõi |
+| :---: | :--- | :--- | :--- |
+| **1** | `master-secretary` | Universal Squad | Thư ký điều phối trung ương, định tuyến thông minh giữa các dự án |
+| **2** | `lead-ba` | Universal Squad | Khảo sát mã nguồn, sinh `tech-stack.md`, bóc tách User Stories & AC |
+| **3** | `lead-architect` | Universal Squad | Thiết kế kiến trúc hệ thống, DB Schema, chuẩn hóa OpenAPI / Schemas |
+| **4** | `lead-backend` | Universal Squad | Lập trình API REST/GraphQL, DB Migration, chống N+1 query trong Docker |
+| **5** | `lead-frontend` | Universal Squad | Thiết kế UI/UX Mobile-First, tự sinh API client, chạy Mock Server |
+| **6** | `lead-qa` | Universal Squad | Chạy ma trận kiểm thử E2E/Unit trong Docker, code review, linter |
+| **7** | `lead-cyber-security` | Universal Squad | Rà soát OWASP Top 10, quét lọt lộ Secret/API keys, audit phụ thuộc |
+| **8** | `gitops-gatekeeper` | Universal Squad | Gác cổng Git, rà soát diff, soạn Conventional Commit chuẩn mực |
+| **9** | `dental-pm-orchestrator` | Minh Sinh Dental | PM điều phối phòng khám nha khoa (Django / React / Docker) |
+| **10** | `pc-builder` | PC Hardware | Chuyên gia tư vấn cấu hình PC, kiểm tra tương thích và so sánh giá VN |
+| **11** | `vj-pm-orchestrator` | Vietjet Airflow | PM hạ tầng dữ liệu và Airflow Pipelines (kết nối Universal Squad) |
+| **12** | `vietjet-pm-orchestrator`| Vietjet Ancillary | PM điều phối phân tích dữ liệu phụ trợ và di trú Databricks |
+| **13** | `code-analyzer` | Vietjet Ancillary | Bóc tách Stored Procedures Oracle sang Databricks PySpark Medallion |
+| **14** | `policy-reader` | Vietjet Ancillary | Đọc hiểu Tờ trình KPI hoa hồng sân bay (Counter vs Gate) |
+| **15** | `catalog-inspector` | Vietjet Ancillary | Đối chiếu Master Data danh mục phụ trợ (suất ăn, hành lý, chọn ghế) |
+| **16** | `excel-builder` | Vietjet Ancillary | Xuất báo cáo tài chính Excel 2 tầng header chuẩn nhận diện Vietjet |
+| **17** | `vietjet-brd-architect` | Vietjet BRD | Tự động hóa soạn thảo tài liệu Word BRD chuẩn nhận diện Vietjet Air |
+| **18** | `supervisor-orchestrator`| Agent Supervisor | Chánh thanh tra điều phối Post-Run Audit, chấm điểm hiệu năng |
+| **19** | `token-cost-profiler` | Agent Supervisor | Đo lường chi tiết Input/Output/Thinking tokens qua transcript log |
+| **20** | `performance-evaluator` | Agent Supervisor | Đo đạc độ trễ, tỷ lệ lỗi công cụ và số chu kỳ QA loop |
+| **21** | `skill-meta-optimizer` | Agent Supervisor | Tối ưu hóa prompt, nén token và thu hoạch reusable scripts |
+| *Tool*| `web-search-interactive`| Global Utility | Tìm kiếm Google Realtime & tự động hóa trình duyệt tương tác |
 
 ---
 
@@ -54,59 +120,12 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 
 ---
 
-## 🌐 Biệt Đội Kỹ Sư Toàn Cục (Universal Squad in `common/skills/`)
-
-Được thiết kế dùng chung cho toàn bộ các dự án, không phụ thuộc vào công nghệ đơn lẻ:
-
-- **`lead-ba`**: Phân tích nghiệp vụ, quét repo sinh `tech-stack.md`, bóc tách User Stories & AC chuẩn Gherkin.
-- **`lead-architect`**: Thiết kế kiến trúc, DB Schema, chuẩn hóa đặc tả OpenAPI 3.0 / JSON Schemas.
-- **`lead-backend`**: Lập trình API, xử lý DB Migrations & Seeding, chống lỗi N+1, tối ưu hiệu năng.
-- **`lead-frontend`**: Thiết kế UI/UX Mobile-First, tự sinh API client từ spec, mock server độc lập.
-- **`lead-qa`**: Kiểm thử Shift-Left, chạy test matrix E2E/Unit trong Docker, code review và dọn dẹp.
-- **`lead-cyber-security`**: Rà soát OWASP Top 10, quét lọt lộ Secret/API key, audit phụ thuộc, vá bảo mật phòng thủ.
-- **`gitops-gatekeeper`**: Gác cổng Git, rà soát diff, soạn Conventional Commit và release notes chuẩn mực.
-- **`master-secretary`**: Thư ký điều phối trung ương, định tuyến yêu cầu thông minh giữa các dự án.
-
----
-
-## 📁 Danh Sách Dự Án Đang Hoạt Động
-
-### 1. Phòng Khám Nha Khoa Minh Sinh (`dental-project`)
-- **Đặc tả:** Web app quản lý khám bệnh, đặt lịch, hồ sơ nha khoa (Django / React / Docker).
-- **Điều phối:** `dental-pm-orchestrator` $\rightarrow$ phân việc xuống **Universal Squad** trong `common/skills/`.
-
-### 2. Tư Vấn & Build Cấu Hình PC (`pc-builder`)
-- **Đặc tả:** Chuyên gia phần cứng, kiểm tra tương thích linh kiện CPU/VGA/Mainboard, tính công suất nguồn PSU và so sánh giá bán lẻ Việt Nam qua web search.
-- **Kỹ năng:** `pc-builder` + `web-search-interactive`.
-
-### 3. Hạ Tầng Dữ Liệu Vietjet Airflow (`vietjet-airflow`)
-- **Đặc tả:** Hạ tầng ETL dữ liệu lớn và quản lý pipelines Airflow 2.10 (TaskFlow API, múi giờ `Asia/Ho_Chi_Minh`, container Docker `test-airflow-webserver-1`).
-- **Điều phối:** `vj-pm-orchestrator` $\rightarrow$ phân việc trực tiếp xuống **Universal Squad**:
-  - `lead-architect`: Thiết kế DAG JSON spec.
-  - `lead-backend`: Viết code TaskFlow theo `templates/vietjet_dag_base.py`.
-  - `lead-qa`: Chạy test `fast_test_dag.py` trong Docker.
-  - `lead-cyber-security`: Kiểm tra bí mật kết nối và hooks.
-
-### 4. Doanh Thu Phụ Trợ & Di Trú Databricks (`vietjet-ancillary`)
-- **Đặc tả:** Chuyên sâu nghiệp vụ hàng không: bóc tách Stored Procedures Oracle sang Databricks PySpark Medallion, đối chiếu danh mục phụ trợ (suất ăn, hành lý) và đọc chính sách KPI.
-- **Kỹ năng Chuyên biệt:** `vietjet-pm-orchestrator`, `code-analyzer`, `policy-reader`, `catalog-inspector`, `excel-builder`.
-
-### 5. Soạn Thảo Tài Liệu BRD Vietjet (`vietjet-brd`)
-- **Đặc tả:** Tự động hóa soạn thảo tài liệu yêu cầu nghiệp vụ BRD định dạng Word (.docx) chuẩn nhận diện thương hiệu Vietjet Air từ prompt hoặc file Excel.
-- **Kỹ năng:** `vietjet-brd-architect` (kèm template và engine sinh `.docx`).
-
-### 6. Giám Sát, Đo Đạc Token & Tối Ưu Hệ Thống (`agent-supervisor`)
-- **Đặc tả:** Giám sát chất lượng sau phiên chạy, đo đạc token tiêu thụ qua log transcript, phát hiện điểm nóng và đề xuất tối ưu hóa kỹ năng.
-- **Kỹ năng Chuyên biệt:** `supervisor-orchestrator`, `token-cost-profiler`, `performance-evaluator`, `skill-meta-optimizer`.
-
----
-
 ## ⚡ Nguyên Tắc Vận Hành Cốt Lõi (M2M Protocol)
 
 1. **Docker-First:** Mọi thao tác build, test, lint, migrations BẮT BUỘC thực thi trong Docker container.
 2. **Giao tiếp Zero-Fat:** Agent chỉ trao đổi tín hiệu M2M (`[ACK]`, `[STATUS: DONE]`, `[STATUS: ESCALATE]`) và JSON payload tối giản.
 3. **Phân Tầng Bậc 3 (Bounded Fan-Out):**
-   - Executive (Master / PM) $\rightarrow$ Tech Lead (có quyền sinh $N \le 5$ Workers) $\rightarrow$ Worker (bị khóa cứng, không đẻ tiếp cấp 4).
+   - Executive (Master / PM) $\rightarrow$ Tech Lead (có quyền sinh $N \le 5$ Workers) $\rightarrow$ Worker (bị khóa cứng `EnableSubagentTools: false`, không đẻ tiếp cấp 4).
 4. **API Offloader & 7 Keys Pool:** Đẩy tác vụ nặng/lặp lại sang Gemini API ngoài (0đ, 7 cloud projects, 100k+ req/ngày) để bảo toàn quota Antigravity.
 5. **Cổng Thẩm Định Chất Lượng:** Output code sinh ra bắt buộc qua `hub verify` (kiểm tra cú pháp AST, bảo mật, bóc tách code sạch) trước khi Lead nghiệm thu.
 6. **Git Là Nguồn Chân Lý Duy Nhất (SSoT):** Trạng thái được đọc trực tiếp từ Git repo và `checkpoint.md`. Không lưu file rác trên ổ cứng.

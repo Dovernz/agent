@@ -67,10 +67,10 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
     - **Đọc trực tiếp từ Git:** Mọi tác vụ tra cứu tiến độ (như `hub_status.py`, `master-secretary`) **BẮT BUỘC** đọc trực tiếp từ thư mục làm việc Git và nhật ký `git log -1`. Tuyệt đối không sinh thêm các file cache trạng thái hay file ghi nhớ ngoài luồng trên ổ cứng.
     - **Duy trì Working Tree sạch sẽ:** Khi hoàn tất công việc, thư mục làm việc của dự án phải sạch (`git status` clean), toàn bộ file rác/ảnh chụp màn hình được quét sạch qua `hub_cleaner.py`.
 13. **Truy Vấn Tức Thì Gemini Key Pool (Instant Pool Status Trigger):**
-    - Khi người dùng hỏi bất kỳ biến thể nào như: `pool status`, `trạng thái pool`, `kiểm tra pool`, `xem pool`, `gemini pool`, `quota api`:
+    - Khi người dùng hỏi bất kỳ biến thể nào như: `pool status`, `trạng thái pool`, `kiểm tra pool`, `xem pool`, `gemini pool`, `quota api`, `hub usage`:
     - Agent **BẮT BUỘC** tự động chạy lệnh mà không bắt người dùng phải gõ terminal:
       ```powershell
-      uv run python "D:\Thành\Agent\common\scripts\gemini_offloader.py" --pool-status
+      hub usage
       ```
     - Hiển thị ngay lập tức bảng trạng thái Markdown gồm các cột STT, Mã Khóa, Trạng Thái (SẴN SÀNG / COOLDOWN), và Tổng Hạn Mức Toàn Hệ Thống.
 14. **Quy Trình Kiểm Định & Hội Đồng Thẩm Định Output (Output Verification & Multi-Tier Review Gate):**
@@ -105,3 +105,15 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * Lead thu thập kết quả từ $N$ Worker, kiểm tra tính tương thích giữa các module, chạy `test_matrix_runner.py` / `linter_guard.py` toàn cục.
       * Khi tất cả pass, Lead đóng gói payload M2M báo cáo lên PM / Master Secretary:
         `[STATUS: DONE] {"lead": "<ROLE>", "workers_count": N, "artifacts": [...]}`.
+16. **Quy Tắc Bắt Buộc Ủy Thác Việc Nặng Cho Gemini API Pool (Mandatory API Offloading - Code-Via-API Policy):**
+    - **CẤM TUYỆT ĐỐI việc tự sinh code dài trong ngữ cảnh chat Antigravity:** Mọi Agent/Sub-agent tuyệt đối không được dùng lệnh `write_file` hoặc in trực tiếp các đoạn code dài (> 50 dòng), mock data lớn, regex phức tạp, hoặc test suite vào ngữ cảnh chat Antigravity (gây lãng phí nghiêm trọng token quota của phiên).
+    - **BẮT BUỘC Ủy thác cho Gemini API:** Khi cần viết mã nguồn, DDL, serializers, viewsets, hoặc kịch bản test:
+      * Agent / Worker BẮT BUỘC chạy lệnh:
+        ```powershell
+        hub gemini --prompt "<yêu_cầu_chi_tiết>" --out "<đường_dẫn_tệp>" --tier <auto|bulk|standard|deep|ultra>
+        ```
+      * File mã nguồn sẽ được Gemini API sinh và ghi thẳng vào ổ cứng đĩa.
+      * Cổng kiểm định `output_verifier` và `self-healing loop` sẽ tự động kiểm tra cú pháp và vá lỗi ngay tại chỗ.
+    - **Phân định rõ ranh giới Brain vs Muscle:**
+      * **Antigravity Agents (Brain):** Chỉ giữ vai trò Lập kế hoạch kiến trúc (Planning), Ra lệnh cho API (Prompting), Chạy test/lint (Execution), và Đánh giá nghiệm thu (Reviewing).
+      * **Gemini API Pool (Muscle):** Đảm nhận 100% công việc cày xới mã nguồn thô và token nặng hoàn toàn miễn phí (0 VNĐ).

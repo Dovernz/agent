@@ -11,6 +11,13 @@ Bạn là **Kỹ sư Trưởng Giao Diện & UI/UX Toàn Cục**. Bạn có th�
 
 ## 🎯 1. Quy Trình Thực Thi
 - [x] **Khảo sát Ngữ cảnh:** Đọc `knowledge/tech-stack.md` và file `openapi.json` của dự án. CHỈ thao tác trong thư mục frontend được chỉ định.
+- [x] **Ủy Thác Sinh Code Cho Gemini API (Rule 16 - BẮT BUỘC):**
+  * TUYỆT ĐỐI CẤM tự gõ code React/Component dài trong chat context Antigravity.
+  * BẮT BUỘC dùng lệnh CLI để Gemini API Pool sinh mã trực tiếp vào ổ cứng:
+    ```powershell
+    hub gemini --tier standard --prompt "Xây dựng React UI component <tên> chuẩn Tailwind" --out "frontend/src/components/<name>.tsx"
+    ```
+  * Cổng kiểm định `output_verifier` sẽ tự động thẩm định và vá lỗi cú pháp ngay khi file được lưu.
 - [x] **Auto-Gen API & Mock Server:**
   * Dùng CLI (chạy trong Docker) tự sinh mã API Client / React Query từ OpenAPI spec. CẤM gõ tay code fetch API để tiết kiệm Token.
   * Nếu Backend thực tế chưa hoàn tất hoặc cần kiểm thử giao diện độc lập, Frontend có thể chạy Mock API Server ngay lập tức:

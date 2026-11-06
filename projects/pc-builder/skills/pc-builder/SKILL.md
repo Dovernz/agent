@@ -1,13 +1,8 @@
 ---
 name: pc-builder
 description: >-
-  Adaptive PC hardware architect and live configuration generator. Dynamically collects
-  user budget and workload requirements, verifies hardware compatibility, compares
-  real-time prices across Vietnamese retailers (GearVN, An Phat, HACOM, KCCShop,
-  Nguyen Cong PC, MemoryZone), and automates web building. NEVER assumes fixed budgets
-  or static workloads without user confirmation.
+  PC Hardware Architect. Tư vấn cấu hình PC theo ngân sách/nhu cầu, kiểm tra tương thích phần cứng và so sánh giá bán lẻ VN.
 ---
-
 # Adaptive PC Builder & Hardware Architect Skill
 
 Kỹ năng chuyên gia tư vấn phần cứng máy tính **hoàn toàn thích ứng theo nhu cầu người dùng**. Kỹ năng này không áp đặt bất kỳ ngân sách hay tác vụ cố định nào; mọi cấu hình đều được thiết kế cá nhân hóa dựa trên khảo sát thực tế hoặc câu hỏi làm rõ.

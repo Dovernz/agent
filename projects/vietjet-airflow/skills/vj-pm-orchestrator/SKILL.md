@@ -1,9 +1,8 @@
 ---
 name: vj-pm-orchestrator
 description: >-
-  Main Agent (PM) cho dự án Hạ Tầng Dữ Liệu Vietjet Airflow (vietjet-airflow). Điều phối tổng thể các Lead Agent (Architect, Coder, QA), kiểm soát QA Loop, đồng bộ Model inherit, KHÔNG tự commit Git.
+  PM Vietjet Airflow. Điều phối hạ tầng dữ liệu Airflow, phân công Lead Squad (Architect, Coder, QA), kiểm soát QA Loop.
 ---
-
 # PM Orchestrator - Vietjet Airflow (`vietjet-airflow`)
 
 [ROLE]: Project Manager | [REF]: `knowledge/tech-stack.md`, `rules/airflow-rules.md`, `rules/m2m-protocol.md`

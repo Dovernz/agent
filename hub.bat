@@ -16,6 +16,9 @@ if "%1"=="test" goto test
 if "%1"=="changelog" goto changelog
 if "%1"=="create" goto create
 if "%1"=="validate" goto validate
+if "%1"=="drift" goto drift
+if "%1"=="notify" goto notify
+if "%1"=="token-opt" goto token_opt
 
 echo [!] Lenh khong hop le: %1
 echo Go 'hub help' de xem huong dan.
@@ -76,6 +79,21 @@ shift
 uv run python "%SCRIPT_DIR%common\scripts\validate_system.py" %*
 exit /b %ERRORLEVEL%
 
+:drift
+shift
+uv run python "%SCRIPT_DIR%common\scripts\api_drift_detector.py" %*
+exit /b %ERRORLEVEL%
+
+:notify
+shift
+uv run python "%SCRIPT_DIR%common\scripts\notify_dispatcher.py" %*
+exit /b %ERRORLEVEL%
+
+:token_opt
+shift
+uv run python "%SCRIPT_DIR%common\scripts\token_optimizer.py" %*
+exit /b %ERRORLEVEL%
+
 :help
 echo =================================================================
 echo   ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub)
@@ -90,6 +108,9 @@ echo   hub mock [spec]     Khoi chay Instant API Mock Server (CORS, CRUD, OpenAP
 echo   hub db-profile [log] Phan tich truy van cham va mau truy van N+1
 echo   hub test [path]     Chay da tang test matrix (Unit, Integration, Lint)
 echo   hub changelog [repo] Tu dong tao Release Notes tu Git Conventional Commits
+echo   hub drift           Kiem tra lech chuan API giua Backend Code va OpenAPI Spec
+echo   hub notify          Ban thong bao su co & canh bao qua Telegram/Discord/Slack
+echo   hub token-opt       Do luong, dinh vi diem nong va nen toi uu token su dung
 echo   hub create          Khoi tao 1-click nhom agent cho du an moi tu template
 echo   hub validate        Kiem tra tinh hop le 100%% cua toan bo 25 skills va 7 du an
 echo =================================================================

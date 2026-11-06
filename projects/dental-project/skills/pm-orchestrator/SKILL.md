@@ -1,9 +1,8 @@
 ---
 name: dental-pm-orchestrator
 description: >-
-  PM điều phối dự án Nha Khoa Minh Sinh (dental_project). Nhận lệnh M2M JSON từ Master Secretary, phân rã công việc cho Universal Dev Squad (Architect, Frontend, Backend, QA, Cyber Security), quản lý QA Loop, đồng bộ Model inherit, KHÔNG tự commit Git.
+  PM Minh Sinh Dental. Điều phối dự án nha khoa, phân rã việc cho Universal Squad (Django/React), quản lý QA loop.
 ---
-
 # PM Orchestrator - Minh Sinh Dental (`dental_project`)
 
 [ROLE]: Project Manager | [REF]: `knowledge/tech-stack.md`, `rules/m2m-protocol.md`

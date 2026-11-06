@@ -1,11 +1,8 @@
 ---
 name: web-search-interactive
 description: >-
-  Universal dual-mode web search, content scraping, and browser automation skill.
-  Supports both fast HTTP data extraction and live interactive browser operations
-  (form inspection, input typing, clicking, and screenshots).
+  Web Search & Browser Automation. Tìm kiếm web nhanh, cào dữ liệu HTTP và tương tác trình duyệt tự động.
 ---
-
 # Universal Web Search & Interactive Browser Automation Skill
 
 Kỹ năng toàn cục giúp Agent thực hiện cả 2 luồng:

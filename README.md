@@ -23,6 +23,9 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   ├── db_query_profiler.py     # Phân tích truy vấn SQL chậm (>100ms) và phát hiện mẫu truy vấn lặp N+1
 │   │   ├── test_matrix_runner.py    # Điều phối ma trận kiểm thử đa tầng (Unit, Integration, Lint)
 │   │   ├── release_notes_builder.py # Tự động tạo Release Notes & cập nhật CHANGELOG.md từ Git Log
+│   │   ├── api_drift_detector.py    # Kiểm tra lệch chuẩn API giữa Backend Code và OpenAPI Spec
+│   │   ├── notify_dispatcher.py     # Bắn thông báo sự cố & cảnh báo qua Telegram/Discord/Slack
+│   │   ├── token_optimizer.py       # Đo lường, định vị điểm nóng và nén tối ưu token sử dụng
 │   │   ├── qa_report_builder.py     # Xuất báo cáo nghiệm thu Markdown kèm bằng chứng hình ảnh 1-click
 │   │   ├── dependency_patcher.py    # Quét & tự động nâng cấp phiên bản an toàn cho requirements/npm
 │   │   ├── env_guardian.py          # Kiểm toán .env vs .env.example & quét phát hiện rò rỉ secret
@@ -132,6 +135,9 @@ Thay vì gõ các đường dẫn dài, User hoặc Agent có thể gọi nhanh 
 | `hub db-profile [log]` | Phân tích truy vấn SQL chậm và lỗi N+1 | `db_query_profiler.py` |
 | `hub test [path]` | Chạy đa tầng ma trận kiểm thử (Unit, Lint, Docker) | `test_matrix_runner.py` |
 | `hub changelog [repo]`| Tự động tạo Release Notes từ Conventional Commits | `release_notes_builder.py` |
+| `hub drift` | Kiểm tra lệch chuẩn API giữa Backend Code và OpenAPI Spec | `api_drift_detector.py` |
+| `hub notify` | Bắn thông báo sự cố & cảnh báo qua Telegram/Discord/Slack | `notify_dispatcher.py` |
+| `hub token-opt` | Đo lường, định vị điểm nóng và nén tối ưu token sử dụng | `token_optimizer.py` |
 | `hub create` | Khởi tạo 1-click nhóm agent cho dự án mới | `create_project.py` |
 | `hub validate` | Kiểm tra tính toàn vẹn 100% của toàn bộ hệ thống | `validate_system.py` |
 

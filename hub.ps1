@@ -49,6 +49,15 @@ switch ($Command.ToLower()) {
     "validate" {
         uv run python "$ScriptDir\common\scripts\validate_system.py" @RemainingArgs
     }
+    "drift" {
+        uv run python "$ScriptDir\common\scripts\api_drift_detector.py" @RemainingArgs
+    }
+    "notify" {
+        uv run python "$ScriptDir\common\scripts\notify_dispatcher.py" @RemainingArgs
+    }
+    "token-opt" {
+        uv run python "$ScriptDir\common\scripts\token_optimizer.py" @RemainingArgs
+    }
     default {
         Write-Host "=================================================================" -ForegroundColor Cyan
         Write-Host "  ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub.ps1)" -ForegroundColor Yellow
@@ -62,6 +71,9 @@ switch ($Command.ToLower()) {
         Write-Host "  .\hub.ps1 db-profile      Phân tích truy vấn chậm và mẫu truy vấn N+1" -ForegroundColor Green
         Write-Host "  .\hub.ps1 test [path]     Chạy đa tầng test matrix (Unit, Integration, Lint)" -ForegroundColor Green
         Write-Host "  .\hub.ps1 changelog       Tự động tạo Release Notes từ Git Conventional Commits" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 drift           Kiểm tra lệch chuẩn API giữa Backend Code và OpenAPI Spec" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 notify          Bắn thông báo sự cố & cảnh báo qua Telegram/Discord/Slack" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 token-opt       Đo lường, định vị điểm nóng và nén tối ưu token sử dụng" -ForegroundColor Green
         Write-Host "  .\hub.ps1 create          Khởi tạo 1-click nhóm agent cho dự án mới từ template" -ForegroundColor Green
         Write-Host "  .\hub.ps1 validate        Kiểm tra tính hợp lệ 100% của toàn bộ 25 skills và 7 dự án" -ForegroundColor Green
         Write-Host "=================================================================" -ForegroundColor Cyan

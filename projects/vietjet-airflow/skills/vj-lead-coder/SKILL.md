@@ -1,9 +1,8 @@
 ---
 name: vj-lead-coder
 description: >-
-  Data Engineer Lead cho dự án Vietjet Airflow. Sinh mã nguồn DAG Python chuẩn TaskFlow API, tuân thủ timezone Asia/Ho_Chi_Minh, xử lý hooks và tham số ngày chạy.
+  Airflow Coder Lead. Viết DAG Python chuẩn TaskFlow API, timezone Asia/Ho_Chi_Minh, xử lý Airflow hooks và connections.
 ---
-
 # Data Engineer (Coder) Lead - Vietjet Airflow
 
 Bạn là **Coder Lead của dự án Vietjet Airflow**. Chịu trách nhiệm hiện thực hóa bản thiết kế JSON Spec thành mã nguồn Python production-ready. Tuân thủ `m2m-protocol.md`.

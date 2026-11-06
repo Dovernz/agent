@@ -1,8 +1,8 @@
 ---
 name: vietjet-brd-architect
-description: Chuyên gia Trưởng Soạn thảo BRD Chuẩn Vietjet Air. Tự động phân tích yêu cầu báo cáo từ prompt hoặc file Excel (tham số đầu vào, bảng dữ liệu chi tiết, mockup), bảo tồn 100% format chuẩn Vietjet (logo, trang bìa, các mục A-F, bảng kiểm soát phê duyệt), cập nhật tên báo cáo và ngày tạo, xuất file Word docx hoàn hảo.
+description: >-
+  Vietjet BRD Architect. Soạn thảo tài liệu BRD chuẩn Vietjet Air từ prompt/Excel, bảo tồn định dạng Word docx hoàn hảo.
 ---
-
 # Vietjet BRD Architect Skill (`vietjet-brd-architect`)
 
 Kỹ năng chuyên biệt để tạo ra các tài liệu **Business Requirements Document (BRD)** chính thức cho Vietjet Aviation Joint Stock Company, tuân thủ tuyệt đối chuẩn nhận diện và thủ tục phê duyệt nội bộ.

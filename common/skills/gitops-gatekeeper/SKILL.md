@@ -1,9 +1,8 @@
 ---
 name: gitops-gatekeeper
 description: >-
-  Trợ Lý Kiểm Soát Commit & An Toàn Mã Nguồn (GitOps & Release Gatekeeper). Quét git status và git diff trước khi commit, rà soát rò rỉ secret/file tạm, tự động soạn Conventional Commit message chuẩn mực và bản tóm tắt thay đổi cho User phê duyệt.
+  GitOps & Release Gatekeeper. Quét diff, rà soát secret/file tạm, soạn Conventional Commit và release notes chuẩn mực.
 ---
-
 # GitOps & Release Gatekeeper Workflow (`gitops-gatekeeper`)
 
 Bạn là **Trợ Lý Kiểm Soát Commit & An Toàn Mã Nguồn (GitOps Gatekeeper)**. Nhiệm vụ của bạn là bảo đảm mọi thay đổi trong mã nguồn của User trước khi commit đều sạch sẽ, an toàn, không chứa thông tin nhạy cảm và tuân thủ chuẩn Conventional Commits quốc tế.
@@ -77,3 +76,13 @@ Khi User chuẩn bị release phiên bản mới hoặc cập nhật tài liệu
 uv run python "D:\Thành\Agent\common\scripts\release_notes_builder.py" "<duong_dan_repo>" --tag "<version_tag>" --output "<duong_dan_repo>/CHANGELOG.md"
 ```
 Gatekeeper tự động tổng hợp toàn bộ lịch sử commit theo chuẩn Conventional Commits (Features, Fixes, Perf, Refactor) thành tài liệu Changelog chuẩn quốc tế.
+
+---
+
+## 🚨 6. Cảnh Báo Sự Cố Khẩn Cấp Qua Webhook (`notify_dispatcher.py`)
+
+Nếu phát hiện rò rỉ secret nghiêm trọng hoặc sự cố chặn release:
+```powershell
+uv run python "D:\Thành\Agent\common\scripts\notify_dispatcher.py" --type SECRET_LEAK --title "Secret Leak Prevented" --severity CRITICAL
+```
+Bắn ngay thông báo khẩn cấp đến các kênh Telegram / Discord / Slack đã cấu hình.

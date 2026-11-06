@@ -73,6 +73,9 @@ switch ($Command.ToLower()) {
     "fanout" {
         uv run python "$ScriptDir\common\scripts\task_fanout_planner.py" @RemainingArgs
     }
+    "shard" {
+        uv run python "$ScriptDir\common\scripts\context_sharder.py" --hub "$ScriptDir" @RemainingArgs
+    }
     default {
         Write-Host "=================================================================" -ForegroundColor Cyan
         Write-Host "  ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub.ps1)" -ForegroundColor Yellow
@@ -90,6 +93,7 @@ switch ($Command.ToLower()) {
         Write-Host "  .\hub.ps1 drift           Kiểm tra lệch chuẩn API giữa Backend Code và OpenAPI Spec" -ForegroundColor Green
         Write-Host "  .\hub.ps1 notify          Bắn thông báo sự cố & cảnh báo qua Telegram/Discord/Slack" -ForegroundColor Green
         Write-Host "  .\hub.ps1 token-opt       Đo lường, định vị điểm nóng và nén tối ưu token sử dụng" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 shard [args]    Phân mảnh context động theo từng dự án, giảm 90% token System Prompt" -ForegroundColor Green
         Write-Host "  .\hub.ps1 gemini          Chạy tác vụ nặng qua Gemini API ngoài (0đ) để tiết kiệm token" -ForegroundColor Green
         Write-Host "  .\hub.ps1 usage           Bảng điều khiển & thống kê hạn mức 7 key và từng model" -ForegroundColor Green
         Write-Host "  .\hub.ps1 verify [file]   Thẩm định chất lượng, cú pháp & an ninh output (.py, .json, .md)" -ForegroundColor Green

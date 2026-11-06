@@ -29,6 +29,7 @@ if "%1"=="gemini" goto gemini
 if "%1"=="verify" goto verify
 if "%1"=="fanout" goto fanout
 if "%1"=="usage" goto usage
+if "%1"=="shard" goto shard
 
 echo [!] Lenh khong hop le: %1
 echo Go 'hub help' de xem huong dan.
@@ -112,6 +113,10 @@ exit /b %ERRORLEVEL%
 uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" --pool-status %REST_ARGS%
 exit /b %ERRORLEVEL%
 
+:shard
+uv run python "%SCRIPT_DIR%common\scripts\context_sharder.py" --hub "%HUB_DIR%" %REST_ARGS%
+exit /b %ERRORLEVEL%
+
 :help
 echo =================================================================
 echo   ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub)
@@ -130,6 +135,7 @@ echo   hub changelog [repo] Tu dong tao Release Notes tu Git Conventional Commit
 echo   hub drift           Kiem tra lech chuan API giua Backend Code va OpenAPI Spec
 echo   hub notify          Ban thong bao su co & canh bao qua Telegram/Discord/Slack
 echo   hub token-opt       Do luong, dinh vi diem nong va nen toi uu token su dung
+echo   hub shard [args]    Phan manh context dong theo tung du an, giam 90%% token System Prompt
 echo   hub gemini          Chay tac vu nang qua Gemini API ngoai (0d) tiet kiem token
 echo   hub usage           Bang dieu khien va thong ke han muc 7 key va tung model
 echo   hub verify [file]   Tham dinh chat luong, cu phap va an ninh output (.py, .json, .md)

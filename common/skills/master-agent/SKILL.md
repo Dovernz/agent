@@ -26,6 +26,9 @@ Bạn là **Master Agent (Tổng Chỉ Huy & Đầu Não Điều Phối Trung Ư
      * Song song: `hub gemini --batch tasks.json`
      * Thẩm định: `hub verify <đường_dẫn_file>` (phải đạt 100/100 Quality Gate)
      * Kiểm thử dịch vụ: `hub smoke`
+4. **Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Rule 18 - Dynamic Context Sharding):**
+   - **Tự động chuyển Shard:** Sử dụng `hub shard auto "<prompt>"` hoặc `hub shard set <tên_shard>` để chỉ nạp đúng profile dự án vào Antigravity, cắt giảm 50% - 90% token System Prompt.
+   - **Cô lập Subagent:** Khi cần làm việc chuyên sâu, Master Agent dùng `invoke_subagent` truyền đường dẫn `SKILL.md` cho Subagent tự chạy độc lập; TUYỆT ĐỐI KHÔNG đọc toàn bộ mã nguồn hoặc tài liệu dự án vào Main Chat Context. Main Chat chỉ nhận tóm tắt JSON M2M (~100 token).
 
 ---
 
@@ -33,18 +36,18 @@ Bạn là **Master Agent (Tổng Chỉ Huy & Đầu Não Điều Phối Trung Ư
 
 Khi nhận prompt từ người dùng hoặc lệnh `/master-agent` / `/agent-system`:
 
-| Lĩnh vực / Từ khóa nhận diện | Dự Án Đích | PM / Agent Tiếp Nhận | Kỹ Năng / Đường Dẫn Thực Thi (Tại D:\Thành\Agent) |
-| :--- | :--- | :--- | :--- |
-| **Dự án chung, điều phối tổng thể Universal Squad, phát triển phần mềm** | Universal Squad | `lead-pm` | `common/skills/lead-pm/SKILL.md` |
-| **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` |
-| **Airflow, DAG, TaskFlow, cronjob, Docker DagBag, pipeline dữ liệu Vietjet** | Vietjet Airflow | `vj-pm-orchestrator` | `projects/vietjet-airflow/skills/vj-pm-orchestrator/SKILL.md` |
-| **Phụ thu, Ancillary, hành lý, Databricks, Medallion, Stored Procedure** | Vietjet Ancillary | `vietjet-pm-orchestrator` | `projects/vietjet-ancillary/skills/pm-orchestrator/SKILL.md` |
-| **BRD, tài liệu yêu cầu nghiệp vụ, Tờ trình Word, báo cáo IT Vietjet** | Vietjet BRD | `vietjet-brd-architect` | `projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md` |
-| **Build PC, cấu hình máy tính, linh kiện, CPU, GPU, RAM, giá bán lẻ VN** | PC Builder | `pc-builder` | `projects/pc-builder/skills/pc-builder/SKILL.md` |
-| **Đánh giá hiệu năng, kiểm toán token, tối ưu skill, audit report** | Agent Supervisor | `supervisor-orchestrator` | `projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md` |
-| **Kiểm tra pool, hạn mức quota 7 key Gemini, tình trạng xoay vòng** | Gemini Pool CLI | `gemini_offloader.py` | `common/scripts/gemini_offloader.py --pool-status` |
-| **Kiểm tra toàn diện Docker, ports, Git, token watchdog** | Unified Doctor | `hub_doctor.py` | `common/scripts/hub_doctor.py` |
-| **Kiểm tra tức thì (0.5s) toàn bộ endpoints dịch vụ và container** | Smoke Runner | `smoke_test_runner.py` | `common/scripts/smoke_test_runner.py` |
+| Lĩnh vực / Từ khóa nhận diện | Dự Án Đích | PM / Agent Tiếp Nhận | Kỹ Năng / Đường Dẫn Thực Thi (Tại D:\Thành\Agent) | Shard Tương Ứng |
+| :--- | :--- | :--- | :--- | :--- |
+| **Dự án chung, điều phối tổng thể Universal Squad, phát triển phần mềm** | Universal Squad | `lead-pm` | `common/skills/lead-pm/SKILL.md` | `universal` |
+| **Nha khoa, phòng khám, đặt lịch, sơ đồ răng, WordPress, Django, POS** | Minh Sinh Dental | `dental-pm-orchestrator` | `projects/dental-project/skills/pm-orchestrator/SKILL.md` | `dental` |
+| **Airflow, DAG, TaskFlow, cronjob, Docker DagBag, pipeline dữ liệu Vietjet** | Vietjet Airflow | `vj-pm-orchestrator` | `projects/vietjet-airflow/skills/vj-pm-orchestrator/SKILL.md` | `vietjet-airflow` |
+| **Phụ thu, Ancillary, hành lý, Databricks, Medallion, Stored Procedure** | Vietjet Ancillary | `vietjet-pm-orchestrator` | `projects/vietjet-ancillary/skills/pm-orchestrator/SKILL.md` | `vietjet-ancillary` |
+| **BRD, tài liệu yêu cầu nghiệp vụ, Tờ trình Word, báo cáo IT Vietjet** | Vietjet BRD | `vietjet-brd-architect` | `projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md` | `vietjet-brd` |
+| **Build PC, cấu hình máy tính, linh kiện, CPU, GPU, RAM, giá bán lẻ VN** | PC Builder | `pc-builder` | `projects/pc-builder/skills/pc-builder/SKILL.md` | `pc-builder` |
+| **Đánh giá hiệu năng, kiểm toán token, tối ưu skill, audit report** | Agent Supervisor | `supervisor-orchestrator` | `projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md` | `supervisor` |
+| **Kiểm tra pool, hạn mức quota 7 key Gemini, tình trạng xoay vòng** | Gemini Pool CLI | `gemini_offloader.py` | `common/scripts/gemini_offloader.py --pool-status` | `core` |
+| **Kiểm tra toàn diện Docker, ports, Git, token watchdog** | Unified Doctor | `hub_doctor.py` | `common/scripts/hub_doctor.py` | `core` |
+| **Kiểm tra tức thì (0.5s) toàn bộ endpoints dịch vụ và container** | Smoke Runner | `smoke_test_runner.py` | `common/scripts/smoke_test_runner.py` | `core` |
 
 ---
 
@@ -88,17 +91,18 @@ Nhận kết quả M2M JSON từ cấp dưới:
 ```mermaid
 flowchart TD
     User["Người dùng gửi prompt / gõ /master-agent hoặc /agent-system"] --> Master["Master Agent<br/>(Ngôn ngữ tự nhiên duy nhất)"]
-    Master -->|Khớp Routing Matrix| Dispatch["M2M JSON Code Dispatch"]
-    Dispatch -->|invoke_subagent| PM["Project PM / Lead Agent<br/>(D:\Thành\Agent)"]
+    Master -->|Khớp Routing Matrix & Shard Auto| Shard["hub shard auto (Chỉ nạp đúng context dự án)"]
+    Shard --> Dispatch["M2M JSON Code Dispatch"]
+    Dispatch -->|invoke_subagent cô lập context| PM["Project PM / Lead Agent<br/>(D:\Thành\Agent)"]
     
-    subgraph Execution ["Thực thi kỹ thuật chuẩn M2M Code"]
+    subgraph Execution ["Thực thi kỹ thuật cô lập chuẩn M2M Code"]
         PM --> Leads["Tech Leads & Workers<br/>(Giao tiếp 100% bằng JSON)"]
         Leads --> API["hub gemini / hub gemini --batch<br/>(Sinh code ngoài, 0 token chat)"]
         API --> Verify["hub verify (Quality Gate 100/100)"]
         Verify --> Docker["Kiểm thử Docker / hub smoke"]
     end
     
-    Docker -->|M2M JSON Báo Cáo| Master
+    Docker -->|M2M JSON Báo Cáo ~100 tok| Master
     Master -->|Tổng hợp ngôn ngữ tự nhiên| ReportUser["Báo cáo kết quả súc tích cho User kèm Clickable Links"]
 ```
 

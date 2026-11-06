@@ -1,25 +1,13 @@
 {
+  "active_shard": "core",
+  "shard_name": "Core Orchestrator (Ultra-Lean)",
   "entries": [
     {
-      "path": "common/skills"
-    },
-    {
-      "path": "projects/dental-project/skills"
-    },
-    {
-      "path": "projects/pc-builder/skills"
-    },
-    {
-      "path": "projects/vietjet-airflow/skills"
-    },
-    {
-      "path": "projects/vietjet-ancillary/skills"
-    },
-    {
-      "path": "projects/vietjet-brd/skills"
-    },
-    {
-      "path": "projects/agent-supervisor/skills"
+      "path": "common/skills",
+      "include_only": [
+        "master-agent",
+        "gitops-gatekeeper"
+      ]
     }
   ]
 }

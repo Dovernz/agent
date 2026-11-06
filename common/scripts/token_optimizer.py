@@ -309,8 +309,16 @@ def print_token_report(report: Dict[str, Any]):
     print(" ⚡ ANTIGRAVITY TOKEN FOOTPRINT & EFFICIENCY AUDIT")
     print("=" * 75)
 
+    shard_info = report.get("shard_info", {})
+    if shard_info:
+        print(f"\n🧩 0. CONTEXT SHARD STATUS (Active Profile):")
+        print(f"   • Active Shard            : [{shard_info.get('active_shard', 'unknown')}] - {shard_info.get('shard_name', 'Default')}")
+        print(f"   • Active Skills Loaded    : {shard_info.get('active_skills_count', 0)} skills (vs {report['skills_audit']['total_skills']} total)")
+        print(f"   • Active System Prompt    : ~{shard_info.get('active_tokens_per_turn', 0)} tokens/turn")
+        print(f"   • Live Sharding Savings   : Giảm ~{shard_info.get('savings_per_turn', 0)} tokens/turn (~{shard_info.get('savings_50_turns', 0):,} tokens/50 turns)")
+
     skills_data = report["skills_audit"]
-    print(f"\n📦 1. SYSTEM PROMPT SKILLS REGISTRY (Loaded EVERY single turn):")
+    print(f"\n📦 1. SYSTEM PROMPT SKILLS REGISTRY (Total Catalog):")
     print(f"   • Total Registered Skills : {skills_data['total_skills']}")
     print(f"   • Total Description Chars : {skills_data['total_desc_chars']:,} chars (~{skills_data['total_desc_tokens']:,} tokens/turn)")
     print(f"   • In a 50-turn session    : ~{skills_data['total_desc_tokens'] * 50:,} tokens spent ONLY on skill headers!")
@@ -389,8 +397,54 @@ def main():
     rules_audit = auditor.audit_rules()
     transcript_audit = auditor.audit_transcript()
 
+    shard_info = {}
+    skills_json_path = hub_root / "skills.json"
+    if skills_json_path.exists():
+        try:
+            s_data = json.loads(skills_json_path.read_text(encoding="utf-8"))
+            act_shard = s_data.get("active_shard", "all")
+            s_name = s_data.get("shard_name", "Full Monolithic Cluster")
+            entries = s_data.get("entries", [])
+            
+            # calculate active tokens
+            active_desc = 0
+            active_skills = 0
+            for entry in entries:
+                rel_p = entry.get("path")
+                e_dir = (hub_root / rel_p).resolve()
+                if not e_dir.exists():
+                    continue
+                inc = entry.get("include_only")
+                sfs = list(e_dir.glob("*/SKILL.md")) + list(e_dir.glob("SKILL.md"))
+                for sf in sfs:
+                    if inc and sf.parent.name not in inc and sf.name not in inc:
+                        continue
+                    active_skills += 1
+                    try:
+                        c = sf.read_text(encoding="utf-8")
+                        m = re.search(r"description:\s*(?:>-\s*)?(.*?)\n---", c, re.DOTALL)
+                        if m:
+                            active_desc += len(m.group(1).strip())
+                    except Exception:
+                        pass
+            
+            act_tok = estimate_tokens("x" * active_desc)
+            total_tok = skills_audit.get("total_desc_tokens", 776)
+            savings = max(0, total_tok - act_tok)
+            shard_info = {
+                "active_shard": act_shard,
+                "shard_name": s_name,
+                "active_skills_count": active_skills,
+                "active_tokens_per_turn": act_tok,
+                "savings_per_turn": savings,
+                "savings_50_turns": savings * 50
+            }
+        except Exception:
+            pass
+
     full_report = {
         "status": "PASS",
+        "shard_info": shard_info,
         "skills_audit": skills_audit,
         "rules_audit": rules_audit,
         "transcript_audit": transcript_audit

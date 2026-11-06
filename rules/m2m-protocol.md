@@ -128,3 +128,6 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * Định tuyến và giao việc xuống đúng Project PM / Lead thông qua M2M Protocol.
       * **TUÂN THỦ TUYỆT ĐỐI QUY TẮC 16:** Nghiêm cấm Antigravity tự hì hục sinh code dài trong ngữ cảnh chat gây hao tổn token. BẮT BUỘC ủy thác 100% công việc sinh code, refactor, viết test, bóc tách dữ liệu cho Gemini API Pool ngoài thông qua `hub gemini` hoặc `hub gemini --batch`.
       * Tự động chạy `hub verify` và `hub smoke` / `hub test` trong Docker container trước khi báo cáo kết quả súc tích cho người dùng.
+18. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**
+    - **Nghiêm cấm Monolithic Context:** Không nạp đồng thời toàn bộ 23-24 skills của cả 7 dự án vào System Prompt. Bắt buộc phân mảnh `skills.json` theo đúng phạm vi dự án bằng `hub shard set <tên_shard>` hoặc `hub shard auto "<yêu_cầu>"` (giảm tới 90% token System Prompt).
+    - **Cô Lập Ngữ Cảnh Tuyệt Đối (Subagent Context Isolation):** Khi xử lý tác vụ dự án, Master Agent KHÔNG đọc tài liệu chi tiết hoặc mã nguồn vào Main Chat. Master Agent ủy thác qua `invoke_subagent`, truyền đường dẫn `SKILL.md` cho Subagent tự đọc và thực thi độc lập, chỉ trả về JSON tóm tắt 100 token cho Main Chat. Main Chat luôn được giữ ở trạng thái Zero-Fat.

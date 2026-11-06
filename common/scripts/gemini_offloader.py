@@ -11,8 +11,9 @@ TÍNH NĂNG CỐT LÕI:
    - Tier Deep Reasoning: `gemini-3.8-flash` (5 RPM, 20 RPD / project)
    - Tier Ultra-Frequency: `gemma-4-26b-a4b-it` (30 RPM, 14,400 RPD / project)
 3. Smart Key Pool: Xoay vòng 7 Projects độc lập (Round-Robin).
-4. Cross-Model Fallback: Nếu một model chạm giới hạn 429, tự động fallback sang model dự phòng.
-5. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
+4. Real-time Telemetry & Usage Tracker: Ghi nhận chính xác số request & token đã dùng theo từng model cho từng key.
+5. Cross-Model Fallback: Nếu một model chạm giới hạn 429, tự động fallback sang model dự phòng.
+6. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
 ==============================================================================
 """
 
@@ -45,19 +46,29 @@ MODEL_TIERS = {
     },
     "standard": {
         "primary": "gemini-3.6-flash",
-        "fallbacks": ["gemini-3.5-flash-lite", "gemini-3-flash-preview"],
-        "desc": "Tác vụ tiêu chuẩn (Viết code API, dàn layout UI, giải thích nghiệp vụ) [20 RPD/project]"
+        "fallbacks": ["gemini-3.8-flash", "gemini-3.5-flash-lite"],
+        "desc": "Tác vụ tiêu chuẩn (Sinh code API, viết serializers, components UI) [20 RPD/project]"
     },
     "deep": {
         "primary": "gemini-3.8-flash",
-        "fallbacks": ["gemini-3.6-flash", "gemini-3.5-flash-lite"],
-        "desc": "Tác vụ suy luận chuyên sâu (Kiến trúc hệ thống, fix bug phức tạp) [20 RPD/project]"
+        "fallbacks": ["gemini-3.6-flash"],
+        "desc": "Suy luận sâu & Kiến trúc (Tối ưu query phức tạp, phân tích DDL, RBAC) [20 RPD/project]"
     },
     "ultra": {
         "primary": "gemma-4-26b-a4b-it",
-        "fallbacks": ["gemini-3.5-flash-lite"],
-        "desc": "Tác vụ siêu tần suất (Format chuỗi, trích xuất regex, lặp hàng nghìn lần) [14,400 RPD/project]"
+        "fallbacks": ["gemma-4-31b-it", "gemini-3.5-flash-lite"],
+        "desc": "Tần suất cực cao (Xử lý regex, phân loại văn bản, mapping cột bảng) [14,400 RPD/project]"
     }
+}
+
+# Hạn mức định lượng theo từng model trên 1 Project (Google AI Studio Free Tier)
+MODEL_LIMITS_RPD = {
+    "gemini-3.8-flash": 20,
+    "gemini-3.6-flash": 20,
+    "gemini-3.5-flash-lite": 500,
+    "gemini-3.1-flash-lite": 500,
+    "gemma-4-26b-a4b-it": 14400,
+    "gemma-4-31b-it": 14400,
 }
 
 DEFAULT_TIER = "auto"
@@ -65,8 +76,8 @@ API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
 def get_repo_root() -> Path:
-    current_dir = Path(__file__).resolve().parent
-    return current_dir.parent.parent
+    # Thư mục gốc repo D:\Thành\Agent
+    return Path(__file__).resolve().parent.parent.parent
 
 
 def get_state_file() -> Path:
@@ -80,72 +91,95 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
     Tự động thẩm định độ phức tạp của nhiệm vụ để điều phối vào Tier tối ưu nhất.
     Trả về: (tier_name, reason)
     """
-    p = prompt.lower()
+    p_lower = prompt.lower()
+    
+    # 1. Kiểm tra kích thước file đầu vào (nếu có)
+    file_lines = 0
+    file_bytes = 0
+    if file_path and os.path.exists(file_path):
+        try:
+            with open(file_path, "r", encoding="utf-8", errors="replace") as f:
+                lines = f.readlines()
+                file_lines = len(lines)
+                file_bytes = sum(len(line) for line in lines)
+        except Exception:
+            pass
 
-    # 1. Nếu có tệp đính kèm hoặc văn bản đầu vào lớn (>2000 ký tự) -> Tier BULK
-    if file_path or len(prompt) > 2000:
-        return "bulk", f"Khối lượng dữ liệu lớn ({len(prompt)} ký tự/tệp đính kèm) -> Giao cho Gemini 3.5 Flash-Lite (Hạn mức 3,500 req/ngày)"
+    # Nếu file rất lớn (> 500 dòng hoặc > 20KB) -> Bulk/Fast Tier để cày dữ liệu không tốn quota
+    if file_lines > 500 or file_bytes > 20480:
+        return "bulk", f"Tệp đầu vào lớn ({file_lines} dòng, {file_bytes/1024:.1f}KB) -> Điều phối Tier 'bulk' (gemini-3.5-flash-lite)"
 
-    # 2. Kiểm tra từ khóa kiến trúc & suy luận sâu -> Tier DEEP
+    # 2. Kiểm tra từ khóa yêu cầu suy luận kiến trúc sâu / bảo mật phức tạp
     deep_keywords = [
-        "kiến trúc", "architecture", "design pattern", "thuật toán", "algorithm",
-        "tối ưu truy vấn", "deadlock", "concurrency", "bảo mật sâu", "owasp",
-        "medallion", "dag dependency", "ast parser", "complex reasoning", "refactor lớn",
-        "scale", "scalability", "phân tán", "distributed"
+        "kiến trúc", "architecture", "tối ưu hóa csdl", "query optimization",
+        "lỗ hổng bảo mật", "owasp", "rbac", "stored procedure", "medallion",
+        "giải thuật", "algorithm", "phân tích sâu", "deep research"
     ]
-    for k in deep_keywords:
-        if k in p:
-            return "deep", f"Phát hiện yêu cầu suy luận chuyên sâu/kiến trúc ('{k}') -> Giao cho Gemini 3.8 Flash (Thinking Mode)"
+    for kw in deep_keywords:
+        if kw in p_lower:
+            return "deep", f"Phát hiện yêu cầu suy luận/kiến trúc sâu ('{kw}') -> Điều phối Tier 'deep' (gemini-3.8-flash)"
 
-    # 3. Kiểm tra từ khóa siêu tần suất, regex, linter, format chuỗi -> Tier ULTRA
+    # 3. Kiểm tra từ khóa tác vụ lặp tần suất cao / regex / trích xuất thuần túy
     ultra_keywords = [
-        "regex", "biểu thức chính quy", "format json", "chuyển đổi định dạng",
-        "trích xuất email", "trích xuất link", "lọc dòng", "lọc chuỗi", "clean string"
+        "regex", "bóc tách chuỗi", "format json", "mapping cột", "chuẩn hóa chuỗi",
+        "phân loại danh mục", "lọc dòng"
     ]
-    for k in ultra_keywords:
-        if k in p:
-            return "ultra", f"Phát hiện tác vụ regex/format lặp lại ('{k}') -> Giao cho Gemma 4 26B (Hạn mức 100,800 req/ngày)"
+    for kw in ultra_keywords:
+        if kw in p_lower:
+            return "ultra", f"Phát hiện tác vụ tần suất cao ('{kw}') -> Điều phối Tier 'ultra' (gemma-4-26b-a4b-it)"
 
-    # 4. Kiểm tra từ khóa lập trình tính năng chuẩn -> Tier STANDARD
+    # 4. Kiểm tra từ khóa tác vụ sinh code / giao diện / API tiêu chuẩn
     standard_keywords = [
-        "viết api", "endpoint", "controller", "react", "vue", "tailwind", "css",
-        "crud", "django model", "form html", "unit test", "pytest", "test case",
-        "mock data", "seeding", "lập trình", "viết hàm"
+        "viết api", "serializer", "viewset", "react component", "ui component",
+        "unit test", "integration test", "crud", "refactor code", "viết hàm"
     ]
-    for k in standard_keywords:
-        if k in p:
-            return "standard", f"Phát hiện tác vụ code tính năng chuẩn ('{k}') -> Giao cho Gemini 3.6 Flash (Cân bằng tốc độ & chất lượng)"
+    for kw in standard_keywords:
+        if kw in p_lower:
+            return "standard", f"Phát hiện tác vụ sinh mã API/UI ('{kw}') -> Điều phối Tier 'standard' (gemini-3.6-flash)"
 
-    # Mặc định: Tier BULK (3.5 Flash Lite - Hạn mức an toàn nhất)
-    return "bulk", "Tác vụ thông thường -> Giao cho Gemini 3.5 Flash-Lite (Tối ưu token & hạn mức lớn nhất)"
+    # Mặc định an toàn cho tác vụ tổng hợp: bulk (Flash-Lite tốc độ cao, quota dồi dào)
+    return "bulk", "Tác vụ tổng hợp -> Điều phối Tier 'bulk' (gemini-3.5-flash-lite, 3.5k req/ngày)"
 
 
 def load_keys_from_env() -> List[str]:
-    keys: List[str] = []
-    raw_env_keys = os.environ.get("GEMINI_API_KEYS") or os.environ.get("GEMINI_API_KEY")
-    if raw_env_keys:
-        for k in raw_env_keys.replace(";", ",").replace("\n", ",").split(","):
-            cleaned = k.strip().strip('"').strip("'")
-            if cleaned and cleaned not in keys:
-                keys.append(cleaned)
+    keys = []
+    env_file = get_repo_root() / ".env"
+    
+    # 1. Đọc từ file .env nếu có
+    if env_file.exists():
+        try:
+            with open(env_file, "r", encoding="utf-8") as f:
+                for line in f:
+                    line = line.strip()
+                    if line.startswith("GEMINI_API_KEYS="):
+                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        keys = [k.strip() for k in val.split(",") if k.strip()]
+                    elif line.startswith("GEMINI_API_KEY="):
+                        val = line.split("=", 1)[1].strip().strip('"').strip("'")
+                        if val and val not in keys:
+                            keys.append(val)
+        except Exception:
+            pass
 
-    repo_root = get_repo_root()
-    env_paths = [repo_root / ".env", Path.cwd() / ".env"]
+    # 2. Đọc từ biến môi trường OS
+    if not keys:
+        raw_keys = os.getenv("GEMINI_API_KEYS", "")
+        if raw_keys:
+            keys = [k.strip() for k in raw_keys.split(",") if k.strip()]
+        else:
+            single = os.getenv("GEMINI_API_KEY", "")
+            if single:
+                keys = [single]
 
-    for env_file in env_paths:
-        if env_file.exists():
+    # 3. Đọc từ cấu hình antigravity toàn cục nếu có
+    if not keys:
+        global_env = Path.home() / ".gemini" / "antigravity" / ".env"
+        if global_env.exists():
             try:
-                with open(env_file, "r", encoding="utf-8") as f:
+                with open(global_env, "r", encoding="utf-8") as f:
                     for line in f:
-                        line = line.strip()
-                        if line.startswith("#"):
-                            continue
-                        if line.startswith("GEMINI_API_KEYS=") or line.startswith("GEMINI_API_KEY="):
-                            val = line.split("=", 1)[1].strip().strip('"').strip("'")
-                            for k in val.replace(";", ",").split(","):
-                                cleaned = k.strip().strip('"').strip("'")
-                                if cleaned and cleaned not in keys:
-                                    keys.append(cleaned)
+                        if line.startswith("GEMINI_API_KEY="):
+                            keys.append(line.split("=", 1)[1].strip().strip('"'))
             except Exception:
                 pass
 
@@ -166,7 +200,7 @@ class SmartKeyPool:
                     return json.load(f)
             except Exception:
                 pass
-        return {"current_index": 0, "cooldowns": {}}
+        return {"current_index": 0, "cooldowns": {}, "daily_usage": {}}
 
     def _write_state(self, state: Dict):
         try:
@@ -181,6 +215,7 @@ class SmartKeyPool:
         cooldowns = state.get("cooldowns", {})
         idx = state.get("current_index", 0) % len(self.keys)
 
+        # Xoay chỉ số tiếp theo
         state["current_index"] = (idx + 1) % len(self.keys)
         self._write_state(state)
 
@@ -202,6 +237,31 @@ class SmartKeyPool:
         cooldowns = state.get("cooldowns", {})
         cooldowns[key] = time.time() + cooldown_seconds
         state["cooldowns"] = cooldowns
+        self._write_state(state)
+
+    def record_usage(self, key: str, model: str, prompt_tokens: int = 0, candidate_tokens: int = 0):
+        """
+        Ghi nhận nhật ký sử dụng chính xác cho từng Key và từng Model theo ngày.
+        """
+        state = self._read_state()
+        today = time.strftime("%Y-%m-%d")
+        daily_usage = state.setdefault("daily_usage", {})
+        today_usage = daily_usage.setdefault(today, {})
+
+        masked_key = f"{key[:10]}...{key[-6:]}" if len(key) > 16 else key
+        key_stats = today_usage.setdefault(masked_key, {})
+        model_stats = key_stats.setdefault(model, {
+            "requests": 0,
+            "prompt_tokens": 0,
+            "candidate_tokens": 0,
+            "total_tokens": 0
+        })
+
+        model_stats["requests"] += 1
+        model_stats["prompt_tokens"] += prompt_tokens
+        model_stats["candidate_tokens"] += candidate_tokens
+        model_stats["total_tokens"] += (prompt_tokens + candidate_tokens)
+
         self._write_state(state)
 
 
@@ -249,54 +309,71 @@ def call_gemini_with_failover(
                 f"{prompt}\n\n"
                 f"--- NỘI DUNG TỆP ({f_path.name}) ---\n"
                 f"{content}\n"
-                f"--- HẾT TỆP ---"
+                f"--- HẾT NỘI DUNG TỆP ---"
             )
         except Exception as e:
-            print(f"[STATUS: FAIL] Lỗi đọc file {file_path}: {e}")
-            sys.exit(1)
-
-    payload = {
-        "contents": [{"parts": [{"text": full_prompt}]}],
-        "generationConfig": {"temperature": temperature}
-    }
-    if system_instruction:
-        payload["system_instruction"] = {"parts": [{"text": system_instruction}]}
-
-    data_bytes = json.dumps(payload).encode("utf-8")
+            print(f"[WARN] Không thể đọc tệp {file_path}: {e}")
 
     last_error = ""
-    # Vòng lặp thử qua các Model và các Key trong Pool
+
     for current_model in models_to_try:
+        url = f"{API_BASE}/{current_model}:generateContent"
+
+        payload = {
+            "contents": [
+                {
+                    "parts": [{"text": full_prompt}]
+                }
+            ],
+            "generationConfig": {
+                "temperature": temperature
+            }
+        }
+
+        if system_instruction:
+            payload["systemInstruction"] = {
+                "parts": [{"text": system_instruction}]
+            }
+
+        data_bytes = json.dumps(payload).encode("utf-8")
+
         for key_id, key in candidates:
-            url = f"{API_BASE}/{current_model}:generateContent?key={key}"
-            req = urllib.request.Request(
-                url,
-                data=data_bytes,
-                headers={"Content-Type": "application/json"},
-                method="POST"
-            )
+            masked_key = f"{key[:10]}...{key[-6:]}"
+            headers = {
+                "Content-Type": "application/json",
+                "x-goog-api-key": key
+            }
+
+            req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
+
             try:
-                req_timeout = 35 if "3.8" in current_model else 15
-                with urllib.request.urlopen(req, timeout=req_timeout) as resp:
-                    res = json.loads(resp.read().decode("utf-8"))
-                    parts = res.get("candidates", [{}])[0].get("content", {}).get("parts", [])
-                    text_out = "".join(p.get("text", "") for p in parts).strip()
+                start_time = time.time()
+                with urllib.request.urlopen(req, timeout=120) as resp:
+                    resp_body = resp.read().decode("utf-8")
+                    duration = time.time() - start_time
+                    res_json = json.loads(resp_body)
 
-                    usage = res.get("usageMetadata", {})
-                    p_tokens = usage.get("promptTokenCount", 0)
-                    c_tokens = usage.get("candidatesTokenCount", 0)
+                    candidates_list = res_json.get("candidates", [])
+                    if not candidates_list:
+                        print(f"[WARN] Key #{key_id} ({masked_key}) không trả về candidate nào.")
+                        continue
 
-                    key_masked = f"{key[:8]}...{key[-4:]}"
-                    print(f"[STATUS: PASS] Hoàn thành qua Key #{key_id} ({key_masked}) | Model: {current_model} (Tier: {actual_tier})")
-                    print(f"[INFO] Tokens ngoài luồng: {p_tokens} in / {c_tokens} out (Hoàn toàn 0đ - Tiết kiệm quota Antigravity).")
+                    text_out = candidates_list[0].get("content", {}).get("parts", [{}])[0].get("text", "")
+                    p_tokens = res_json.get("usageMetadata", {}).get("promptTokenCount", 0)
+                    c_tokens = res_json.get("usageMetadata", {}).get("candidatesTokenCount", 0)
+
+                    # Ghi nhận Telemetry & Quota usage vào local state
+                    pool.record_usage(key, current_model, p_tokens, c_tokens)
+
+                    print(f"[GEMINI_DISPATCH] ✅ Thành công | Model: {current_model} | Project: Key #{key_id} ({masked_key}) | Thời gian: {duration:.2f}s | Tokens: in={p_tokens}, out={c_tokens}")
 
                     if out_file:
                         out_path = Path(out_file).resolve()
                         out_path.parent.mkdir(parents=True, exist_ok=True)
+                        
                         clean_content = text_out
-                        # Nếu lưu file mã nguồn/dữ liệu cấu trúc, tự động bóc tách code block sạch
                         ext = out_path.suffix.lower()
-                        if ext in [".py", ".json", ".sql", ".js", ".ts", ".html", ".css"]:
+                        if ext in [".py", ".json", ".sql", ".js", ".ts", ".html", ".css", ".yaml", ".yml", ".sh", ".ps1"]:
                             code_match = re.search(r"```(?:[a-zA-Z0-9_-]+)?\s*\n(.*?)\n```", text_out, re.DOTALL)
                             if code_match:
                                 clean_content = code_match.group(1).strip()
@@ -352,11 +429,22 @@ def call_gemini_with_failover(
     sys.exit(1)
 
 
-def show_pool_status():
+def make_progress_bar(current: int, total: int, width: int = 10) -> str:
+    """Tạo thanh tiến độ ASCII trực quan."""
+    if total <= 0:
+        return "[░" * width + "]"
+    ratio = min(1.0, current / total)
+    filled = int(round(ratio * width))
+    bar = "█" * filled + "░" * (width - filled)
+    pct = int(ratio * 100)
+    return f"[{bar}] {pct:>3}%"
+
+
+def show_pool_status(detailed_usage: bool = True):
     keys = load_keys_from_env()
-    print("=" * 70)
-    print(f"📊 BẢNG ĐIỀU KHIỂN TOÀN DIỆN GEMINI SMART KEY POOL ({len(keys)} PROJECTS)")
-    print("=" * 70)
+    print("=" * 80)
+    print(f"📊 BẢNG ĐIỀU KHIỂN & THEO DÕI HẠN MỨC GEMINI KEY POOL ({len(keys)} PROJECTS)")
+    print("=" * 80)
     if not keys:
         print("[!] Không tìm thấy khóa nào trong .env!")
         return
@@ -366,19 +454,21 @@ def show_pool_status():
     now = time.time()
     cooldowns = state.get("cooldowns", {})
     curr_idx = state.get("current_index", 0) % len(keys)
+    today = time.strftime("%Y-%m-%d")
+    daily_usage = state.get("daily_usage", {}).get(today, {})
 
-    print(f"Tổng số dự án kết nối: {len(keys)}")
-    print(f"Vị trí vòng xoay tiếp theo: Key #{curr_idx + 1}")
-    print("-" * 70)
-    print("⚡ MA TRẬN PHÂN BỔ HẠN MỨC THEO TIER (TỔNG 7 PROJECTS):")
-    print(f"  🔹 Tier 'bulk'   (gemini-3.5-flash-lite) : 105 RPM | 3,500 Requests/Ngày (Cho tác vụ nặng/tóm tắt)")
-    print(f"  🔹 Tier 'standard'(gemini-3.6-flash)      :  35 RPM |   140 Requests/Ngày (Cho viết code API/UI)")
-    print(f"  🔹 Tier 'deep'   (gemini-3.8-flash)      :  35 RPM |   140 Requests/Ngày (Cho suy luận kiến trúc sâu)")
-    print(f"  🔹 Tier 'ultra'  (gemma-4-26b-a4b-it)    : 210 RPM | 100,800 Requests/Ngày (Cho format/regex lặp lại)")
-    print(f"  🔹 Search Grounding (Tìm kiếm Google)    : 10,500 Lượt tìm kiếm Google / Ngày")
-    print("-" * 70)
-    print(f"{'STT':<5} | {'Mã Khóa (Masked)':<24} | {'Trạng Thái':<15} | {'Thời Gian Nghỉ'}")
-    print("-" * 70)
+    print(f"Ngày theo dõi: {today} | Tổng số dự án: {len(keys)} | Vị trí xoay vòng: Key #{curr_idx + 1}")
+    print("-" * 80)
+    print("⚡ MA TRẬN HẠN MỨC TOÀN HỆ THỐNG (7 PROJECTS KẾT HỢP):")
+    print(f"  🔹 Tier 'bulk'    (gemini-3.5-flash-lite) : 105 RPM |   3,500 Requests/Ngày")
+    print(f"  🔹 Tier 'standard' (gemini-3.6-flash)      :  35 RPM |     140 Requests/Ngày")
+    print(f"  🔹 Tier 'deep'    (gemini-3.8-flash)      :  35 RPM |     140 Requests/Ngày")
+    print(f"  🔹 Tier 'ultra'   (gemma-4-26b-a4b-it)    : 210 RPM | 100,800 Requests/Ngày")
+    print(f"  🔹 Search Grounding (Google Live)        : 10,500 Lượt tìm kiếm Google / Ngày")
+    print("-" * 80)
+    print("TRẠNG THÁI KẾT NỐI TỪNG KEY:")
+    print(f"{'STT':<5} | {'Mã Khóa (Masked)':<24} | {'Trạng Thái':<16} | {'Cooldown'}")
+    print("-" * 80)
 
     for i, k in enumerate(keys, 1):
         masked = f"{k[:10]}...{k[-6:]}"
@@ -390,8 +480,44 @@ def show_pool_status():
         else:
             status = "🟢 SẴN SÀNG"
             rem_str = "Tối ưu 100%"
-        print(f"#{i:<4} | {masked:<24} | {status:<15} | {rem_str}")
-    print("=" * 70)
+        print(f"#{i:<4} | {masked:<24} | {status:<16} | {rem_str}")
+
+    print("-" * 80)
+    print(f"📈 THỐNG KÊ SỬ DỤNG THEO MODEL & KEY HÔM NAY ({today}):")
+    
+    total_req_today = 0
+    total_tokens_today = 0
+    records_found = False
+
+    for i, k in enumerate(keys, 1):
+        masked = f"{k[:10]}...{k[-6:]}"
+        k_stats = daily_usage.get(masked, {})
+        if k_stats:
+            records_found = True
+            for model_name, m_data in k_stats.items():
+                reqs = m_data.get("requests", 0)
+                toks = m_data.get("total_tokens", 0)
+                total_req_today += reqs
+                total_tokens_today += toks
+                limit_rpd = MODEL_LIMITS_RPD.get(model_name, 20)
+                bar = make_progress_bar(reqs, limit_rpd)
+                warn = "🟢 Bình thường" if reqs < limit_rpd * 0.8 else "🟡 Cảnh báo (>80%)"
+                if reqs >= limit_rpd:
+                    warn = "🔴 Chạm trần RPD"
+                print(f"  Key #{i} ({masked}) | {model_name:<21} | {reqs:>3}/{limit_rpd:<5} RPD {bar} | {toks:>7,} tk | {warn}")
+
+    if not records_found:
+        print("  ℹ️ Hôm nay chưa có request nào được ghi nhận. Toàn bộ 7 Keys và các Model đều đạt 100% hạn mức sẵn có!")
+        print("  💡 Định mức tối đa khả dụng hôm nay:")
+        print("     • Gemini 3.8 Flash : 140 lượt suy luận sâu")
+        print("     • Gemini 3.6 Flash : 140 lượt viết code")
+        print("     • Gemini 3.5 Lite  : 3,500 lượt cày xới dữ liệu")
+        print("     • Gemma 4 26B      : 100,800 lượt format/regex")
+    else:
+        print("-" * 80)
+        print(f"  🔥 TỔNG CỘNG HÔM NAY: {total_req_today} requests | {total_tokens_today:,} tokens đã tiêu thụ.")
+
+    print("=" * 80)
 
 
 def main():
@@ -404,7 +530,7 @@ def main():
     parser.add_argument("--model", "-m", help="Chỉ định đích danh tên model nếu không muốn dùng tier")
     parser.add_argument("--sys", "-s", help="System instruction tùy chọn")
     parser.add_argument("--temp", type=float, default=0.2, help="Temperature (0.0 - 1.0)")
-    parser.add_argument("--pool-status", action="store_true", help="Kiểm tra trạng thái các khóa trong Pool")
+    parser.add_argument("--pool-status", "--usage", action="store_true", help="Kiểm tra trạng thái các khóa và thống kê request đã dùng")
 
     args = parser.parse_args()
 

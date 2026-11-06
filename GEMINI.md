@@ -2,9 +2,9 @@
 
 ## ⚡ CHỈ THỊ BẮT BUỘC: KÍCH HOẠT HỆ THỐNG AGENT & BẢO TOÀN TOKEN
 
-### 1. Khẩu lệnh kích hoạt (`/agent-system` & "sử dụng hệ thống agent")
-Khi người dùng gõ lệnh **`/agent-system`** hoặc nói **"sử dụng hệ thống agent"**:
-- Ngay lập tức chuyển sang chế độ Master Agent điều phối tối cao, kích hoạt skill `agent-system` $\rightarrow$ `master-agent`.
+### 1. Khẩu lệnh kích hoạt (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent")
+Khi người dùng gõ lệnh **`/master-agent`**, **`/agent-system`** hoặc nói **"sử dụng hệ thống agent"**:
+- Ngay lập tức chuyển sang chế độ Master Agent điều phối tối cao, kích hoạt skill `master-agent`.
 - **CHỈ CÓ DUY NHẤT `master-agent`** được phép sử dụng ngôn ngữ tự nhiên để giao tiếp và báo cáo kết quả cho User.
 - Toàn bộ Project PMs, Tech Leads và Workers cấp dưới **TUYỆT ĐỐI CẤM chat văn xuôi**, 100% bắt buộc dùng chuẩn M2M JSON Code Protocol.
 - Toàn bộ thông tin agent chỉ được đọc và lưu tại **`D:\Thành\Agent`** duy nhất.

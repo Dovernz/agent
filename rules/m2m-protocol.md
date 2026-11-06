@@ -117,9 +117,9 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
     - **Phân định rõ ranh giới Brain vs Muscle:**
       * **Antigravity Agents (Brain):** Chỉ giữ vai trò Lập kế hoạch kiến trúc (Planning), Ra lệnh cho API (Prompting), Chạy test/lint (Execution), và Đánh giá nghiệm thu (Reviewing).
       * **Gemini API Pool (Muscle):** Đảm nhận 100% công việc cày xới mã nguồn thô và token nặng hoàn toàn miễn phí (0 VNĐ).
-17. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/agent-system` & "sử dụng hệ thống agent"):**
-    - **Tín Hiệu Kích Hoạt:** Bất kỳ khi nào người dùng gõ lệnh `/agent-system` hoặc nói *"sử dụng hệ thống agent"*:
-      * Antigravity **BẮT BUỘC** chuyển sang chế độ Master Orchestrator (Tổng chỉ huy hệ thống Agent).
+17. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent"):**
+    - **Tín Hiệu Kích Hoạt:** Bất kỳ khi nào người dùng gõ lệnh `/master-agent`, `/agent-system` hoặc nói *"sử dụng hệ thống agent"*:
+      * Antigravity **BẮT BUỘC** chuyển sang chế độ Master Agent (Tổng chỉ huy hệ thống Agent).
       * Phân tích ngay bài toán thuộc về dự án nào trong hệ thống (`dental-project`, `vietjet-airflow`, `vietjet-ancillary`, `pc-builder`, `vietjet-brd`, `agent-supervisor`, hoặc dự án mới kế thừa `lead-pm`).
       * Định tuyến và giao việc xuống đúng Project PM / Lead thông qua M2M Protocol.
       * **TUÂN THỦ TUYỆT ĐỐI QUY TẮC 16:** Nghiêm cấm Antigravity tự hì hục sinh code dài trong ngữ cảnh chat gây hao tổn token. BẮT BUỘC ủy thác 100% công việc sinh code, refactor, viết test, bóc tách dữ liệu cho Gemini API Pool ngoài thông qua `hub gemini` hoặc `hub gemini --batch`.

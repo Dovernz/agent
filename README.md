@@ -13,7 +13,6 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   │   └── m2m-protocol.md               # Giao thức M2M, Zero-Fat & Bounded Fan-Out (Rule 1-15)
 │   ├── scripts/                          # Bộ công cụ CLI dùng chung (hub, verify, gemini, fanout...)
 │   └── skills/                           # 🌐 BIỆT ĐỘI KỸ SƯ TOÀN CỤC (UNIVERSAL SQUAD)
-│       ├── agent-system/                 # Điều hành toàn hệ thống qua lệnh /agent-system
 │       ├── master-agent/                 # Master Agent điều phối trung ương (Ngôn ngữ tự nhiên duy nhất)
 │       ├── lead-pm/                      # Universal PM Orchestrator điều phối vòng đời Phase 0-4
 │       ├── lead-ba/                      # Universal BA (Khảo sát repo, User Stories & AC)
@@ -64,18 +63,17 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │           └── pm-orchestrator/          # PM mẫu kế thừa Universal Squad cho dự án mới
 ├── hub.bat                               # Central CLI Launcher cho Windows CMD
 ├── hub.ps1                               # Central CLI Launcher cho Windows PowerShell
-├── skills.json                           # Registry đăng ký 24 kỹ năng với Antigravity
+├── skills.json                           # Registry đăng ký 23 kỹ năng với Antigravity
 └── README.md
 ```
 
 ---
 
-## 📋 Bảng Danh Mục Toàn Bộ 23 Agent & Công Cụ Theo Chuyên Môn
+## 📋 Bảng Danh Mục Toàn Bộ 22 Agent Theo Chuyên Môn
 
 | STT | Tên Agent (Skill Identifier) | Vị Trí / Nhóm | Vai Trò & Chuyên Môn Cốt Lõi |
 | :---: | :--- | :--- | :--- |
-| **0** | `agent-system` | Universal Squad | **Lệnh `/agent-system`**: Khởi động trung tâm điều hành Multi-Agent & ép offload API |
-| **1** | `master-agent` | Universal Squad | Master Agent điều phối trung ương, đầu mối duy nhất giao tiếp ngôn ngữ tự nhiên |
+| **1** | `master-agent` | Universal Squad | **Tổng chỉ huy hệ thống** (kích hoạt qua `/master-agent`, `/agent-system`), đầu mối duy nhất giao tiếp ngôn ngữ tự nhiên |
 | **2** | `lead-pm` | Universal Squad | Universal PM Orchestrator điều phối toàn diện vòng đời phát triển Phase 0-4 |
 | **3** | `lead-ba` | Universal Squad | Khảo sát mã nguồn, sinh `tech-stack.md`, bóc tách User Stories & AC |
 | **4** | `lead-architect` | Universal Squad | Thiết kế kiến trúc hệ thống, DB Schema, chuẩn hóa OpenAPI / Schemas |

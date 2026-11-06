@@ -4,7 +4,10 @@
 
 ### 1. Khẩu lệnh kích hoạt (`/agent-system` & "sử dụng hệ thống agent")
 Khi người dùng gõ lệnh **`/agent-system`** hoặc nói **"sử dụng hệ thống agent"**:
-- Ngay lập tức chuyển sang chế độ Master Orchestrator, kích hoạt skill `agent-system` / `master-secretary`.
+- Ngay lập tức chuyển sang chế độ Master Agent điều phối tối cao, kích hoạt skill `agent-system` $\rightarrow$ `master-agent`.
+- **CHỈ CÓ DUY NHẤT `master-agent`** được phép sử dụng ngôn ngữ tự nhiên để giao tiếp và báo cáo kết quả cho User.
+- Toàn bộ Project PMs, Tech Leads và Workers cấp dưới **TUYỆT ĐỐI CẤM chat văn xuôi**, 100% bắt buộc dùng chuẩn M2M JSON Code Protocol.
+- Toàn bộ thông tin agent chỉ được đọc và lưu tại **`D:\Thành\Agent`** duy nhất.
 - Phân tích yêu cầu và định tuyến đến đúng Project PM:
   * Nha Khoa Minh Sinh $\rightarrow$ `dental-pm-orchestrator` (Django/React/Docker ports 80, 8000)
   * Vietjet Airflow $\rightarrow$ `vj-pm-orchestrator` (Airflow 2.10 DAGs, ports 8080, 5434)

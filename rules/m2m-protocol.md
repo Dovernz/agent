@@ -54,7 +54,7 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * Trạng thái tính năng vừa hoàn thành và nhánh Git hiện tại;
       * Các hạng mục còn đang xử lý dở dang (In-progress/Blockers);
       * 2-3 hành động ưu tiên tiếp theo cần thực hiện khi mở lại dự án.
-    - **Khôi phục ngữ cảnh tức thì (Session Resumption):** Khi người dùng mở phiên chat mới và nhắc đến dự án, Thư ký (`master-secretary`) hoặc PM ưu tiên đọc tệp `knowledge/checkpoint.md` để nắm bắt toàn bộ tiến độ trong 1 bước, loại bỏ hoàn toàn việc bắt người dùng phải giải thích lại lịch sử từ đầu.
+    - **Khôi phục ngữ cảnh tức thì (Session Resumption):** Khi người dùng mở phiên chat mới và nhắc đến dự án, Master Agent (`master-agent`) hoặc PM ưu tiên đọc tệp `knowledge/checkpoint.md` để nắm bắt toàn bộ tiến độ trong 1 bước, loại bỏ hoàn toàn việc bắt người dùng phải giải thích lại lịch sử từ đầu.
 11. **Quy Tắc Tự Động Dọn Dẹp Tập Tin Rác & Ảnh Chụp Màn Hình (Workspace Hygiene & Auto-Cleanup Protocol):**
     - **Cấm để lại file rác:** Toàn bộ các script tạm chạy 1 lần (`tmp_*.py`, `debug_*.py`, `qa_inspect*.py`, `scratch_*.py`) và các file ảnh chụp màn hình (`.png`, `.jpg`, `.webp`) do Playwright / E2E test sinh ra **BẮT BUỘC** phải được dọn dẹp sạch sẽ sau khi kiểm thử.
     - **Lưu trữ ảnh bằng chứng hợp lệ:** Nếu ảnh chụp màn hình cần giữ lại làm bằng chứng nghiệm thu cho User, Agent **BẮT BUỘC** lưu vào thư mục Artifacts của Antigravity (`brain/<conversation-id>/`) hoặc nhúng vào artifact report. TUYỆT ĐỐI KHÔNG để các tệp ảnh `.png` vương vãi trong thư mục mã nguồn dự án làm rác Git working tree.
@@ -64,7 +64,7 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       ```
 12. **Git Là Nguồn Chân Lý Duy Nhất (Git-As-Single-Source-Of-Truth - SSoT):**
     - **Không lưu dữ liệu thừa trên máy:** Sau khi commit và push lên remote Git (`https://github.com/Dovernz/agent.git`), toàn bộ tiến độ, lịch sử và mã nguồn đã được bảo toàn vĩnh viễn trên đám mây Git.
-    - **Đọc trực tiếp từ Git:** Mọi tác vụ tra cứu tiến độ (như `hub_status.py`, `master-secretary`) **BẮT BUỘC** đọc trực tiếp từ thư mục làm việc Git và nhật ký `git log -1`. Tuyệt đối không sinh thêm các file cache trạng thái hay file ghi nhớ ngoài luồng trên ổ cứng.
+    - **Đọc trực tiếp từ Git:** Mọi tác vụ tra cứu tiến độ (như `hub_status.py`, `master-agent`) **BẮT BUỘC** đọc trực tiếp từ thư mục làm việc Git và nhật ký `git log -1`. Tuyệt đối không sinh thêm các file cache trạng thái hay file ghi nhớ ngoài luồng trên ổ cứng.
     - **Duy trì Working Tree sạch sẽ:** Khi hoàn tất công việc, thư mục làm việc của dự án phải sạch (`git status` clean), toàn bộ file rác/ảnh chụp màn hình được quét sạch qua `hub_cleaner.py`.
 13. **Truy Vấn Tức Thì Gemini Key Pool (Instant Pool Status Trigger):**
     - Khi người dùng hỏi bất kỳ biến thể nào như: `pool status`, `trạng thái pool`, `kiểm tra pool`, `xem pool`, `gemini pool`, `quota api`, `hub usage`:

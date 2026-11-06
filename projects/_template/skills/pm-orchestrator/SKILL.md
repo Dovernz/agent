@@ -20,7 +20,7 @@ description: >-
 2. **Thiết kế Kiến trúc (Phase 1):** Gọi Universal `lead-architect` (`EnableSubagentTools: true`) sinh `openapi.json`. Đợi `[STATUS: DONE]`.
 3. **Thực thi Song song (Phase 2):** Gọi ĐỒNG THỜI `lead-frontend` & `lead-backend` (`EnableSubagentTools: true`).
 4. **Bảo mật & QA (Phase 3):** Gọi `lead-cyber-security` rà soát lỗ hổng và `lead-qa` chạy kiểm thử tự động trong Docker container.
-5. **Đồng bộ & Báo cáo (Phase 4):** Cập nhật Living Doc, gọi `gitops-gatekeeper` soạn commit, trả kết quả về cho `master-secretary`:
+5. **Đồng bộ & Báo cáo (Phase 4):** Cập nhật Living Doc, gọi `gitops-gatekeeper` soạn commit, trả kết quả về cho `master-agent`:
    ```json
    {"sender": "[PROJECT_NAME]-pm-orchestrator", "task_id": "...", "status": "DONE", "summary": "...", "artifacts": [...]}
    ```

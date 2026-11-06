@@ -14,7 +14,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 │   ├── scripts/                          # Bộ công cụ CLI dùng chung (hub, verify, gemini, fanout...)
 │   └── skills/                           # 🌐 BIỆT ĐỘI KỸ SƯ TOÀN CỤC (UNIVERSAL SQUAD)
 │       ├── agent-system/                 # Điều hành toàn hệ thống qua lệnh /agent-system
-│       ├── master-secretary/             # Thư ký Toàn quyền điều phối dự án (Global Router)
+│       ├── master-agent/                 # Master Agent điều phối trung ương (Ngôn ngữ tự nhiên duy nhất)
 │       ├── lead-pm/                      # Universal PM Orchestrator điều phối vòng đời Phase 0-4
 │       ├── lead-ba/                      # Universal BA (Khảo sát repo, User Stories & AC)
 │       ├── lead-architect/               # Universal Architect (Thiết kế DB Schema & OpenAPI)
@@ -75,7 +75,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 | STT | Tên Agent (Skill Identifier) | Vị Trí / Nhóm | Vai Trò & Chuyên Môn Cốt Lõi |
 | :---: | :--- | :--- | :--- |
 | **0** | `agent-system` | Universal Squad | **Lệnh `/agent-system`**: Khởi động trung tâm điều hành Multi-Agent & ép offload API |
-| **1** | `master-secretary` | Universal Squad | Thư ký điều phối trung ương, định tuyến thông minh giữa các dự án |
+| **1** | `master-agent` | Universal Squad | Master Agent điều phối trung ương, đầu mối duy nhất giao tiếp ngôn ngữ tự nhiên |
 | **2** | `lead-pm` | Universal Squad | Universal PM Orchestrator điều phối toàn diện vòng đời phát triển Phase 0-4 |
 | **3** | `lead-ba` | Universal Squad | Khảo sát mã nguồn, sinh `tech-stack.md`, bóc tách User Stories & AC |
 | **4** | `lead-architect` | Universal Squad | Thiết kế kiến trúc hệ thống, DB Schema, chuẩn hóa OpenAPI / Schemas |

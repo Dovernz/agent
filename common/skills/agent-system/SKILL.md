@@ -1,26 +1,25 @@
 ---
 name: agent-system
 description: >-
-  Kích hoạt trung tâm điều hành Multi-Agent & Gemini API Pool. Sử dụng khi người dùng gõ /agent-system, nói 'sử dụng hệ thống agent', hoặc yêu cầu giải quyết bài toán cần điều phối qua Master Secretary, các PM dự án và bắt buộc offload code ra API ngoài để tiết kiệm token.
+  Kích hoạt Master Agent & Trung tâm điều hành Multi-Agent & Gemini API Pool. Sử dụng khi người dùng gõ /agent-system, nói 'sử dụng hệ thống agent', hoặc yêu cầu giải quyết bài toán cần điều phối qua Master Agent, các PM dự án và bắt buộc offload code ra API ngoài để tiết kiệm token.
 ---
 # Hệ Thống Điều Hành Multi-Agent & API Key Pool (`agent-system`)
 
-[COMMAND]: `/agent-system` | [TRIGGER]: "sử dụng hệ thống agent" | [REF]: `rules/m2m-protocol.md`, `common/skills/`
+[COMMAND]: `/agent-system` | [TRIGGER]: "sử dụng hệ thống agent" | [ROUTER]: Trực tiếp gọi Master Agent (`master-agent`) | [REF]: `D:\Thành\Agent\rules\m2m-protocol.md`
 
 ---
 
-## ⚡ CHỈ THỊ CỐT LÕI (BẮT BUỘC TUÂN THỦ 100%)
+## ⚡ CHỈ THỊ CỐT LÕI: GỌI TRỰC TIẾP MASTER AGENT
 
 Khi nhận được lệnh `/agent-system` hoặc khẩu lệnh **"sử dụng hệ thống agent"**:
-1. **CẤM TỰ SINH CODE DÀI TRONG NGỮ CẢNH CHAT (Rule 16):**
+1. **Trực tiếp gọi `master-agent` (`D:\Thành\Agent\common\skills\master-agent/SKILL.md`):**
+   - `master-agent` là đầu não duy nhất được dùng ngôn ngữ tự nhiên để trò chuyện, tiếp nhận và trả kết quả cho User.
+   - Toàn bộ các PM dự án, Tech Leads và Workers cấp dưới **bắt buộc 100% giao tiếp bằng M2M JSON Code Protocol**.
+2. **Toàn Bộ Hệ Thống Agent Lưu Tại `D:\Thành\Agent`:**
+   - Không đọc hoặc định nghĩa agent ở bất kỳ folder nhỏ lẻ nào khác.
+3. **CẤM TỰ SINH CODE DÀI TRONG NGỮ CẢNH CHAT (Rule 16):**
    - Tuyệt đối không dùng `write_file` hoặc in code dài hàng chục dòng vào chat gây phình to ngữ cảnh (hụt ngân sách token).
-   - Antigravity chỉ đóng vai trò **Bộ Não (Brain)**: Lập kế hoạch, ra lệnh, chạy kiểm thử, đánh giá.
-   - Việc sinh mã nguồn thô, serializers, views, test suite, mock data là nhiệm vụ của **Cơ Bắp (Muscle)**: Gemini API Key Pool ngoài (7 Projects, 0 VNĐ).
-2. **BẮT BUỘC Sử Dụng Bộ Công Cụ API Offloader:**
-   - Tác vụ đơn lẻ: `hub gemini --prompt "<yêu_cầu>" --out "<đường_dẫn_file>" --tier <auto|bulk|standard|deep|ultra>`
-   - Tác vụ song song nhiều file: `hub gemini --batch tasks.json`
-   - Cổng thẩm định chất lượng bắt buộc: `hub verify <đường_dẫn_file>`
-   - Kiểm tra sức khỏe dịch vụ: `hub smoke`
+   - Bắt buộc offload cho Gemini API Key Pool ngoài: `hub gemini` hoặc `hub gemini --batch` ra đĩa và thẩm định qua `hub verify`.
 
 ---
 

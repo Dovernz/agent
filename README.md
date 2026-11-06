@@ -104,6 +104,7 @@ Trung tâm quản lý và điều phối các nhóm **AI Agent chuyên biệt th
 | `hub status` | Xem dashboard tiến độ Git & checkpoint tất cả dự án | `hub_status.py` |
 | `hub doctor` | Bác sĩ kiểm toán Docker, ports, Git, token watchdog | `hub_doctor.py` |
 | `hub gemini` | Chạy tác vụ nặng qua Gemini API ngoài (0đ, 7 keys pool) | `gemini_offloader.py` |
+| `hub usage` | Bảng điều khiển & theo dõi hạn mức quota 7 keys và từng model | `gemini_offloader.py` |
 | `hub verify [file]` | Cổng kiểm định chất lượng, cú pháp AST & bảo mật code | `output_verifier.py` |
 | `hub fanout [args]` | Lập kế hoạch phân rã N sub-agent & tầng API theo độ phức tạp | `task_fanout_planner.py` |
 | `hub clean [path]` | Quét dọn script tạm và ảnh rác Playwright (Rule 11) | `hub_cleaner.py` |

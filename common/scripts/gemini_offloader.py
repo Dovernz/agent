@@ -10,10 +10,12 @@ TÍNH NĂNG CỐT LÕI:
    - Tier Standard: `gemini-3.6-flash` (5 RPM, 20 RPD / project)
    - Tier Deep Reasoning: `gemini-3.8-flash` (5 RPM, 20 RPD / project)
    - Tier Ultra-Frequency: `gemma-4-26b-a4b-it` (30 RPM, 14,400 RPD / project)
-3. Smart Key Pool: Xoay vòng 7 Projects độc lập (Round-Robin).
-4. Real-time Telemetry & Usage Tracker: Ghi nhận chính xác số request & token đã dùng theo từng model cho từng key.
-5. Cross-Model Fallback: Nếu một model chạm giới hạn 429, tự động fallback sang model dự phòng.
-6. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
+3. Smart Key Pool & Quota-Aware Load Balancer:
+   - Tự động ưu tiên chọn Key có số lượng request đã dùng ít nhất trong ngày cho Model đó.
+4. Response Hash Caching: Lưu cache cục bộ (TTL 2h), tái sử dụng kết quả trong 0.01s mà không tốn quota.
+5. Self-Correction Loop: Tự động phát hiện lỗi cú pháp qua `output_verifier` và gửi vá lại trước khi lưu.
+6. Real-time Telemetry & Usage Tracker: Ghi nhận chính xác số request & token đã dùng theo từng model cho từng key.
+7. Auto-Failover on 429: Chuyển sang Project Key kế tiếp trong 0.1 giây.
 ==============================================================================
 """
 
@@ -22,12 +24,12 @@ import re
 import sys
 import time
 import json
+import hashlib
 import argparse
 import urllib.request
 import urllib.error
 from pathlib import Path
 from typing import List, Dict, Tuple, Optional
-from concurrent.futures import ThreadPoolExecutor, as_completed
 
 # Đảm bảo mã hóa UTF-8 cho Windows console
 if sys.platform == "win32":
@@ -76,7 +78,6 @@ API_BASE = "https://generativelanguage.googleapis.com/v1beta/models"
 
 
 def get_repo_root() -> Path:
-    # Thư mục gốc repo D:\Thành\Agent
     return Path(__file__).resolve().parent.parent.parent
 
 
@@ -86,14 +87,52 @@ def get_state_file() -> Path:
     return state_dir / "gemini_pool_state.json"
 
 
+def get_cache_file() -> Path:
+    state_dir = get_repo_root() / "logs"
+    state_dir.mkdir(parents=True, exist_ok=True)
+    return state_dir / "gemini_response_cache.json"
+
+
+def get_cached_response(cache_key: str, max_age_seconds: int = 7200) -> Optional[Dict]:
+    c_file = get_cache_file()
+    if c_file.exists():
+        try:
+            with open(c_file, "r", encoding="utf-8") as f:
+                cache = json.load(f)
+            entry = cache.get(cache_key)
+            if entry and (time.time() - entry.get("timestamp", 0) < max_age_seconds):
+                return entry
+        except Exception:
+            pass
+    return None
+
+
+def set_cached_response(cache_key: str, data: Dict):
+    c_file = get_cache_file()
+    try:
+        cache = {}
+        if c_file.exists():
+            try:
+                with open(c_file, "r", encoding="utf-8") as f:
+                    cache = json.load(f)
+            except Exception:
+                cache = {}
+        cache[cache_key] = data
+        now = time.time()
+        # Dọn dẹp cache cũ hơn 24 giờ
+        cache = {k: v for k, v in cache.items() if now - v.get("timestamp", 0) < 86400}
+        with open(c_file, "w", encoding="utf-8") as f:
+            json.dump(cache, f, indent=2)
+    except Exception:
+        pass
+
+
 def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[str, str]:
     """
     Tự động thẩm định độ phức tạp của nhiệm vụ để điều phối vào Tier tối ưu nhất.
-    Trả về: (tier_name, reason)
     """
     p_lower = prompt.lower()
     
-    # 1. Kiểm tra kích thước file đầu vào (nếu có)
     file_lines = 0
     file_bytes = 0
     if file_path and os.path.exists(file_path):
@@ -105,11 +144,9 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
         except Exception:
             pass
 
-    # Nếu file rất lớn (> 500 dòng hoặc > 20KB) -> Bulk/Fast Tier để cày dữ liệu không tốn quota
     if file_lines > 500 or file_bytes > 20480:
         return "bulk", f"Tệp đầu vào lớn ({file_lines} dòng, {file_bytes/1024:.1f}KB) -> Điều phối Tier 'bulk' (gemini-3.5-flash-lite)"
 
-    # 2. Kiểm tra từ khóa yêu cầu suy luận kiến trúc sâu / bảo mật phức tạp
     deep_keywords = [
         "kiến trúc", "architecture", "tối ưu hóa csdl", "query optimization",
         "lỗ hổng bảo mật", "owasp", "rbac", "stored procedure", "medallion",
@@ -119,7 +156,6 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
         if kw in p_lower:
             return "deep", f"Phát hiện yêu cầu suy luận/kiến trúc sâu ('{kw}') -> Điều phối Tier 'deep' (gemini-3.8-flash)"
 
-    # 3. Kiểm tra từ khóa tác vụ lặp tần suất cao / regex / trích xuất thuần túy
     ultra_keywords = [
         "regex", "bóc tách chuỗi", "format json", "mapping cột", "chuẩn hóa chuỗi",
         "phân loại danh mục", "lọc dòng"
@@ -128,7 +164,6 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
         if kw in p_lower:
             return "ultra", f"Phát hiện tác vụ tần suất cao ('{kw}') -> Điều phối Tier 'ultra' (gemma-4-26b-a4b-it)"
 
-    # 4. Kiểm tra từ khóa tác vụ sinh code / giao diện / API tiêu chuẩn
     standard_keywords = [
         "viết api", "serializer", "viewset", "react component", "ui component",
         "unit test", "integration test", "crud", "refactor code", "viết hàm"
@@ -137,7 +172,6 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
         if kw in p_lower:
             return "standard", f"Phát hiện tác vụ sinh mã API/UI ('{kw}') -> Điều phối Tier 'standard' (gemini-3.6-flash)"
 
-    # Mặc định an toàn cho tác vụ tổng hợp: bulk (Flash-Lite tốc độ cao, quota dồi dào)
     return "bulk", "Tác vụ tổng hợp -> Điều phối Tier 'bulk' (gemini-3.5-flash-lite, 3.5k req/ngày)"
 
 
@@ -145,7 +179,6 @@ def load_keys_from_env() -> List[str]:
     keys = []
     env_file = get_repo_root() / ".env"
     
-    # 1. Đọc từ file .env nếu có
     if env_file.exists():
         try:
             with open(env_file, "r", encoding="utf-8") as f:
@@ -161,7 +194,6 @@ def load_keys_from_env() -> List[str]:
         except Exception:
             pass
 
-    # 2. Đọc từ biến môi trường OS
     if not keys:
         raw_keys = os.getenv("GEMINI_API_KEYS", "")
         if raw_keys:
@@ -171,7 +203,6 @@ def load_keys_from_env() -> List[str]:
             if single:
                 keys = [single]
 
-    # 3. Đọc từ cấu hình antigravity toàn cục nếu có
     if not keys:
         global_env = Path.home() / ".gemini" / "antigravity" / ".env"
         if global_env.exists():
@@ -209,28 +240,34 @@ class SmartKeyPool:
         except Exception:
             pass
 
-    def get_candidate_keys(self) -> List[Tuple[int, str]]:
+    def get_candidate_keys(self, target_model: Optional[str] = None) -> List[Tuple[int, str]]:
+        """
+        Cân bằng tải thông minh: Ưu tiên chọn Key có số lượng request đã sử dụng ít nhất trong ngày.
+        """
         state = self._read_state()
         now = time.time()
         cooldowns = state.get("cooldowns", {})
-        idx = state.get("current_index", 0) % len(self.keys)
+        today = time.strftime("%Y-%m-%d")
+        daily_usage = state.get("daily_usage", {}).get(today, {})
 
-        # Xoay chỉ số tiếp theo
-        state["current_index"] = (idx + 1) % len(self.keys)
-        self._write_state(state)
-
-        ordered = []
-        for i in range(len(self.keys)):
-            k_idx = (idx + i) % len(self.keys)
-            k_val = self.keys[k_idx]
+        candidates = []
+        for i, k_val in enumerate(self.keys, 1):
             cd_until = cooldowns.get(k_val, 0)
-            if now >= cd_until:
-                ordered.append((k_idx + 1, k_val))
+            if now < cd_until:
+                continue  # Key đang trong thời gian nghỉ cooldown
+            
+            masked_k = f"{k_val[:10]}...{k_val[-6:]}"
+            k_stats = daily_usage.get(masked_k, {})
+            used_reqs = k_stats.get(target_model, {}).get("requests", 0) if target_model else 0
+            candidates.append((i, k_val, used_reqs))
 
-        if not ordered:
-            ordered = [(i + 1, k) for i, k in enumerate(self.keys)]
+        # Nếu toàn bộ key đang cooldown, bỏ qua cooldown để thử lại
+        if not candidates:
+            candidates = [(i, k_val, 0) for i, k_val in enumerate(self.keys, 1)]
 
-        return ordered
+        # Sắp xếp theo số lượt đã dùng tăng dần (Least-Used Key First)
+        candidates.sort(key=lambda x: x[2])
+        return [(c[0], c[1]) for c in candidates]
 
     def mark_rate_limited(self, key: str, cooldown_seconds: int = 60):
         state = self._read_state()
@@ -272,15 +309,13 @@ def call_gemini_with_failover(
     tier: str = DEFAULT_TIER,
     explicit_model: Optional[str] = None,
     system_instruction: Optional[str] = None,
-    temperature: float = 0.2
+    temperature: float = 0.2,
+    use_cache: bool = True
 ) -> Dict:
     keys = load_keys_from_env()
     if not keys:
         print("[STATUS: FAIL] Không tìm thấy GEMINI_API_KEYS trong file D:\\Thành\\Agent\\.env")
         sys.exit(1)
-
-    pool = SmartKeyPool(keys)
-    candidates = pool.get_candidate_keys()
 
     # Tự động thẩm định độ phức tạp nếu tier='auto'
     if tier.lower() == "auto":
@@ -314,9 +349,30 @@ def call_gemini_with_failover(
         except Exception as e:
             print(f"[WARN] Không thể đọc tệp {file_path}: {e}")
 
+    # 1. Kiểm tra Response Cache cục bộ (Hash-based)
+    cache_key = hashlib.sha256(f"{models_to_try[0]}:{temperature}:{system_instruction}:{full_prompt}".encode("utf-8")).hexdigest()
+    if use_cache:
+        cached = get_cached_response(cache_key)
+        if cached:
+            print(f"[CACHE_HIT] ⚡ Tái sử dụng kết quả từ Local Cache (0.00s | 0 tokens hao tổn)")
+            text_out = cached.get("output", "")
+            if out_file:
+                out_path = Path(out_file).resolve()
+                out_path.parent.mkdir(parents=True, exist_ok=True)
+                with open(out_path, "w", encoding="utf-8") as f:
+                    f.write(text_out)
+                print(f"[OUTPUT_SAVED] Kết quả đã lưu tại: {out_path}")
+            else:
+                print("--- KẾT QUẢ ---")
+                print(text_out)
+                print("--- HẾT ---")
+            return cached
+
+    pool = SmartKeyPool(keys)
     last_error = ""
 
     for current_model in models_to_try:
+        candidates = pool.get_candidate_keys(target_model=current_model)
         url = f"{API_BASE}/{current_model}:generateContent"
 
         payload = {
@@ -348,7 +404,7 @@ def call_gemini_with_failover(
 
             try:
                 start_time = time.time()
-                with urllib.request.urlopen(req, timeout=120) as resp:
+                with urllib.request.urlopen(req, timeout=90) as resp:
                     resp_body = resp.read().decode("utf-8")
                     duration = time.time() - start_time
                     res_json = json.loads(resp_body)
@@ -367,6 +423,19 @@ def call_gemini_with_failover(
 
                     print(f"[GEMINI_DISPATCH] ✅ Thành công | Model: {current_model} | Project: Key #{key_id} ({masked_key}) | Thời gian: {duration:.2f}s | Tokens: in={p_tokens}, out={c_tokens}")
 
+                    # Lưu vào local cache
+                    res_dict = {
+                        "success": True,
+                        "key_id": key_id,
+                        "model": current_model,
+                        "tier": actual_tier,
+                        "output": text_out,
+                        "prompt_tokens": p_tokens,
+                        "candidate_tokens": c_tokens,
+                        "timestamp": time.time()
+                    }
+                    set_cached_response(cache_key, res_dict)
+
                     if out_file:
                         out_path = Path(out_file).resolve()
                         out_path.parent.mkdir(parents=True, exist_ok=True)
@@ -381,7 +450,8 @@ def call_gemini_with_failover(
                         with open(out_path, "w", encoding="utf-8") as f:
                             f.write(clean_content)
                         print(f"[OUTPUT_SAVED] Kết quả đã lưu tại: {out_path}")
-                        # Tự động thẩm định chất lượng tệp vừa lưu
+                        
+                        # Tự động thẩm định chất lượng tệp vừa lưu qua Quality Gate
                         try:
                             sys.path.insert(0, str(Path(__file__).resolve().parent))
                             from output_verifier import verify_file
@@ -389,9 +459,24 @@ def call_gemini_with_failover(
                             if v_res["passed"]:
                                 print(f"[VERIFIED: PASS] Thẩm định chất lượng tệp: {v_res['score']}/100 (Hợp lệ)")
                             else:
-                                print(f"[VERIFIED: FAIL] Cảnh báo chất lượng ({v_res['score']}/100):")
+                                print(f"[VERIFIED: FAIL] Phát hiện lỗi chất lượng ({v_res['score']}/100):")
                                 for iss in v_res["issues"]:
                                     print(f"  ⚠️ {iss}")
+                                # Tự động sửa lỗi cú pháp (Self-Correction Loop)
+                                print("[SELF_HEALING] 🔄 Đang tự động kích hoạt vòng lặp sửa lỗi mã nguồn...")
+                                fix_prompt = (
+                                    f"Tệp mã nguồn sau đây có lỗi cú pháp hoặc vi phạm:\n"
+                                    + "\n".join(f"- {iss}" for iss in v_res["issues"])
+                                    + f"\nHãy sửa lại toàn bộ tệp, trả về mã nguồn hoàn chỉnh không lỗi bên trong khối markdown:\n\n{clean_content}"
+                                )
+                                fix_res = call_gemini_with_failover(
+                                    prompt=fix_prompt,
+                                    out_file=str(out_path),
+                                    tier=actual_tier,
+                                    use_cache=False
+                                )
+                                if fix_res and fix_res.get("success"):
+                                    print(f"[SELF_HEALING] ✅ Đã hoàn tất sửa lỗi tự động!")
                         except Exception:
                             pass
                     else:
@@ -399,21 +484,13 @@ def call_gemini_with_failover(
                         print(text_out)
                         print("--- HẾT ---")
 
-                    return {
-                        "success": True,
-                        "key_id": key_id,
-                        "model": current_model,
-                        "tier": actual_tier,
-                        "output": text_out,
-                        "prompt_tokens": p_tokens,
-                        "candidate_tokens": c_tokens
-                    }
+                    return res_dict
 
             except urllib.error.HTTPError as e:
                 err_msg = e.read().decode("utf-8", errors="replace")
                 last_error = f"HTTP {e.code}: {err_msg}"
                 if e.code == 429:
-                    print(f"[WARN] Key #{key_id} chạm ngưỡng với model {current_model}. Đang thử key/model tiếp theo...")
+                    print(f"[WARN] Key #{key_id} chạm ngưỡng với model {current_model}. Đang tự động đổi sang Key tiếp theo...")
                     pool.mark_rate_limited(key, cooldown_seconds=60)
                     continue
                 elif e.code == 404:
@@ -531,6 +608,7 @@ def main():
     parser.add_argument("--sys", "-s", help="System instruction tùy chọn")
     parser.add_argument("--temp", type=float, default=0.2, help="Temperature (0.0 - 1.0)")
     parser.add_argument("--pool-status", "--usage", action="store_true", help="Kiểm tra trạng thái các khóa và thống kê request đã dùng")
+    parser.add_argument("--no-cache", action="store_true", help="Bỏ qua local response cache, ép gửi API request mới")
 
     args = parser.parse_args()
 
@@ -549,7 +627,8 @@ def main():
         tier=args.tier,
         explicit_model=args.model,
         system_instruction=args.sys,
-        temperature=args.temp
+        temperature=args.temp,
+        use_cache=not args.no_cache
     )
 
 

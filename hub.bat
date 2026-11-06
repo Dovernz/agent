@@ -22,6 +22,7 @@ if "%1"=="token-opt" goto token_opt
 if "%1"=="gemini" goto gemini
 if "%1"=="verify" goto verify
 if "%1"=="fanout" goto fanout
+if "%1"=="usage" goto usage
 
 echo [!] Lenh khong hop le: %1
 echo Go 'hub help' de xem huong dan.
@@ -112,6 +113,11 @@ shift
 uv run python "%SCRIPT_DIR%common\scripts\task_fanout_planner.py" %*
 exit /b %ERRORLEVEL%
 
+:usage
+shift
+uv run python "%SCRIPT_DIR%common\scripts\gemini_offloader.py" --pool-status %*
+exit /b %ERRORLEVEL%
+
 :help
 echo =================================================================
 echo   ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub)
@@ -130,6 +136,7 @@ echo   hub drift           Kiem tra lech chuan API giua Backend Code va OpenAPI 
 echo   hub notify          Ban thong bao su co & canh bao qua Telegram/Discord/Slack
 echo   hub token-opt       Do luong, dinh vi diem nong va nen toi uu token su dung
 echo   hub gemini          Chay tac vu nang qua Gemini API ngoai (0d) tiet kiem token
+echo   hub usage           Bang dieu khien va thong ke han muc 7 key va tung model
 echo   hub verify [file]   Tham dinh chat luong, cu phap va an ninh output (.py, .json, .md)
 echo   hub fanout [args]   Lap ke hoach phan ra N sub-agent va tang API theo do phuc tap
 echo   hub create          Khoi tao 1-click nhom agent cho du an moi tu template

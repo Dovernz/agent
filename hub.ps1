@@ -61,6 +61,9 @@ switch ($Command.ToLower()) {
     "gemini" {
         uv run python "$ScriptDir\common\scripts\gemini_offloader.py" @RemainingArgs
     }
+    "usage" {
+        uv run python "$ScriptDir\common\scripts\gemini_offloader.py" --pool-status @RemainingArgs
+    }
     "verify" {
         uv run python "$ScriptDir\common\scripts\output_verifier.py" @RemainingArgs
     }
@@ -84,6 +87,7 @@ switch ($Command.ToLower()) {
         Write-Host "  .\hub.ps1 notify          Bắn thông báo sự cố & cảnh báo qua Telegram/Discord/Slack" -ForegroundColor Green
         Write-Host "  .\hub.ps1 token-opt       Đo lường, định vị điểm nóng và nén tối ưu token sử dụng" -ForegroundColor Green
         Write-Host "  .\hub.ps1 gemini          Chạy tác vụ nặng qua Gemini API ngoài (0đ) để tiết kiệm token" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 usage           Bảng điều khiển & thống kê hạn mức 7 key và từng model" -ForegroundColor Green
         Write-Host "  .\hub.ps1 verify [file]   Thẩm định chất lượng, cú pháp & an ninh output (.py, .json, .md)" -ForegroundColor Green
         Write-Host "  .\hub.ps1 fanout [args]   Lập kế hoạch phân rã N sub-agent & tầng API theo độ phức tạp" -ForegroundColor Green
         Write-Host "  .\hub.ps1 create          Khởi tạo 1-click nhóm agent cho dự án mới từ template" -ForegroundColor Green

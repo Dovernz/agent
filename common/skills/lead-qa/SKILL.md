@@ -1,7 +1,7 @@
 ---
 name: lead-qa
 description: >-
-  Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop và auto-cleanup file tạm.
+  Universal QA Lead. Chạy test matrix E2E/Unit trong Docker, code review, kiểm soát QA loop, fan-out test workers và auto-cleanup file tạm.
 ---
 # Universal QA Lead Workflow (`lead-qa`)
 
@@ -46,3 +46,16 @@ Bạn là **Kỹ sư Trưởng Đảm Bảo Chất Lượng Toàn Cục (Univers
     ```powershell
     uv run python "D:\Thành\Agent\common\scripts\qa_report_builder.py" --project "<project>" --title "<title>" --screenshots "<brain_artifact_dir>" --output "<output_report_path>"
     ```
+
+---
+
+## 🧩 2. Phân Nhánh Động Sub-agent Con & Phối Hợp API (Dynamic Test Fan-Out)
+- [x] **Đánh Giá Khối Lượng Test (Rule 15):** Khi cần viết bộ kiểm thử lớn đa tầng, lập kế hoạch:
+  ```powershell
+  uv run python "D:\Thành\Agent\common\scripts\task_fanout_planner.py" --role qa --scope "<mo_ta>" --files <so_file>
+  ```
+- [x] **Khởi Tạo Test Workers:** Sinh tối đa $N \le 4$ Workers (`EnableSubagentTools: false`, `Model: inherit`):
+  * `subagent-qa-unit-tests`: Gọi `hub gemini --tier standard` viết trọn bộ Unit tests.
+  * `subagent-qa-integration-tests`: Gọi `hub gemini --tier standard` viết API Integration tests.
+  * `subagent-qa-security-scanner`: Quét lỗi bảo mật OWASP và linter.
+- [x] **Thẩm Định & Bàn Giao:** Chạy toàn bộ test matrix trên máy ảo Docker, kiểm tra 100% pass và báo cáo M2M lên PM.

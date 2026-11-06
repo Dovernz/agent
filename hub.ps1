@@ -64,6 +64,9 @@ switch ($Command.ToLower()) {
     "verify" {
         uv run python "$ScriptDir\common\scripts\output_verifier.py" @RemainingArgs
     }
+    "fanout" {
+        uv run python "$ScriptDir\common\scripts\task_fanout_planner.py" @RemainingArgs
+    }
     default {
         Write-Host "=================================================================" -ForegroundColor Cyan
         Write-Host "  ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub.ps1)" -ForegroundColor Yellow
@@ -82,6 +85,7 @@ switch ($Command.ToLower()) {
         Write-Host "  .\hub.ps1 token-opt       Đo lường, định vị điểm nóng và nén tối ưu token sử dụng" -ForegroundColor Green
         Write-Host "  .\hub.ps1 gemini          Chạy tác vụ nặng qua Gemini API ngoài (0đ) để tiết kiệm token" -ForegroundColor Green
         Write-Host "  .\hub.ps1 verify [file]   Thẩm định chất lượng, cú pháp & an ninh output (.py, .json, .md)" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 fanout [args]   Lập kế hoạch phân rã N sub-agent & tầng API theo độ phức tạp" -ForegroundColor Green
         Write-Host "  .\hub.ps1 create          Khởi tạo 1-click nhóm agent cho dự án mới từ template" -ForegroundColor Green
         Write-Host "  .\hub.ps1 validate        Kiểm tra tính hợp lệ 100% của toàn bộ 25 skills và 7 dự án" -ForegroundColor Green
         Write-Host "=================================================================" -ForegroundColor Cyan

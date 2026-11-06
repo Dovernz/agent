@@ -29,10 +29,13 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
      * PM / Orchestrator **BẮT BUỘC** gọi ngay công cụ `manage_subagents` với `Action: "kill"` (truyền `ConversationIds`) hoặc `Action: "kill_all"` để lập tức tiêu diệt sub-agent bị treo.
      * Với command / tiến trình chạy ngầm bị nghẽn, gọi ngay `manage_task` với `Action: "kill"` (truyền `TaskId`).
    - **Xử lý sau khi Kill:** Báo cờ `[STATUS: ESCALATE] {"reason": "Subagent/Task timeout killed"}` và xin ý kiến User hoặc chia nhỏ task để chạy lại, **TUYỆT ĐỐI KHÔNG** để sub-agent treo ngầm vô thời hạn làm cạn kiệt Quota và treo máy.
-7. **Kiểm Soát Phân Tầng Sub-Agent & Cấm Đệ Quy (Sub-Agent Boundary & Anti-Nesting Policy):**
-   - **Khóa quyền tự tạo:** Khi định nghĩa sub-agent bằng `define_subagent`, **BẮT BUỘC** thiết lập `EnableSubagentTools: false` cho tất cả các sub-agent cấp con (Lead, Worker, Tester).
-   - **Cấm tự do sinh Sub-Agent:** Các sub-agent do Agent tạo ra **TUYỆT ĐỐI KHÔNG ĐƯỢC PHÉP** tự ý tạo hoặc gọi thêm sub-agent cấp dưới nữa (ngăn chặn phân nhánh đệ quy không kiểm soát gây cạn kiệt CPU, RAM và Token).
-   - **Ngoại lệ duy nhất:** Chỉ những dự án có cấu hình đặc thù được khai báo tường minh trong file SKILL của Manager dự án đó mới được cấp quyền phân nhánh, và tối đa không quá 2 tầng phân cấp (Master Secretary $\rightarrow$ Project PM $\rightarrow$ Lead/Worker). Cấp Worker cuối cùng luôn luôn là `EnableSubagentTools: false`.
+7. **Kiểm Soát Phân Tầng 3 Cấp & Cấm Đệ Quy Cấp 4 (Bounded 3-Tier Hierarchy & Anti-Nesting Policy):**
+   - **Mô hình 3 tầng phân cấp chuẩn mực:**
+     * **Tầng 1 (Executive):** Master Secretary & Project PMs điều phối toàn dự án.
+     * **Tầng 2 (Tech Lead):** Nhóm Lead (`lead-backend`, `lead-frontend`, `lead-qa`, `lead-architect`, `lead-ba`, `lead-cyber-security`). Nhóm Lead **ĐƯỢC CẤP QUYỀN** sinh ra các Sub-agent Worker con dưới quyền (`EnableSubagentTools: true`) để phân rã công việc song song.
+     * **Tầng 3 (Task Worker):** Các Sub-agent con do Lead sinh ra (`backend-worker`, `qa-worker`, `data-worker`...).
+   - **Khóa cứng cấp Worker (Cấm đệ quy tầng 4):** Khi định nghĩa Worker cấp con bằng `define_subagent`, **BẮT BUỘC** thiết lập `EnableSubagentTools: false`. Cấp Worker tuyệt đối không được sinh thêm sub-agent nào khác để ngăn chặn phân nhánh đệ quy vô hạn làm cạn kiệt CPU, RAM và tài nguyên.
+   - **Giới hạn số lượng Worker đồng thời:** Mỗi Lead Agent chỉ được phép duy trì tối đa $N \le 5$ Worker Sub-agents đồng thời tại một thời điểm.
 8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON Payload:**
    - Mọi giao tiếp giữa Thư ký (Master Secretary) và Project PM, hoặc giữa các Lead Agent với nhau **BẮT BUỘC** được bọc trong JSON Code Payload tối giản:
      * Lệnh điều phối: `{"dispatch_to": "<TÊN_PM>", "action": "EXECUTE_TASK", "task_id": "...", "payload": {...}}`
@@ -81,3 +84,24 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * `lead-cyber-security`: Thẩm định an ninh, rà soát lệnh nguy hiểm (`eval`, `exec`, `os.system`), ngăn chặn SQL Injection và hardcoded secret.
       * `lead-ba`: Đối chiếu kết quả với User Story và Tiêu chí chấp nhận (Acceptance Criteria) ban đầu.
     - **Cơ chế Tự sửa lỗi (Self-Correction Loop):** Nếu cổng thẩm định báo `[VERIFIED: FAIL]`, Sub-agent tự động gửi lại log lỗi để API sửa (tối đa 2 lần). Nếu vẫn không đạt, kích hoạt Antigravity Agent can thiệp bằng logic cấp cao để hoàn thiện trước khi báo cáo User.
+15. **Quy Trình Phân Nhánh Động Của Nhóm Lead & Phối Hợp API Worker (Dynamic Lead Fan-Out & API Worker Protocol):**
+    - **Đánh giá Khối lượng & Độ phức tạp (Lead Assessment):**
+      Khi Lead nhận một Feature hoặc User Story lớn từ PM, Lead tiến hành bóc tách:
+      * Nếu task nhỏ ($\le 3$ files hoặc công việc tuần tự): Lead tự xử lý hoặc chỉ gọi 1 Worker.
+      * Nếu task lớn, có các luồng độc lập: Lead xác định số lượng $N$ Worker con cần thiết ($2 \le N \le 5$). Có thể dùng công cụ tính toán:
+        ```powershell
+        uv run python "D:\Thành\Agent\common\scripts\task_fanout_planner.py" --role <backend|frontend|qa|ba|architect|cyber> --scope "<mo_ta>" --files <so_file>
+        ```
+    - **Phân bổ Worker Chuyên biệt theo Luồng công việc:**
+      * *Ví dụ Lead Backend:* Worker 1 (Data Models & Migration), Worker 2 (API ViewSets & Serializers), Worker 3 (DB Seeder & Mock data).
+      * *Ví dụ Lead Frontend:* Worker 1 (Routing & Layout), Worker 2 (Components & UI), Worker 3 (API Client Integration).
+      * *Ví dụ Lead QA:* Worker 1 (Unit Test Suite), Worker 2 (Integration/E2E Test Suite).
+    - **Worker Tương Tác Trực Tiếp Với API Pool (`hub gemini`):**
+      * Các Worker con được giao task chi tiết và chủ động gọi `hub gemini` (`common/scripts/gemini_offloader.py`) để cày token nặng (sinh code hàng trăm dòng, phân tích dữ liệu lớn).
+      * Cơ chế Smart Key Pool (7 Projects) tự động phân bổ round-robin các cuộc gọi API từ nhiều Worker song song, không bị nghẽn rate-limit.
+    - **Tự Động Kiểm Định Cú Pháp Tại Cấp Worker:**
+      * Mỗi Worker sau khi nhận output từ API **BẮT BUỘC** chạy `hub verify <file>` (`common/scripts/output_verifier.py`). Nếu đạt 100/100 mới nộp bài về cho Lead.
+    - **Hội Đồng Lead Thẩm Định Hợp Nhất & Báo Cáo:**
+      * Lead thu thập kết quả từ $N$ Worker, kiểm tra tính tương thích giữa các module, chạy `test_matrix_runner.py` / `linter_guard.py` toàn cục.
+      * Khi tất cả pass, Lead đóng gói payload M2M báo cáo lên PM / Master Secretary:
+        `[STATUS: DONE] {"lead": "<ROLE>", "workers_count": N, "artifacts": [...]}`.

@@ -1,7 +1,7 @@
 ---
 name: lead-backend
 description: >-
-  Universal Backend Lead. Xây dựng API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query và linter trong Docker.
+  Universal Backend Lead. Xây dựng API backend, cấu hình CORS/bảo mật, DB seeding, profile slow query, fan-out worker và linter trong Docker.
 ---
 # Universal Backend Lead Workflow (`lead-backend`)
 
@@ -26,3 +26,16 @@ Bạn là **Kỹ sư Trưởng Backend & API Toàn Cục**. Bạn có thể xây
     ```
 - [x] **Shift-Left Testing & Escape Hatch:** BẮT BUỘC chạy linter/compiler trong Docker và sửa sạch lỗi trước khi bàn giao. Nếu fix quá 3 lần thất bại, DỪNG NGAY và báo `[STATUS: ESCALATE]`.
 - [x] **Giao tiếp M2M:** Hoàn tất báo `[STATUS: DONE]`. Nếu tự ý sửa endpoint/payload so với bản vẽ ban đầu, BẮT BUỘC phát cờ `[SPEC_CHANGED]` để Frontend đồng bộ.
+
+---
+
+## 🧩 2. Phân Nhánh Động Sub-agent Con & Phối Hợp API (Dynamic Worker Fan-Out)
+- [x] **Đánh Giá Khối Lượng (Rule 15):** Khi nhận module/feature lớn từ PM, chạy lập kế hoạch phân rã:
+  ```powershell
+  uv run python "D:\Thành\Agent\common\scripts\task_fanout_planner.py" --role backend --scope "<mo_ta>" --files <so_file>
+  ```
+- [x] **Khởi Tạo Worker Sub-agents:** Sinh tối đa $N \le 5$ Workers (`EnableSubagentTools: false`, `Model: inherit`):
+  * `subagent-backend-models-migrations`: Tạo Models và chạy migration.
+  * `subagent-backend-serializers-views`: Xây dựng ViewSets & Serializers.
+  * `subagent-backend-seeder-mockdata`: Gọi `hub gemini --tier bulk` sinh data mẫu.
+- [x] **Thẩm Định & Bàn Giao:** Thu thập kết quả từ Workers, chạy `hub verify` trên từng file, chạy `hub lint` và báo `[STATUS: DONE]`.

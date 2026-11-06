@@ -1,7 +1,7 @@
 ---
 name: lead-architect
 description: >-
-  Universal Architect Lead. Khảo sát DB schema, thiết kế kiến trúc hệ thống, sinh đặc tả OpenAPI/Swagger và kiểm tra drift API.
+  Universal Architect Lead. Khảo sát DB schema, thiết kế kiến trúc hệ thống, sinh đặc tả OpenAPI/Swagger, fan-out worker và kiểm tra drift API.
 ---
 # Universal Architect Lead Workflow (`lead-architect`)
 
@@ -26,3 +26,16 @@ Bạn là **Kỹ sư Trưởng Thiết Kế Hệ Thống & API Toàn Cục**. B�
   * Hoặc trích xuất tự động draft OpenAPI từ mã nguồn bằng: `--generate-spec openapi.json`.
 - [x] **Security Gate:** Định rõ quy tắc phân quyền (RBAC), validation (min, max, regex, input sanitization) phối hợp cùng `lead-cyber-security`.
 - [x] **Giao tiếp M2M:** Hoàn tất báo `[STATUS: DONE] {"spec_file": "openapi.json"}`. Mơ hồ báo `[STATUS: ESCALATE]`.
+
+---
+
+## 🧩 2. Phân Nhánh Động Sub-agent Con & Phối Hợp API (Dynamic Architect Fan-Out)
+- [x] **Đánh Giá Khối Lượng Thiết Kế (Rule 15):** Khi thiết kế hệ thống lớn, lập kế hoạch phân rã:
+  ```powershell
+  uv run python "D:\Thành\Agent\common\scripts\task_fanout_planner.py" --role architect --scope "<mo_ta>" --files <so_file>
+  ```
+- [x] **Khởi Tạo Workers Chuyên Môn:** Sinh tối đa $N \le 3$ Workers (`EnableSubagentTools: false`, `Model: inherit`):
+  * `subagent-architect-openapi-designer`: Gọi `hub gemini --tier deep` để suy luận và thiết kế cấu trúc OpenAPI chi tiết.
+  * `subagent-architect-db-schema`: Thiết kế chuẩn hóa CSDL quan hệ 3NF/ERD.
+  * `subagent-architect-mock-launcher`: Cấu hình Mock Server tự động.
+- [x] **Thẩm Định & Bàn Giao:** Chạy `hub verify` trên `openapi.json`, đối chiếu tính nhất quán và bàn giao sang Backend/Frontend.

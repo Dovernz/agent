@@ -66,6 +66,11 @@ MODEL_TIERS = {
         "primary": "gemini-embedding-2",
         "fallbacks": ["gemini-embedding-001"],
         "desc": "Vector Embedding & RAG Semantic Search [14,000 RPD]"
+    },
+    "robotics": {
+        "primary": "gemini-robotics-er-2-preview",
+        "fallbacks": ["gemini-3.6-flash"],
+        "desc": "Suy luận không gian, vật lý, điều khiển thiết bị/IoT [140 RPD]"
     }
 }
 
@@ -83,6 +88,7 @@ MODEL_LIMITS_RPD = {
     "gemini-embedding-2": 1000,
     "gemini-embedding-001": 1000,
     "gemini-3.5-transcribe": 25,
+    "gemini-robotics-er-2-preview": 20,
 }
 
 DEFAULT_TIER = "auto"
@@ -158,6 +164,16 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
 
     if file_lines > 500 or file_bytes > 20480:
         return "bulk", f"Tệp đầu vào lớn ({file_lines} dòng, {file_bytes/1024:.1f}KB) -> Điều phối Tier 'bulk' (gemini-3.5-flash-lite)"
+
+    embed_keywords = ["tạo embedding", "tạo vector embedding", "embed text", "đánh chỉ mục vector", "semantic embedding"]
+    for kw in embed_keywords:
+        if kw in p_lower:
+            return "embed", f"Phát hiện yêu cầu vector hóa ('{kw}') -> Điều phối Tier 'embed' (gemini-embedding-2)"
+
+    robotics_keywords = ["robotics", "spatial", "không gian", "vật lý", "iot", "điều khiển thiết bị"]
+    for kw in robotics_keywords:
+        if kw in p_lower:
+            return "robotics", f"Phát hiện yêu cầu robotics/không gian ('{kw}') -> Điều phối Tier 'robotics' (gemini-robotics-er-2-preview)"
 
     deep_keywords = [
         "kiến trúc", "architecture", "tối ưu hóa csdl", "query optimization",
@@ -646,6 +662,7 @@ def show_pool_status(detailed_usage: bool = True):
     print(f"  🔹 Tier 'standard' (gemini-3.6/3.5/3 flash)    : 105 RPM |     420 Requests/Ngày")
     print(f"  🔹 Tier 'deep'     (gemini-3.8/3.6 flash)      :  35 RPM |     140 - 420 Requests/Ngày")
     print(f"  🔹 Tier 'embed'    (gemini-embedding-2 / 001)  : 700 RPM |  14,000 Requests/Ngày")
+    print(f"  🔹 Tier 'robotics' (gemini-robotics-er-2)      :  35 RPM |     140 Requests/Ngày")
     print(f"  🔹 Live API        (Gemini 3.8/3 Live Audio)   : Unlimited RPD | 65K - 1M TPM")
     print("-" * 80)
     print("TRẠNG THÁI KẾT NỐI TỪNG KEY:")

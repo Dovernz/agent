@@ -15,9 +15,10 @@
 2. **Ép Sử Dụng API Lên Mức Tối Đa (Rule 16 - CẤM ĐỐT TOKEN TRONG CHAT):**
    - **CẤM TUYỆT ĐỐI** tự sinh code, serializers, views, test suite, mock data, regex, DDL trực tiếp trong chat.
    - **100% MÃ NGUỒN PHẢI SINH QUA API NGOÀI (7 Projects Free Tier 0 VNĐ):**
-     * Đơn lẻ: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra>`
+     * Đơn lẻ: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra|embed|robotics>`
      * Đa luồng: `hub gemini --batch <tasks.json>`
      * Thẩm định: `hub verify <filepath>` (đạt 100/100 Quality Gate) | Kiểm thử: `hub smoke`
+   - **Phân Vai Subagent (Code Reviewer & Storekeeper):** Subagent tuyệt đối không sinh code trong chat. Mọi mã nguồn bắt buộc gọi qua API ngoài. Nếu API ghi file tự động qua `--out`, Subagent chỉ chạy `hub verify`. Nếu API không tự ghi file được, Subagent chỉ đứng ra review cú pháp, lưu vào đúng tệp dự án và thẩm định rồi báo cáo M2M lên cấp trên; TUYỆT ĐỐI CẤM in lại nội dung code vào khung chat.
 
 3. **Chốt Chặn Output Terminal (Cấm Dump Context):**
    - Khi chạy lệnh xem log, quét file: BẮT BUỘC dùng `Select-Object -First 30`, `tail -n 30`, `peek_data.py`. Cấm in > 30 dòng.

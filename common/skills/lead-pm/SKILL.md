@@ -12,7 +12,7 @@ description: >-
   - **Tầng 1 (PM):** Tiếp nhận yêu cầu dự án, điều phối các Tech Leads.
   - **Tầng 2 (Tech Leads):** Gọi Tech Leads với `Model: inherit`, `EnableSubagentTools: true` để Tech Leads có quyền phân rã công việc.
   - **Tầng 3 (Child Workers):** Tech Leads chỉ được tạo tối đa $N \le 5$ Workers với `EnableSubagentTools: false` (nghiêm cấm Worker đẻ thêm subagent).
-- [ ] **Mã Lệnh Qua API Bắt Buộc (Rule 16):** CẤM Tech Leads hoặc Workers sinh mã nguồn dài trực tiếp trong ngữ cảnh chat Antigravity. Bắt buộc offload qua `hub gemini` hoặc `hub gemini --batch` ra đĩa và xác thực qua `hub verify`.
+- [ ] **Mã Lệnh Qua API & Subagent Reviewer (Rule 16):** CẤM sinh mã nguồn trong chat. Bắt buộc offload qua `hub gemini` ra đĩa và `hub verify`. Nếu API không ghi file được, Subagent chỉ review cú pháp, lưu file vào đúng thư mục dự án và chuyển giao M2M lên cấp trên; tuyệt đối không in code vào chat.
 - [ ] **Docker-First:** Mọi thao tác build, database migration, seeding và unit/integration testing bắt buộc thực thi trong Docker container của dự án tương ứng.
 - [ ] **M2M Zero-Fat Protocol:** Tuyệt đối không chat văn xuôi. Giao tiếp giữa PM và các Leads chỉ sử dụng JSON và cờ tín hiệu chuẩn (`[ACK]`, `[STATUS: DONE]`, `[STATUS: FAIL]`, `[STATUS: ESCALATE]`).
 - [ ] **Peek-and-Script:** CẤM đọc toàn bộ tệp dữ liệu lớn (CSV, SQL, Excel, logs) vào context chat. Bắt buộc Peek Header + 3 dòng mẫu, xử lý bằng script bên ngoài context.

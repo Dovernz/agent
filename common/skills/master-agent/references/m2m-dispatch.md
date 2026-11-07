@@ -47,7 +47,8 @@ flowchart TD
     subgraph SubagentExecution ["Thực thi kỹ thuật cô lập 100% ngoài Main Chat"]
         PM --> Leads["Tech Leads & Workers"]
         Leads --> API["hub gemini / hub gemini --batch<br/>(Offload 100% code qua API 0 VNĐ)"]
-        API --> Verify["hub verify (Quality Gate 100/100)"]
+        API --> Reviewer["Subagent Reviewer & Storekeeper<br/>(Lưu file vào dự án nếu API chưa ghi đĩa)"]
+        Reviewer --> Verify["hub verify (Quality Gate 100/100)"]
         Verify --> Docker["Kiểm thử Docker / hub smoke"]
     end
     

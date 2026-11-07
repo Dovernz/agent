@@ -33,7 +33,7 @@ def is_protected_file(file_path):
     p_norm = os.path.normpath(file_path).lower()
     # Protect assets in brain, documentation, templates, or skills
     if "brain" in p_norm: return True
-    if "docs" in p_norm or "assets" in p_norm or "static" in p_norm: return True
+    if any(k in p_norm for k in ["docs", "assets", "static", "public", "images", "img", "media"]): return True
     if "template" in p_norm: return True
     if ".git" in p_norm or "node_modules" in p_norm or ".venv" in p_norm: return True
     if "test_suite.py" in p_norm or "baseline_test.py" in p_norm: return True
@@ -45,7 +45,7 @@ def scan_clutter(target_dir):
     
     for root, dirs, files in os.walk(target_dir):
         # Skip protected / large dirs
-        dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv', 'venv', 'docs', 'assets', 'static']]
+        dirs[:] = [d for d in dirs if d not in ['.git', 'node_modules', '.venv', 'venv', 'docs', 'assets', 'static', 'public', 'images', 'media']]
         
         for file in files:
             file_path = os.path.join(root, file)

@@ -44,23 +44,28 @@ if sys.platform == "win32":
 MODEL_TIERS = {
     "bulk": {
         "primary": "gemini-3.5-flash-lite",
-        "fallbacks": ["gemini-3.1-flash-lite", "gemini-3.6-flash", "gemma-4-26b-a4b-it"],
-        "desc": "Tác vụ khối lượng lớn (Tóm tắt file dài, sinh mock data, đọc log) [500 RPD/project]"
+        "fallbacks": ["gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemma-4-26b-a4b-it"],
+        "desc": "Tác vụ khối lượng lớn (Tóm tắt file dài, sinh mock data, đọc log) [7,000 RPD toàn hệ thống]"
     },
     "standard": {
         "primary": "gemini-3.6-flash",
-        "fallbacks": ["gemini-3.5-flash", "gemini-3.5-flash-lite"],
-        "desc": "Tác vụ tiêu chuẩn (Sinh code API, viết serializers, components UI) [20 RPD/project]"
+        "fallbacks": ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.5-flash-lite"],
+        "desc": "Tác vụ tiêu chuẩn & Code generation (Sinh code API, serializers, UI components) [420 RPD]"
     },
     "deep": {
         "primary": "gemini-3.8-flash",
-        "fallbacks": ["gemini-3.6-flash", "gemini-3.5-flash"],
-        "desc": "Suy luận sâu & Kiến trúc (Tối ưu query phức tạp, phân tích DDL, RBAC) [20 RPD/project]"
+        "fallbacks": ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-3.5-flash"],
+        "desc": "Suy luận sâu & Kiến trúc (Tối ưu query phức tạp, phân tích DDL, RBAC) [140 - 420 RPD]"
     },
     "ultra": {
         "primary": "gemma-4-26b-a4b-it",
         "fallbacks": ["gemini-3.5-flash-lite"],
-        "desc": "Tần suất cực cao (Xử lý regex, phân loại văn bản, mapping cột bảng) [14,400 RPD/project]"
+        "desc": "Tần suất cực cao (Xử lý regex, phân loại văn bản, mapping cột bảng) [100,800 RPD]"
+    },
+    "embed": {
+        "primary": "gemini-embedding-2",
+        "fallbacks": ["gemini-embedding-001"],
+        "desc": "Vector Embedding & RAG Semantic Search [14,000 RPD]"
     }
 }
 
@@ -68,10 +73,16 @@ MODEL_TIERS = {
 MODEL_LIMITS_RPD = {
     "gemini-3.8-flash": 20,
     "gemini-3.6-flash": 20,
+    "gemini-3-flash-preview": 20,
+    "gemini-3.5-flash": 20,
     "gemini-3.5-flash-lite": 500,
     "gemini-3.1-flash-lite": 500,
+    "gemini-flash-lite-latest": 500,
     "gemma-4-26b-a4b-it": 14400,
     "gemma-4-31b-it": 14400,
+    "gemini-embedding-2": 1000,
+    "gemini-embedding-001": 1000,
+    "gemini-3.5-transcribe": 25,
 }
 
 DEFAULT_TIER = "auto"
@@ -496,6 +507,9 @@ def call_gemini_with_failover(
                     print(f"[WARN] Key #{key_id} chạm ngưỡng với model {current_model}. Đang tự động đổi sang Key tiếp theo...")
                     pool.mark_rate_limited(key, cooldown_seconds=60)
                     continue
+                elif e.code == 503:
+                    print(f"[WARN] ⚠️ Model '{current_model}' đang quá tải (HTTP 503 Demand Spike). Chuyển ngay sang fallback model kế tiếp...")
+                    break
                 elif e.code == 404:
                     break
                 else:
@@ -627,11 +641,12 @@ def show_pool_status(detailed_usage: bool = True):
     print(f"Ngày theo dõi: {today} | Tổng số dự án: {len(keys)} | Vị trí xoay vòng: Key #{curr_idx + 1}")
     print("-" * 80)
     print("⚡ MA TRẬN HẠN MỨC TOÀN HỆ THỐNG (7 PROJECTS KẾT HỢP):")
-    print(f"  🔹 Tier 'bulk'    (gemini-3.5-flash-lite) : 105 RPM |   3,500 Requests/Ngày")
-    print(f"  🔹 Tier 'standard' (gemini-3.6-flash)      :  35 RPM |     140 Requests/Ngày")
-    print(f"  🔹 Tier 'deep'    (gemini-3.8-flash)      :  35 RPM |     140 Requests/Ngày")
-    print(f"  🔹 Tier 'ultra'   (gemma-4-26b-a4b-it)    : 210 RPM | 100,800 Requests/Ngày")
-    print(f"  🔹 Search Grounding (Google Live)        : Yêu cầu Billing Profile (Google Cloud Payment)")
+    print(f"  🔹 Tier 'ultra'    (gemma-4-26b-a4b-it)        : 210 RPM | 100,800 Requests/Ngày")
+    print(f"  🔹 Tier 'bulk'     (gemini-3.5/3.1 flash-lite) : 210 RPM |   7,000 Requests/Ngày")
+    print(f"  🔹 Tier 'standard' (gemini-3.6/3.5/3 flash)    : 105 RPM |     420 Requests/Ngày")
+    print(f"  🔹 Tier 'deep'     (gemini-3.8/3.6 flash)      :  35 RPM |     140 - 420 Requests/Ngày")
+    print(f"  🔹 Tier 'embed'    (gemini-embedding-2 / 001)  : 700 RPM |  14,000 Requests/Ngày")
+    print(f"  🔹 Live API        (Gemini 3.8/3 Live Audio)   : Unlimited RPD | 65K - 1M TPM")
     print("-" * 80)
     print("TRẠNG THÁI KẾT NỐI TỪNG KEY:")
     print(f"{'STT':<5} | {'Mã Khóa (Masked)':<24} | {'Trạng Thái':<16} | {'Cooldown'}")
@@ -699,6 +714,7 @@ def main():
     parser.add_argument("--temp", type=float, default=0.2, help="Temperature (0.0 - 1.0)")
     parser.add_argument("--timeout", type=int, default=45, help="Thời gian chờ timeout tối đa cho mỗi request (mặc định: 45s)")
     parser.add_argument("--batch", "-b", help="Chạy song song danh sách nhiều task từ file JSON hoặc JSON string")
+    parser.add_argument("--embed", action="store_true", help="Tạo vector embedding (3072 chiều) từ prompt qua gemini-embedding-2")
     parser.add_argument("--pool-status", "--usage", action="store_true", help="Kiểm tra trạng thái các khóa và thống kê request đã dùng")
     parser.add_argument("--no-cache", action="store_true", help="Bỏ qua local response cache, ép gửi API request mới")
 
@@ -706,6 +722,42 @@ def main():
 
     if args.pool_status:
         show_pool_status()
+        return
+
+    if args.embed and args.prompt:
+        keys = load_keys_from_env()
+        pool = SmartKeyPool(keys)
+        target_model = args.model or "gemini-embedding-2"
+        candidates = pool.get_candidate_keys(target_model=target_model)
+        payload = {"content": {"parts": [{"text": args.prompt}]}}
+        data_bytes = json.dumps(payload).encode("utf-8")
+        success = False
+        for key_id, key in candidates:
+            url = f"{API_BASE}/{target_model}:embedContent"
+            headers = {"Content-Type": "application/json", "x-goog-api-key": key}
+            req = urllib.request.Request(url, data=data_bytes, headers=headers, method="POST")
+            try:
+                with urllib.request.urlopen(req, timeout=args.timeout) as resp:
+                    res_json = json.loads(resp.read().decode("utf-8"))
+                    vals = res_json.get("embedding", {}).get("values", [])
+                    masked_k = f"{key[:10]}...{key[-6:]}"
+                    pool.record_usage(key, target_model, prompt_tokens=len(args.prompt)//4, candidate_tokens=len(vals))
+                    print(f"[EMBED_SUCCESS] ✅ Đã tạo vector embedding ({len(vals)} chiều) từ model {target_model} (Key #{key_id} - {masked_k})")
+                    if args.out:
+                        out_p = Path(args.out).resolve()
+                        out_p.parent.mkdir(parents=True, exist_ok=True)
+                        with open(out_p, "w", encoding="utf-8") as f:
+                            json.dump(vals, f)
+                        print(f"[OUTPUT_SAVED] Vector đã lưu tại: {out_p}")
+                    else:
+                        print(f"Vector preview (first 5 dimensions): {vals[:5]}")
+                    success = True
+                    break
+            except Exception as e:
+                continue
+        if not success:
+            print("[STATUS: FAIL] Không thể tạo vector embedding từ pool keys.")
+            sys.exit(1)
         return
 
     if args.batch:

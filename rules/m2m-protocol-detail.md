@@ -131,3 +131,16 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
 18. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**
     - **Nghiêm cấm Monolithic Context:** Không nạp đồng thời toàn bộ 23-24 skills của cả 7 dự án vào System Prompt. Bắt buộc phân mảnh `skills.json` theo đúng phạm vi dự án bằng `hub shard set <tên_shard>` hoặc `hub shard auto "<yêu_cầu>"` (giảm tới 90% token System Prompt).
     - **Cô Lập Ngữ Cảnh Tuyệt Đối (Subagent Context Isolation):** Khi xử lý tác vụ dự án, Master Agent KHÔNG đọc tài liệu chi tiết hoặc mã nguồn vào Main Chat. Master Agent ủy thác qua `invoke_subagent`, truyền đường dẫn `SKILL.md` cho Subagent tự đọc và thực thi độc lập, chỉ trả về JSON tóm tắt 100 token cho Main Chat. Main Chat luôn được giữ ở trạng thái Zero-Fat.
+
+19. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**
+    - **CẤM TUYỆT ĐỐI Master Agent tự thực thi tác vụ dự án trong Main Chat:**
+      * **CẤM** đọc file mã nguồn của dự án vào Main Chat (không gọi `read_file` trên code dự án để bảo vệ Context Window).
+      * **CẤM** tự sửa file mã nguồn dự án trong Main Chat (không `edit_file` / `write_file` trên code dự án).
+      * **CẤM** tự chạy lệnh Docker, build Next.js, test Django, migration của dự án trong Main Chat.
+      * **CẤM TUYỆT ĐỐI DÙNG `schedule` HOẶC VÒNG LẶP ĐỂ POLLING** trong Main Chat (hành vi làm lặp context và làm cạn kiệt 12% token quota 5h!).
+    - **Cơ Chế Phản Ứng Tự Động (Reactive Wakeup):**
+      * Master Agent chỉ chọn đúng Project PM, gọi `invoke_subagent` giao việc kèm payload M2M JSON, rồi **KẾT THÚC LƯỢT GỌI TOOL NGAY LẬP TỨC**.
+      * Hệ thống Antigravity tích hợp sẵn cơ chế **Reactive Wakeup**, tự động đánh thức Master Agent khi Subagent gửi tin nhắn kết quả M2M. Không cần và CẤM polling/sleep.
+    - **Báo Cáo Nghiệm Thu Siêu Tinh Gọn (Zero-Fat Delivery):**
+      * Khi nhận tin nhắn M2M kết quả: Master Agent chỉ tổng hợp 2-3 câu súc tích bằng Tiếng Việt cho User kèm liên kết file.
+      * Tự động hoàn trả shard: Chạy `hub shard reset` để đưa System Prompt về shard `core` tối giản (~78 tokens/turn).

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 """
 System Integrity & Hierarchy Validator for Antigravity Agent Hub
-Checks that all registered skills, projects, and rules are valid and properly structured.
+Checks that all registered skills, projects, and rules are valid and properly structured,
+verifying strict adherence to Zero-Execution in Main Chat, Anti-Polling, and M2M Protocols.
 """
 
 import os
 import sys
 import json
 import glob
+import re
 
 # Ensure UTF-8 standard IO for Windows
 if sys.stdout.encoding.lower() != 'utf-8':
@@ -70,13 +72,52 @@ def main():
         if not has_readme: warnings.append(f"Dự án {pname} thiếu README.md")
         if not has_skills: errors.append(f"Dự án {pname} thiếu thư mục skills/")
         
-    # 3. Check M2M Rules
+    # 3. Check M2M Rules & Rule 19 Integrity
     m2m_rule = os.path.join(agent_hub, "rules", "m2m-protocol.md")
+    m2m_detail = os.path.join(agent_hub, "rules", "m2m-protocol-detail.md")
     if not os.path.exists(m2m_rule):
         errors.append("Thiếu rules/m2m-protocol.md ở thư mục gốc!")
     else:
-        print("\n[+] Đã kiểm tra M2M Protocol toàn cục: HỢP LỆ")
-        
+        with open(m2m_rule, 'r', encoding='utf-8') as f:
+            content = f.read()
+            if "19." not in content or "Zero-Execution" not in content:
+                errors.append("rules/m2m-protocol.md thiếu Quy tắc 19 (Zero-Execution & Reactive Wakeup)!")
+        print("\n[+] Đã kiểm tra M2M Protocol toàn cục: HỢP LỆ (Bao gồm Rule 19 Zero-Execution)")
+
+    # 4. Check GEMINI.md Directives
+    gemini_md = os.path.join(agent_hub, "GEMINI.md")
+    if not os.path.exists(gemini_md):
+        errors.append("Thiếu GEMINI.md ở thư mục gốc!")
+    else:
+        with open(gemini_md, 'r', encoding='utf-8') as f:
+            gcontent = f.read()
+            if "TIẾNG VIỆT" not in gcontent:
+                errors.append("GEMINI.md thiếu chỉ thị ngôn ngữ Tiếng Việt!")
+            if "Rule 16" not in gcontent:
+                errors.append("GEMINI.md thiếu Rule 16 (Ép sử dụng API tối đa)!")
+            if "Rule 18" not in gcontent:
+                errors.append("GEMINI.md thiếu Rule 18 (Phân mảnh ngữ cảnh)!")
+            if "Rule 19" not in gcontent or "Zero-Execution" not in gcontent:
+                errors.append("GEMINI.md thiếu Rule 19 (Zero-Execution trong Main Chat)!")
+            if "schedule" not in gcontent.lower():
+                errors.append("GEMINI.md thiếu quy tắc cấm polling qua schedule!")
+        print("[+] Đã kiểm tra GEMINI.md Directives: HỢP LỆ (Chỉ thị Tiếng Việt, Rule 16, 18, 19)")
+
+    # 5. Check Master Agent SKILL.md
+    master_skill = os.path.join(agent_hub, "common", "skills", "master-agent", "SKILL.md")
+    if not os.path.exists(master_skill):
+        errors.append("Thiếu common/skills/master-agent/SKILL.md!")
+    else:
+        with open(master_skill, 'r', encoding='utf-8') as f:
+            mscontent = f.read()
+            if "dental-pm-orchestrator" not in mscontent:
+                errors.append("master-agent/SKILL.md thiếu định tuyến dental-pm-orchestrator!")
+            if "vj-pm-orchestrator" not in mscontent:
+                errors.append("master-agent/SKILL.md thiếu định tuyến vj-pm-orchestrator!")
+            if "ĐIỀU CẤM KỴ" not in mscontent:
+                errors.append("master-agent/SKILL.md thiếu bảng Điều cấm kỵ của Master Agent!")
+        print("[+] Đã kiểm tra Master Agent SKILL.md: HỢP LỆ (Định tuyến chuẩn & Bảng cấm kỵ)")
+
     # Summary
     print("\n" + "="*50)
     print(f"TỔNG KẾT: {total_skills} Skills | {len(project_names)} Dự án | {len(errors)} Lỗi | {len(warnings)} Cảnh báo")

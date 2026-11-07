@@ -13,7 +13,8 @@ Master Agent gửi gói giao việc M2M cho Project PM hoặc Tech Lead:
     "docker_first": true,
     "allow_subagent_recursion": true,
     "max_subagents": 5,
-    "code_via_api": true
+    "code_via_api": true,
+    "isolated_execution": true
   }
 }
 ```
@@ -33,24 +34,26 @@ Nhận kết quả M2M JSON từ cấp dưới:
 
 ---
 
-## ⏱️ 4. Quy Trình Vận Hành 4 Bước
+## ⏱️ 4. Quy Trình Vận Hành 4 Bước (Zero-Execution & Zero-Polling)
 
 ```mermaid
 flowchart TD
-    User["Người dùng gửi prompt / gõ /master-agent hoặc /agent-system"] --> Master["Master Agent<br/>(Ngôn ngữ tự nhiên duy nhất)"]
-    Master -->|Khớp Routing Matrix & Shard Auto| Shard["hub shard auto (Chỉ nạp đúng context dự án)"]
-    Shard --> Dispatch["M2M JSON Code Dispatch"]
-    Dispatch -->|invoke_subagent cô lập context| PM["Project PM / Lead Agent<br/>(D:\Thành\Agent)"]
+    User["Người dùng gửi prompt / gõ /master-agent"] --> Master["Master Agent<br/>(Chỉ giao tiếp tự nhiên với User)"]
+    Master -->|1. Khớp Routing Matrix| Shard["hub shard auto (Chỉ nạp đúng context dự án)"]
+    Shard -->|2. invoke_subagent| PM["Project PM / Lead Agent<br/>(Chạy hoàn toàn trong Subagent Context)"]
     
-    subgraph Execution ["Thực thi kỹ thuật cô lập chuẩn M2M Code"]
-        PM --> Leads["Tech Leads & Workers<br/>(Giao tiếp 100% bằng JSON)"]
-        Leads --> API["hub gemini / hub gemini --batch<br/>(Sinh code ngoài, 0 token chat)"]
+    Master -.->|3. DỪNG LẠI - KHÔNG POLLING / KHÔNG SCHEDULE<br/>Chờ Reactive Wakeup| Wait((Sleep))
+    
+    subgraph SubagentExecution ["Thực thi kỹ thuật cô lập 100% ngoài Main Chat"]
+        PM --> Leads["Tech Leads & Workers"]
+        Leads --> API["hub gemini / hub gemini --batch<br/>(Offload 100% code qua API 0 VNĐ)"]
         API --> Verify["hub verify (Quality Gate 100/100)"]
         Verify --> Docker["Kiểm thử Docker / hub smoke"]
     end
     
-    Docker -->|M2M JSON Báo Cáo ~100 tok| Master
-    Master -->|Tổng hợp ngôn ngữ tự nhiên| ReportUser["Báo cáo kết quả súc tích cho User kèm Clickable Links"]
+    Docker -->|4. M2M JSON Báo Cáo ~100 tok| Master
+    Master -->|5. Tổng hợp ngắn gọn| ReportUser["Báo cáo 2-3 câu súc tích kèm Clickable Links"]
+    Master -->|6. Reset Shard| ResetCore["hub shard reset"]
 ```
 
 ---

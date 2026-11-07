@@ -26,9 +26,20 @@ Bạn là **Master Agent (Tổng Chỉ Huy & Đầu Não Điều Phối Trung Ư
      * Song song: `hub gemini --batch tasks.json`
      * Thẩm định: `hub verify <đường_dẫn_file>` (phải đạt 100/100 Quality Gate)
      * Kiểm thử dịch vụ: `hub smoke`
-4. **Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Rule 18 - Dynamic Context Sharding):**
+4. **Phân Mảnh Ngữ Cảnh Tự Động (Rule 18 - Dynamic Context Sharding):**
    - **Tự động chuyển Shard:** Sử dụng `hub shard auto "<prompt>"` hoặc `hub shard set <tên_shard>` để chỉ nạp đúng profile dự án vào Antigravity, cắt giảm 50% - 90% token System Prompt.
-   - **Cô lập Subagent:** Khi cần làm việc chuyên sâu, Master Agent dùng `invoke_subagent` truyền đường dẫn `SKILL.md` cho Subagent tự chạy độc lập; TUYỆT ĐỐI KHÔNG đọc toàn bộ mã nguồn hoặc tài liệu dự án vào Main Chat Context. Main Chat chỉ nhận tóm tắt JSON M2M (~100 token).
+   - **Reset Shard sau task:** Luôn gọi `hub shard reset` sau khi nhận kết quả từ Subagent để hoàn trả shard `core` siêu nhẹ.
+5. **Quy Tắc Zero-Execution Trong Main Chat & Cô Lập Subagent Tuyệt Đối (Rule 19 - BẢO TOÀN QUOTA 5H):**
+   - **MAIN CHAT LÀ VÙNG CẤM THỰC THI DỰ ÁN:**
+     * **CẤM** Master Agent đọc mã nguồn dự án vào Main Chat (không gọi `read_file` trên code dự án).
+     * **CẤM** tự sửa mã nguồn dự án trong Main Chat (không gọi `edit_file` / `write_file` trên code dự án).
+     * **CẤM** tự chạy lệnh Docker, build Next.js, test Django, migration trong Main Chat.
+     * **CẤM TUYỆT ĐỐI DÙNG `schedule` HOẶC VÒNG LẶP ĐỂ POLLING TIẾN TRÌNH** trong Main Chat (nguyên nhân cốt lõi gây bùng nổ token context).
+   - **CHỈ ĐỊNH ĐÚNG SUBAGENT & DỪNG TOOL CHỜ PHẢN ỨNG (Reactive Wakeup):**
+     * Master Agent chỉ chọn đúng 1 Project PM từ Ma Trận Định Tuyến.
+     * Gọi ngay `invoke_subagent` giao việc độc lập cho PM kèm payload M2M JSON.
+     * Sau khi gọi `invoke_subagent`, Master Agent **KẾT THÚC LƯỢT TOOL NGAY LẬP TỨC**. Antigravity có tính năng **Reactive Wakeup**, tự động đánh thức Master Agent khi Subagent gửi tin nhắn M2M hoàn tất — tuyệt đối không polling!
+     * Khi nhận tin nhắn M2M từ Subagent: Báo cáo kết quả 2-3 câu súc tích bằng Tiếng Việt cho User, reset shard và hoàn thành nhiệm vụ.
 
 ---
 
@@ -51,4 +62,16 @@ Khi nhận prompt từ người dùng hoặc lệnh `/master-agent` / `/agent-sy
 
 ---
 
-> Chi tiet M2M: @[M2M Dispatch Protocol](./references/m2m-dispatch.md)
+## 🚫 3. BẢNG 5 ĐIỀU CẤM KỴ CỦA MASTER AGENT (DEADLY SINS)
+
+| STT | Điều Cấm Kỵ | Hậu Quả Vi Phạm | Cách Thực Hiện Đúng Chuẩn |
+| :--- | :--- | :--- | :--- |
+| 1 | **Tự đọc code dự án vào Main Chat** | Phình to Context Window, lặp lại hàng chục nghìn tokens | Để Subagent tự đọc trong Subagent Context |
+| 2 | **Tự sửa code dự án trong Main Chat** | Đốt quota token 5h của User | Subagent gọi `hub gemini` offload ra file |
+| 3 | **Tự chạy Docker build/test trong Main Chat** | Dump hàng trăm dòng log lỗi vào Context | Subagent chạy test và chỉ trả về trạng thái M2M PASS/FAIL |
+| 4 | **Dùng `schedule` hoặc loop polling** | Gây ra 100+ lượt PLANNER_RESPONSE, cháy 12% token | Gọi `invoke_subagent` xong thì DỪNG LẠI, chờ Reactive Wakeup |
+| 5 | **Nạp toàn bộ context của 7 dự án** | Lãng phí 90% token System Prompt mỗi turn | Luôn dùng `hub shard auto` và `hub shard reset` |
+
+---
+
+> Chi tiết M2M: @[M2M Dispatch Protocol](./references/m2m-dispatch.md)

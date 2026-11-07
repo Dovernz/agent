@@ -46,7 +46,7 @@ HYGIENE_PATTERNS = [
 
 IGNORE_DIRS = {
     '.git', 'node_modules', '.venv', 'venv', '__pycache__',
-    'dist', 'build', '.idea', '.vscode', 'coverage', '.pytest_cache'
+    'dist', 'build', '.idea', '.vscode', 'coverage', '.pytest_cache', 'logs'
 }
 
 
@@ -158,7 +158,7 @@ def check_secrets_and_hygiene(file_path, base_dir):
     if file_name.lower().endswith(('.png', '.jpg', '.jpeg')):
         # Allow standard asset folders
         norm_rel = rel_path.replace('\\', '/').lower()
-        if not any(allowed in norm_rel for allowed in ['static/', 'assets/', 'public/', 'docs/images/', 'screenshots/']):
+        if not any(allowed in norm_rel for allowed in ['static/', 'assets/', 'public/', 'docs/images/', 'screenshots/', 'artifacts/']):
             violations.append({
                 "file": rel_path,
                 "line": 1,

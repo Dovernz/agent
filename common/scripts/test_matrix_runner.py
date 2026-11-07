@@ -45,7 +45,7 @@ def detect_test_targets(project_dir):
                     "id": f"py_unit_{loc.replace('/', '_')}",
                     "name": f"Python Tests ({loc})",
                     "type": "unit",
-                    "cmd": ["uv", "run", "pytest", loc, "-v", "--tb=short"],
+                    "cmd": ["uv", "run", "python", "-m", "unittest", "discover", "-s", loc, "-p", "test_*.py"],
                     "cwd": project_dir
                 })
                 break

@@ -153,6 +153,19 @@ SHARDS_DEFINITION = {
         ],
         "keywords": ["supervisor", "token cost", "đo lường token", "profiler", "audit hệ thống", "latency", "meta-optimizer", "kiểm toán"]
     },
+    "translate": {
+        "name": "GeminiTrans Realtime & Multimodal",
+        "description": "Nạp Master + GeminiTrans PM Orchestrator (Dịch văn bản, tài liệu, transcribe giọng nói và phụ đề video/phim realtime).",
+        "entries": [
+            {
+                "path": "common/skills"
+            },
+            {
+                "path": "projects/translate-project/skills"
+            }
+        ],
+        "keywords": ["translate", "dịch", "dịch thuật", "phụ đề", "subtitles", "phim", "video", "transcribe", "geminitrans", "audio", "giọng nói"]
+    },
     "all": {
         "name": "Full Monolithic Cluster (All 7 Projects)",
         "description": "Nạp toàn bộ 23-24 kỹ năng và 7 cụm dự án. Phục vụ kiểm toán hệ thống toàn diện (hub validate).",

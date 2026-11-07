@@ -56,6 +56,7 @@ Khi nhận prompt từ người dùng hoặc lệnh `/master-agent` / `/agent-sy
 | **BRD, tài liệu yêu cầu nghiệp vụ, Tờ trình Word, báo cáo IT Vietjet** | Vietjet BRD | `vietjet-brd-architect` | `projects/vietjet-brd/skills/vietjet-brd-architect/SKILL.md` | `vietjet-brd` |
 | **Build PC, cấu hình máy tính, linh kiện, CPU, GPU, RAM, giá bán lẻ VN** | PC Builder | `pc-builder` | `projects/pc-builder/skills/pc-builder/SKILL.md` | `pc-builder` |
 | **Đánh giá hiệu năng, kiểm toán token, tối ưu skill, audit report** | Agent Supervisor | `supervisor-orchestrator` | `projects/agent-supervisor/skills/supervisor-orchestrator/SKILL.md` | `supervisor` |
+| **Dịch thuật, tài liệu, phụ đề phim, video realtime, transcribe giọng nói** | GeminiTrans | `translate-pm-orchestrator` | `projects/translate-project/skills/pm-orchestrator/SKILL.md` | `translate` |
 | **Kiểm tra pool, hạn mức quota 7 key Gemini, tình trạng xoay vòng** | Gemini Pool CLI | `gemini_offloader.py` | `common/scripts/gemini_offloader.py --pool-status` | `core` |
 | **Kiểm tra toàn diện Docker, ports, Git, token watchdog** | Unified Doctor | `hub_doctor.py` | `common/scripts/hub_doctor.py` | `core` |
 | **Kiểm tra tức thì (0.5s) toàn bộ endpoints dịch vụ và container** | Smoke Runner | `smoke_test_runner.py` | `common/scripts/smoke_test_runner.py` | `core` |

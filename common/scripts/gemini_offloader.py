@@ -44,22 +44,22 @@ if sys.platform == "win32":
 MODEL_TIERS = {
     "bulk": {
         "primary": "gemini-3.5-flash-lite",
-        "fallbacks": ["gemini-3.1-flash-lite", "gemini-flash-lite-latest", "gemma-4-26b-a4b-it"],
+        "fallbacks": ["gemini-3.1-flash-lite", "gemini-2.5-flash-lite", "gemini-flash-lite-latest", "gemma-4-26b-a4b-it"],
         "desc": "Tác vụ khối lượng lớn (Tóm tắt file dài, sinh mock data, đọc log) [7,000 RPD toàn hệ thống]"
     },
     "standard": {
         "primary": "gemini-3.6-flash",
-        "fallbacks": ["gemini-3-flash-preview", "gemini-3.5-flash", "gemini-3.5-flash-lite"],
+        "fallbacks": ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-3.5-flash", "gemini-3.5-flash-lite"],
         "desc": "Tác vụ tiêu chuẩn & Code generation (Sinh code API, serializers, UI components) [420 RPD]"
     },
     "deep": {
         "primary": "gemini-3.8-flash",
-        "fallbacks": ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-3.5-flash"],
+        "fallbacks": ["gemini-3.6-flash", "gemini-3-flash-preview", "gemini-2.5-flash"],
         "desc": "Suy luận sâu & Kiến trúc (Tối ưu query phức tạp, phân tích DDL, RBAC) [140 - 420 RPD]"
     },
     "ultra": {
         "primary": "gemma-4-26b-a4b-it",
-        "fallbacks": ["gemini-3.5-flash-lite"],
+        "fallbacks": ["gemma-4-31b-it", "gemini-3.5-flash-lite"],
         "desc": "Tần suất cực cao (Xử lý regex, phân loại văn bản, mapping cột bảng) [100,800 RPD]"
     },
     "embed": {
@@ -71,6 +71,16 @@ MODEL_TIERS = {
         "primary": "gemini-robotics-er-2-preview",
         "fallbacks": ["gemini-3.6-flash"],
         "desc": "Suy luận không gian, vật lý, điều khiển thiết bị/IoT [140 RPD]"
+    },
+    "tts": {
+        "primary": "gemini-3.8-flash-tts",
+        "fallbacks": ["gemini-3.8-flash-lite-tts", "gemini-3.1-flash-tts", "gemini-2.5-flash-tts"],
+        "desc": "Tổng hợp giọng nói Text-To-Speech [70 RPD toàn hệ thống]"
+    },
+    "transcribe": {
+        "primary": "gemini-3.5-transcribe",
+        "fallbacks": ["gemini-3.5-flash-lite"],
+        "desc": "Bóc băng chuyển âm thanh sang văn bản [175 RPD toàn hệ thống]"
     }
 }
 
@@ -80,15 +90,22 @@ MODEL_LIMITS_RPD = {
     "gemini-3.6-flash": 20,
     "gemini-3-flash-preview": 20,
     "gemini-3.5-flash": 20,
+    "gemini-2.5-flash": 20,
     "gemini-3.5-flash-lite": 500,
     "gemini-3.1-flash-lite": 500,
+    "gemini-2.5-flash-lite": 20,
     "gemini-flash-lite-latest": 500,
     "gemma-4-26b-a4b-it": 14400,
     "gemma-4-31b-it": 14400,
     "gemini-embedding-2": 1000,
     "gemini-embedding-001": 1000,
     "gemini-3.5-transcribe": 25,
+    "gemini-3.8-flash-tts": 10,
+    "gemini-3.8-flash-lite-tts": 10,
+    "gemini-3.1-flash-tts": 10,
+    "gemini-2.5-flash-tts": 10,
     "gemini-robotics-er-2-preview": 20,
+    "search-grounding": 1500,
 }
 
 DEFAULT_TIER = "auto"
@@ -169,6 +186,16 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
     for kw in embed_keywords:
         if kw in p_lower:
             return "embed", f"Phát hiện yêu cầu vector hóa ('{kw}') -> Điều phối Tier 'embed' (gemini-embedding-2)"
+
+    tts_keywords = ["text to speech", "đọc văn bản", "chuyển văn bản thành giọng nói", "tts", "phát âm", "lồng tiếng"]
+    for kw in tts_keywords:
+        if kw in p_lower:
+            return "tts", f"Phát hiện yêu cầu Text-To-Speech ('{kw}') -> Điều phối Tier 'tts' (gemini-3.8-flash-tts)"
+
+    transcribe_keywords = ["transcribe", "bóc băng", "chuyển ghi âm thành chữ", "nhận dạng giọng nói", "speech to text"]
+    for kw in transcribe_keywords:
+        if kw in p_lower:
+            return "transcribe", f"Phát hiện yêu cầu Transcribe ('{kw}') -> Điều phối Tier 'transcribe' (gemini-3.5-transcribe)"
 
     robotics_keywords = ["robotics", "spatial", "không gian", "vật lý", "iot", "điều khiển thiết bị"]
     for kw in robotics_keywords:
@@ -339,6 +366,7 @@ def call_gemini_with_failover(
     system_instruction: Optional[str] = None,
     temperature: float = 0.2,
     use_cache: bool = True,
+    grounding: bool = False,
     timeout: int = 45
 ) -> Dict:
     keys = load_keys_from_env()
@@ -379,7 +407,7 @@ def call_gemini_with_failover(
             print(f"[WARN] Không thể đọc tệp {file_path}: {e}")
 
     # 1. Kiểm tra Response Cache cục bộ (Hash-based)
-    cache_key = hashlib.sha256(f"{models_to_try[0]}:{temperature}:{system_instruction}:{full_prompt}".encode("utf-8")).hexdigest()
+    cache_key = hashlib.sha256(f"{models_to_try[0]}:{temperature}:{system_instruction}:{grounding}:{full_prompt}".encode("utf-8")).hexdigest()
     if use_cache:
         cached = get_cached_response(cache_key)
         if cached:
@@ -420,6 +448,9 @@ def call_gemini_with_failover(
             payload["systemInstruction"] = {
                 "parts": [{"text": system_instruction}]
             }
+
+        if grounding:
+            payload["tools"] = [{"google_search": {}}]
 
         data_bytes = json.dumps(payload).encode("utf-8")
 
@@ -734,6 +765,7 @@ def main():
     parser.add_argument("--embed", action="store_true", help="Tạo vector embedding (3072 chiều) từ prompt qua gemini-embedding-2")
     parser.add_argument("--pool-status", "--usage", action="store_true", help="Kiểm tra trạng thái các khóa và thống kê request đã dùng")
     parser.add_argument("--no-cache", action="store_true", help="Bỏ qua local response cache, ép gửi API request mới")
+    parser.add_argument("--grounding", action="store_true", help="Bật Google Search Grounding (1,500 lượt tìm kiếm miễn phí/ngày)")
 
     args = parser.parse_args()
 
@@ -799,6 +831,7 @@ def main():
         system_instruction=args.sys,
         temperature=args.temp,
         use_cache=not args.no_cache,
+        grounding=args.grounding,
         timeout=args.timeout
     )
 

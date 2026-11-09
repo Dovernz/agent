@@ -1,13 +1,12 @@
 {
-  "active_shard": "core",
-  "shard_name": "Core Orchestrator (Ultra-Lean)",
+  "active_shard": "vietjet-ancillary",
+  "shard_name": "Vietjet Ancillary & Databricks",
   "entries": [
     {
-      "path": "common/skills",
-      "include_only": [
-        "master-agent",
-        "gitops-gatekeeper"
-      ]
+      "path": "common/skills"
+    },
+    {
+      "path": "projects/vietjet-ancillary/skills"
     }
   ]
 }

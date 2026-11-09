@@ -28,13 +28,16 @@
      * Nếu API không thể tự ghi file trực tiếp: Subagent chỉ nhận luồng stream/kết quả từ API, review cú pháp, lưu vào đúng tệp dự án trên đĩa, TUYỆT ĐỐI CẤM in lại nội dung code vào khung chat context.
      * Báo cáo M2M lên Agent cấp cao hơn chỉ chứa JSON tóm tắt 3 dòng: `{"status": "SUCCESS", "file": "<filepath>", "verification": "PASS"}`.
 
-3. **Chốt Chặn Output Terminal (Hard-Limit Cấm Dump Context):**
+3. **Chốt Chặn Output Terminal & Peek-and-Script (CẤM ĐỌC CODE LỚN VÀO CONTEXT):**
+   - **CẤM spam `read_file` đọc từng khúc file lớn (> 200 dòng):** Tuyệt đối không đọc liên tục các block 100-200 dòng của `index.html`, `app.py` vào context chat. Bắt buộc dùng lệnh `Select-String`, script regex hoặc Python bên ngoài context để định vị chính xác số dòng hoặc thẻ HTML cần tác động.
    - Mọi lệnh terminal (`run_command`) khi quét file, xem log, chạy test, build, Docker BẮT BUỘC pipe qua `| Select-Object -First 30`, `tail -n 30`, hoặc `peek_data.py`.
    - TUYỆT ĐỐI CẤM in > 30 dòng output vào context chat. Nếu có lỗi dài (Docker build, pytest, compiler), BẮT BUỘC chuyển hướng ra file log tạm (vd: `> logs/build_error.log 2>&1`) và chỉ gửi đường dẫn file log kèm mã lỗi M2M: `[STATUS: FAIL] {"log_file": "logs/build_error.log"}`.
 
-4. **Kỷ Luật Phản Hồi Zero-Fat & Token Budget Watchdog:**
-   - Trả lời tối đa 2-3 câu súc tích kèm clickable links đến file đã tạo. CẤM in lại khối code vào chat.
-   - **Token Watchdog (120,000 Tokens):** Khi phiên chạm ngưỡng 120,000 tokens, tự động kích hoạt **Hyper-Zero-Fat Mode** — CẤM toàn bộ giải thích văn xuôi, 100% trả về JSON đường dẫn file kết quả.
+4. **Kỷ Luật Phản Hồi Ultra-Silent (CẤM TƯỜNG THUẬT & LIỆT KÊ BƯỚC LÀM):**
+   - **CẤM TUYỆT ĐỐI văn xuôi tường thuật khi tiếp nhận:** Khi người dùng giao task, Agent **KHÔNG ĐƯỢC PHÉP** giải thích dài dòng hay in danh sách bước thực hiện ("Tôi đã tiếp nhận... Hệ thống đang thực hiện: 1. ... 2. ... 3. ... 4. ..."). Việc in văn bản này đốt cháy Output Tokens vô ích và làm phình to context phiên chat!
+   - **Chỉ xuất tối đa 1 dòng trạng thái:** `⏳ Đang ủy thác [Tên_PM] xử lý qua API...` rồi gọi tool ngay, hoặc im lặng gọi tool trực tiếp không kèm văn bản thừa.
+   - **Khi hoàn tất:** CHỈ báo đúng 1-2 câu kết quả súc tích kèm clickable links `file:///...` đến các tệp đã tạo/sửa. CẤM in lại khối code vào chat.
+   - **Token Watchdog (120,000 Tokens):** Khi phiên chạm ngưỡng 120,000 tokens, tự động kích hoạt **Hyper-Zero-Fat Mode** — CẤM toàn bộ giải thích văn xuôi, 100% chỉ trả về JSON đường dẫn file kết quả.
 
 5. **Quy Tắc Zero-Execution Trong Main Chat & Bắt Buộc Ủy Thác Đúng Subagent (Rule 19 - BẢO TOÀN TOÀN BỘ QUOTA 5H):**
    - **CẤM TUYỆT ĐỐI Master Agent tự thực thi tác vụ dự án trong Main Chat:**

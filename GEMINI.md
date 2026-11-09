@@ -28,11 +28,13 @@
      * Nếu API không thể tự ghi file trực tiếp: Subagent chỉ nhận luồng stream/kết quả từ API, review cú pháp, lưu vào đúng tệp dự án trên đĩa, TUYỆT ĐỐI CẤM in lại nội dung code vào khung chat context.
      * Báo cáo M2M lên Agent cấp cao hơn chỉ chứa JSON tóm tắt 3 dòng: `{"status": "SUCCESS", "file": "<filepath>", "verification": "PASS"}`.
 
-3. **Chốt Chặn Output Terminal (Cấm Dump Context):**
-   - Khi chạy lệnh xem log, quét file: BẮT BUỘC dùng `Select-Object -First 30`, `tail -n 30`, `peek_data.py`. Cấm in > 30 dòng.
+3. **Chốt Chặn Output Terminal (Hard-Limit Cấm Dump Context):**
+   - Mọi lệnh terminal (`run_command`) khi quét file, xem log, chạy test, build, Docker BẮT BUỘC pipe qua `| Select-Object -First 30`, `tail -n 30`, hoặc `peek_data.py`.
+   - TUYỆT ĐỐI CẤM in > 30 dòng output vào context chat. Nếu có lỗi dài (Docker build, pytest, compiler), BẮT BUỘC chuyển hướng ra file log tạm (vd: `> logs/build_error.log 2>&1`) và chỉ gửi đường dẫn file log kèm mã lỗi M2M: `[STATUS: FAIL] {"log_file": "logs/build_error.log"}`.
 
-4. **Kỷ Luật Phản Hồi Zero-Fat:**
+4. **Kỷ Luật Phản Hồi Zero-Fat & Token Budget Watchdog:**
    - Trả lời tối đa 2-3 câu súc tích kèm clickable links đến file đã tạo. CẤM in lại khối code vào chat.
+   - **Token Watchdog (120,000 Tokens):** Khi phiên chạm ngưỡng 120,000 tokens, tự động kích hoạt **Hyper-Zero-Fat Mode** — CẤM toàn bộ giải thích văn xuôi, 100% trả về JSON đường dẫn file kết quả.
 
 5. **Quy Tắc Zero-Execution Trong Main Chat & Bắt Buộc Ủy Thác Đúng Subagent (Rule 19 - BẢO TOÀN TOÀN BỘ QUOTA 5H):**
    - **CẤM TUYỆT ĐỐI Master Agent tự thực thi tác vụ dự án trong Main Chat:**
@@ -42,9 +44,10 @@
      * **CẤM TUYỆT ĐỐI DÙNG `schedule` HOẶC VÒNG LẶP ĐỂ POLLING** trong Main Chat (hành vi gây lặp context và đốt sạch token quota 5h!).
    - **MASTER AGENT CHỈ ĐƯỢC PHÉP LÀM 4 BƯỚC ĐIỀU PHỐI DUY NHẤT:**
      1. Nhận diện dự án từ prompt User theo Routing Matrix.
-     2. Gọi `hub shard auto "<prompt>"` để nạp đúng shard dự án.
-     3. **GỌI NGAY `invoke_subagent` CHỌN ĐÚNG SUBAGENT PM DỰ ÁN** (như `dental-pm-orchestrator`, `vj-pm-orchestrator`, v.v.) và **DỪNG LẠI NGAY LẬP TỨC** (kết thúc lượt gọi tool). Hệ thống tự động kích hoạt lại qua **Reactive Wakeup** khi Subagent gửi tin nhắn M2M xong — KHÔNG ĐƯỢC POLLING!
-     4. Khi nhận tin nhắn M2M kết quả từ Subagent: Báo cáo súc tích 2-3 câu Tiếng Việt kèm liên kết file cho User, gọi `hub shard reset` và kết thúc.
+     2. Đọc `projects/<project>/knowledge/checkpoint.md` nếu cần nắm tiến độ ngắn gọn.
+     3. Gọi `hub shard auto "<prompt>"` để nạp đúng shard dự án.
+     4. **GỌI NGAY `invoke_subagent` CHỌN ĐÚNG SUBAGENT PM DỰ ÁN** (như `dental-pm-orchestrator`, `vj-pm-orchestrator`, `translate-pm-orchestrator`, v.v. với `Workspace: "inherit"`) và **DỪNG LẠI NGAY LẬP TỨC** (kết thúc lượt gọi tool). Hệ thống tự động kích hoạt lại qua **Reactive Wakeup** khi Subagent gửi tin nhắn M2M xong — KHÔNG ĐƯỢC POLLING!
+     5. Khi nhận tin nhắn M2M kết quả từ Subagent: Báo cáo súc tích 2-3 câu Tiếng Việt kèm liên kết file cho User, gọi `hub shard reset` và kết thúc.
    - **TOÀN BỘ CÔNG VIỆC KỸ THUẬT SÂU:** Đọc code, sửa code qua Gemini API ngoài, chạy test/docker ĐỀU DO SUBAGENT THỰC HIỆN ĐỘC LẬP trong context con của Subagent, hoàn toàn cách ly với Main Chat!
 
 ## ⚡ QUY TẮC PHÂN MẢNH NGỮ CẢNH TỰ ĐỘNG (Rule 18)

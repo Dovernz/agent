@@ -108,7 +108,7 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
 16. **Quy Tắc Ép Buộc Ủy Thác API & Phân Vai Subagent (Maximal API Offloading & Subagent as Reviewer):**
     - **CẤM TUYỆT ĐỐI việc tự sinh code trong ngữ cảnh chat Antigravity:** Mọi Agent/Sub-agent tuyệt đối không được dùng lệnh `write_file` hoặc in trực tiếp các đoạn code dài (> 30 dòng), serializers, viewsets, models, mock data lớn, regex, DDL, hoặc kịch bản test vào ngữ cảnh chat Antigravity (gây lãng phí nghiêm trọng token quota).
     - **100% Mã Nguồn, Dữ Liệu & Test BẮT BUỘC Ủy thác cho Gemini API Pool:**
-      * Đơn lẻ: `hub gemini --prompt "<yêu_cầu_chi_tiết>" --out "<đường_dẫn_tệp>" --tier <auto|bulk|standard|deep|ultra|embed|robotics>`
+      * Đơn lẻ: `hub gemini --prompt "<yêu_cầu_chi_tiết>" --out "<đường_dẫn_tệp>" --tier <auto|bulk|standard|deep|ultra|embed|robotics|live_translate|transcribe>`
       * Đa luồng: `hub gemini --batch <tasks.json>`
       * Tệp mã nguồn sẽ được Gemini API sinh và ghi thẳng vào ổ cứng đĩa.
       * Cổng kiểm định `output_verifier` tự động kiểm tra cú pháp và đạt chuẩn 100/100 Quality Gate.
@@ -117,18 +117,22 @@ Mọi Agent BẮT BUỘC tuân thủ luật tiết kiệm Token cực hạn (Ext
       * Khi API sinh code và ghi file trực tiếp qua `--out`, Subagent chỉ chạy kiểm định `hub verify`.
       * Nếu API không thể tự tạo tệp (chỉ trả về text code), Subagent chỉ đứng ra review kiểm tra cú pháp, lưu vào đúng tệp dự án, kiểm định `hub verify` và chuyển báo cáo kết quả M2M JSON (`[STATUS: DONE] {"artifacts": [...]}`) lên các Agent cấp cao hơn.
       * TUYỆT ĐỐI CẤM dán lại toàn bộ code vào khung chat gây tràn ngữ cảnh.
-17. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent"):**
+17. **Chốt Chặn Output Terminal (Hard-Limit Terminal Output Guard - Cấm Dump Log):**
+    - **Giới hạn 30 dòng tối đa:** Mọi lệnh terminal (un_command) khi quét thư mục, đọc log container, chạy test suite (pytest, jest), build (npm, docker build) BẮT BUỘC pipe qua | Select-Object -First 30 hoặc 	ail -n 30.
+    - **Xử lý lỗi dài:** Nếu build/test gặp lỗi dài, BẮT BUỘC chuyển hướng output ra file log tạm (vd: > logs/build_error.log 2>&1) và chỉ gửi mã lỗi kèm đường dẫn file: [STATUS: FAIL] {"log_file": "logs/build_error.log"}. Tuyệt đối cấm để terminal dump hàng trăm dòng lỗi vào context.
+
+18. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent"):**
     - **Tín Hiệu Kích Hoạt:** Bất kỳ khi nào người dùng gõ lệnh `/master-agent`, `/agent-system` hoặc nói *"sử dụng hệ thống agent"*:
       * Antigravity **BẮT BUỘC** chuyển sang chế độ Master Agent (Tổng chỉ huy hệ thống Agent).
       * Phân tích ngay bài toán thuộc về dự án nào trong hệ thống (`dental-project`, `vietjet-airflow`, `vietjet-ancillary`, `pc-builder`, `vietjet-brd`, `agent-supervisor`, hoặc dự án mới kế thừa `lead-pm`).
       * Định tuyến và giao việc xuống đúng Project PM / Lead thông qua M2M Protocol.
       * **TUÂN THỦ TUYỆT ĐỐI QUY TẮC 16:** Nghiêm cấm Antigravity tự hì hục sinh code dài trong ngữ cảnh chat gây hao tổn token. BẮT BUỘC ủy thác 100% công việc sinh code, refactor, viết test, bóc tách dữ liệu cho Gemini API Pool ngoài thông qua `hub gemini` hoặc `hub gemini --batch`.
       * Tự động chạy `hub verify` và `hub smoke` / `hub test` trong Docker container trước khi báo cáo kết quả súc tích cho người dùng.
-18. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**
+19. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**
     - **Nghiêm cấm Monolithic Context:** Không nạp đồng thời toàn bộ 23-24 skills của cả 7 dự án vào System Prompt. Bắt buộc phân mảnh `skills.json` theo đúng phạm vi dự án bằng `hub shard set <tên_shard>` hoặc `hub shard auto "<yêu_cầu>"` (giảm tới 90% token System Prompt).
     - **Cô Lập Ngữ Cảnh Tuyệt Đối (Subagent Context Isolation):** Khi xử lý tác vụ dự án, Master Agent KHÔNG đọc tài liệu chi tiết hoặc mã nguồn vào Main Chat. Master Agent ủy thác qua `invoke_subagent`, truyền đường dẫn `SKILL.md` cho Subagent tự đọc và thực thi độc lập, chỉ trả về JSON tóm tắt 100 token cho Main Chat. Main Chat luôn được giữ ở trạng thái Zero-Fat.
 
-19. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**
+20. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**
     - **CẤM TUYỆT ĐỐI Master Agent tự thực thi tác vụ dự án trong Main Chat:**
       * **CẤM** đọc file mã nguồn của dự án vào Main Chat (không gọi `read_file` trên code dự án để bảo vệ Context Window).
       * **CẤM** tự sửa file mã nguồn dự án trong Main Chat (không `edit_file` / `write_file` trên code dự án).

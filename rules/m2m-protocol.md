@@ -2,22 +2,43 @@
 
 > Phiên bản cô đọng. Toàn bộ chi tiết tại: @[M2M Protocol Detail](./m2m-protocol-detail.md)
 
-1. **Giao tiếp Zero-Fat:**: Tuyệt đối không chào hỏi, giải thích dài dòng, hay lặp lại câu hỏi. CHỈ dùng Cờ tín hiệu hoặc JSON Payload tối giản.
-2. **Cờ tín hiệu chuẩn hóa:**: - `[ACK]`: Đã nhận lệnh.
-3. **Tiết kiệm Context Code:**: Khi fix bug, KHÔNG in lại file code ra chat. Tự dùng tool ghi thẳng vào file ổ cứng.
-4. **Đồng bộ Model (Inherit):**: Mọi Sub-agent được gọi lên BẮT BUỘC dùng chế độ cấu hình `Model: inherit` để kế thừa chính xác Model gốc mà User đang dùng. Tuyệt đối không tự ý đổi model.
-5. **Quy tắc Peek-and-Script (Bảo toàn Token cho File Dữ liệu / Excel / CSV):**: - **TUYỆT ĐỐI CẤM** đọc toàn bộ nội dung file Excel/CSV lớn vào context chat (no full read, no dumping thousands of lines).
-6. **Cơ Chế Diệt Sub-Agent & Task Treo Quá Lâu (Timeout & Kill Zombie Sub-Agents):**: - **Giám sát thời gian thực thi:** Mỗi sub-agent hoặc tác vụ nền chỉ được phép chạy trong khoảng thời gian hợp lý (< 5 phút).
-7. **Kiểm Soát Phân Tầng 3 Cấp & Cấm Đệ Quy Cấp 4 (Bounded 3-Tier Hierarchy & Anti-Nesting Policy):**: - Mô hình 3 tầng phân cấp chuẩn mực: Master Agent -> Project PM -> Tech Lead / Workers. Cấm lồng nhau quá sâu.
-8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON Payload:**: - Mọi giao tiếp giữa Thư ký (Master Secretary) và Project PM, hoặc giữa các Lead Agent với nhau **BẮT BUỘC** được bọc trong JSON Code Payload tối giản.
-9. **Cơ Chế Cảnh Báo Ngân Sách Token Thời Gian Thực (Token Budget Watchdog & Hyper-Zero-Fat Mode):**: - **Giám sát ngưỡng token:** Ngưỡng cảnh báo mềm cho phiên làm việc là `120,000 tokens`.
-10. **Cơ Chế Bàn Giao Ngữ Cảnh Xuyên Phiên (Cross-Session Checkpoint Protocol):**: - **Tệp lưu trữ chuẩn:** Mỗi dự án BẮT BUỘC duy trì tệp `projects/<project_name>/knowledge/checkpoint.md`.
-11. **Quy Tắc Tự Động Dọn Dẹp Tập Tin Rác & Ảnh Chụp Màn Hình (Workspace Hygiene & Auto-Cleanup Protocol):**: - **Cấm để lại file rác:** Toàn bộ các script tạm chạy 1 lần và các file ảnh chụp màn hình debug phải được tự động dọn dẹp.
-12. **Git Là Nguồn Chân Lý Duy Nhất (Git-As-Single-Source-Of-Truth - SSoT):**: - **Không lưu dữ liệu thừa trên máy:** Sau khi commit và push lên remote Git, toàn bộ tiến độ, lịch sử và trạng thái đều được lưu trữ an toàn.
-13. **Truy Vấn Tức Thì Gemini Key Pool (Instant Pool Status Trigger):**: - Khi người dùng hỏi `pool status`, `kiểm tra pool`, `quota api`, `hub usage`: Tự động kích hoạt hiển thị tình trạng 7 key.
-14. **Quy Trình Kiểm Định & Hội Đồng Thẩm Định Output (Output Verification & Multi-Tier Review Gate):**: - **Không tin tưởng mù quáng:** 100% output phải qua `hub verify` đạt 100/100 Quality Gate.
-15. **Quy Trình Phân Nhánh Động Của Nhóm Lead & Phối Hợp API Worker (Dynamic Lead Fan-Out & API Worker Protocol):**: - Đánh giá độ phức tạp và chia nhỏ cho các Workers con thực thi độc lập.
-16. **Quy Tắc Ép Buộc Ủy Thác API & Phân Vai Subagent (Code via API & Subagent as Reviewer):**: - **CẤM TUYỆT ĐỐI tự sinh code trong chat:** 100% code phải sinh qua `hub gemini`. Subagent chỉ đóng vai trò Reviewer & Storekeeper (nếu API không ghi file được thì subagent review, lưu file vào dự án, chạy `hub verify` và báo cáo M2M lên cấp trên; cấm in lại code vào chat).
-17. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent"):**: - Master Agent nhận lệnh, định tuyến đúng Project PM và giao việc M2M.
-18. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**: - Không nạp monolithic context. Dùng `hub shard auto` để nạp đúng shard dự án và `hub shard reset` khi xong việc.
-19. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**: - **CẤM TUYỆT ĐỐI** Master Agent tự đọc file code dự án, tự sửa code, tự chạy docker/build/test/migrate trong Main Chat. **CẤM DÙNG `schedule` HOẶC VÒNG LẶP POLLING.** Master Agent chỉ chọn đúng Project PM, gọi `invoke_subagent` rồi DỪNG TOOL ngay. Chờ Reactive Wakeup từ tin nhắn M2M kết quả của Subagent để báo cáo 2-3 câu súc tích cho User.
+1. **Giao tiếp Zero-Fat:** Tuyệt đối không chào hỏi, giải thích dài dòng, hay lặp lại câu hỏi. CHỈ dùng Cờ tín hiệu hoặc JSON Payload tối giản.
+2. **Cờ tín hiệu chuẩn hóa:** - `[ACK]`: Đã nhận lệnh. `[STATUS: DONE]`: Xong. `[STATUS: FAIL] {"log_file": "..."}`: Lỗi (chỉ gửi path, cấm dump log). `[STATUS: ESCALATE]`: Lặp >3 lần hoặc bế tắc.
+3. **Tiết kiệm Context Code:** Khi fix bug, KHÔNG in lại file code ra chat. Tự dùng tool ghi thẳng vào file ổ cứng.
+4. **Đồng bộ Model (Inherit):** Mọi Sub-agent được gọi lên BẮT BUỘC dùng chế độ cấu hình `Model: inherit` để kế thừa chính xác Model gốc mà User đang dùng. Tuyệt đối không tự ý đổi model.
+5. **Quy tắc Peek-and-Script (Bảo toàn Token cho File Dữ liệu / Excel / CSV):**
+   - **TUYỆT ĐỐI CẤM** đọc toàn bộ nội dung file Excel/CSV/code lớn vào context chat. Chỉ khảo sát Header + 3-5 dòng mẫu, xử lý bằng script bên ngoài.
+6. **Cơ Chế Diệt Sub-Agent & Task Treo Quá Lâu (Timeout & Kill Zombie Sub-Agents):**
+   - Giám sát thời gian thực thi (< 5 phút). Quá thời gian gọi ngay `manage_subagents(kill)` hoặc `manage_task(kill)` và phát `[STATUS: ESCALATE]`.
+7. **Kiểm Soát Phân Tầng 3 Cấp & Cấm Đệ Quy Cấp 4 (Bounded 3-Tier Hierarchy & Anti-Nesting Policy):**
+   - Mô hình 3 tầng: Master Agent -> Project PM -> Tech Lead / Workers. Cấp Worker BẮT BUỘC đặt `EnableSubagentTools: false` và `Workspace: inherit`.
+8. **Chuẩn Hóa Giao Tiếp Nội Bộ Bằng Code & JSON Payload:**
+   - Mọi giao tiếp giữa PM và Leads chỉ dùng JSON Code Payload tối giản.
+9. **Cơ Chế Cảnh Báo Ngân Sách Token Thời Gian Thực (Token Budget Watchdog & Hyper-Zero-Fat Mode):**
+   - Ngưỡng cảnh báo mềm cho phiên làm việc là `120,000 tokens`. Khi chạm ngưỡng, chuyển sang Hyper-Zero-Fat (chỉ gửi JSON path file, cấm mọi giải thích).
+10. **Cơ Chế Bàn Giao Ngữ Cảnh Xuyên Phiên (Cross-Session Checkpoint Protocol):**
+    - Mỗi dự án BẮT BUỘC duy trì và ĐỌC `projects/<project_name>/knowledge/checkpoint.md` trước khi bắt đầu bất kỳ task nào.
+11. **Quy Tắc Tự Động Dọn Dẹp Tập Tin Rác & Ảnh Chụp Màn Hình (Workspace Hygiene & Auto-Cleanup Protocol):**
+    - Cấm để lại file rác, script tạm hay ảnh chụp màn hình trong source code. Quét sạch bằng `hub_cleaner.py`.
+12. **Git Là Nguồn Chân Lý Duy Nhất (Git-As-Single-Source-Of-Truth - SSoT):**
+    - Đọc trực tiếp từ Git repo và duy trì working tree sạch sẽ.
+13. **Truy Vấn Tức Thì Gemini Key Pool (Instant Pool Status Trigger):**
+    - Khi hỏi `pool status`, `quota api`, `hub usage` $\rightarrow$ tự động chạy `hub usage` và in bảng trạng thái.
+14. **Quy Trình Kiểm Định & Hội Đồng Thẩm Định Output (Output Verification & Multi-Tier Review Gate):**
+    - 100% output mã nguồn phải qua `hub verify <filepath>` đạt 100/100 Quality Gate.
+15. **Quy Trình Phân Nhánh Động Của Nhóm Lead & Phối Hợp API Worker (Dynamic Lead Fan-Out & API Worker Protocol):**
+    - Đánh giá độ phức tạp và chia nhỏ cho các Workers con thực thi độc lập ($N \le 5$).
+16. **Quy Tắc Ép Buộc Ủy Thác API & Phân Vai Subagent (Code via API & Subagent as Reviewer):**
+    - **CẤM TUYỆT ĐỐI tự sinh code trong chat:** 100% code phải sinh qua `hub gemini`:
+      ```powershell
+      hub gemini --prompt "<yêu_cầu>" --out "<đường_dẫn_file>" --tier <auto|bulk|standard|deep|ultra|live_translate|transcribe>
+      ```
+    - **Subagent chỉ đóng vai trò Reviewer & Storekeeper:** Nếu API không tự ghi file được, Subagent chỉ nhận kết quả, review cú pháp, lưu vào file đĩa, thẩm định qua `hub verify` và báo cáo M2M 3 dòng lên cấp trên. TUYỆT ĐỐI CẤM in lại code vào khung chat context.
+17. **Chốt Chặn Terminal Output (Cấm Dump Log Vào Context):**
+    - Mọi lệnh terminal (`run_command`) khi xem log, quét thư mục, chạy test, build, Docker BẮT BUỘC pipe qua `| Select-Object -First 30` hoặc `tail -n 30` hoặc xuất ra file log tạm. CẤM in > 30 dòng.
+18. **Quy Tắc Kích Hoạt Hệ Thống Toàn Quyền (`/master-agent`, `/agent-system` & "sử dụng hệ thống agent"):**
+    - Master Agent nhận lệnh, định tuyến đúng Project PM và giao việc M2M.
+19. **Quy Tắc Phân Mảnh Ngữ Cảnh & Cô Lập Subagent (Dynamic Context Sharding & Subagent Isolation):**
+    - Không nạp monolithic context. Dùng `hub shard auto "<prompt>"` để nạp shard dự án và `hub shard reset` khi xong việc.
+20. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**
+    - **CẤM TUYỆT ĐỐI** Master Agent tự đọc file code dự án, tự sửa code, tự chạy docker/build/test/migrate trong Main Chat. **CẤM DÙNG `schedule` HOẶC VÒNG LẶP POLLING.** Master Agent chỉ chọn đúng Project PM, gọi `invoke_subagent` rồi DỪNG TOOL ngay. Chờ Reactive Wakeup từ tin nhắn M2M kết quả của Subagent để báo cáo 2-3 câu súc tích cho User.

@@ -15,10 +15,18 @@
 2. **Ép Sử Dụng API Lên Mức Tối Đa (Rule 16 - CẤM ĐỐT TOKEN TRONG CHAT):**
    - **CẤM TUYỆT ĐỐI** tự sinh code, serializers, views, test suite, mock data, regex, DDL trực tiếp trong chat.
    - **100% MÃ NGUỒN PHẢI SINH QUA API NGOÀI (7 Projects Free Tier 0 VNĐ):**
-     * Đơn lẻ: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra|embed|robotics>`
+     * Đơn lẻ: `hub gemini --prompt "..." --out "<filepath>" --tier <auto|bulk|standard|deep|ultra|embed|robotics|tts|transcribe|live_translate|live_dialog|live_thinking>`
      * Đa luồng: `hub gemini --batch <tasks.json>`
      * Thẩm định: `hub verify <filepath>` (đạt 100/100 Quality Gate) | Kiểm thử: `hub smoke`
-   - **Phân Vai Subagent (Code Reviewer & Storekeeper):** Subagent tuyệt đối không sinh code trong chat. Mọi mã nguồn bắt buộc gọi qua API ngoài. Nếu API ghi file tự động qua `--out`, Subagent chỉ chạy `hub verify`. Nếu API không tự ghi file được, Subagent chỉ đứng ra review cú pháp, lưu vào đúng tệp dự án và thẩm định rồi báo cáo M2M lên cấp trên; TUYỆT ĐỐI CẤM in lại nội dung code vào khung chat.
+   - **Cơ Chế Auto-Triage & Đánh Giá Tự Động:**
+     * Tự động phân tích prompt để chọn đúng Tier tối ưu (Live Translate, Live Audio Dialog, Live Extended Thinking, Transcribe, Deep, Standard, Bulk, Ultra).
+     * Tận dụng tối đa các model Live API với Unlimited RPD & Unlimited RPM từ Google AI Studio cho tác vụ âm thanh, video, bóc băng, dịch trực tiếp.
+   - **Phân Vai Subagent (Code Reviewer & Storekeeper - BẢO TOÀN TOKEN CONTEXT):**
+     * Subagent tuyệt đối không sinh code trong chat hoặc tự viết hàng nghìn dòng qua `write_file`.
+     * Mọi mã nguồn bắt buộc gọi qua API ngoài: `hub gemini --prompt "..." --out "<filepath>"`.
+     * Nếu API tự ghi file qua `--out`: Subagent chỉ thẩm định cú pháp qua `hub verify` hoặc `python -m py_compile`.
+     * Nếu API không thể tự ghi file trực tiếp: Subagent chỉ nhận luồng stream/kết quả từ API, review cú pháp, lưu vào đúng tệp dự án trên đĩa, TUYỆT ĐỐI CẤM in lại nội dung code vào khung chat context.
+     * Báo cáo M2M lên Agent cấp cao hơn chỉ chứa JSON tóm tắt 3 dòng: `{"status": "SUCCESS", "file": "<filepath>", "verification": "PASS"}`.
 
 3. **Chốt Chặn Output Terminal (Cấm Dump Context):**
    - Khi chạy lệnh xem log, quét file: BẮT BUỘC dùng `Select-Object -First 30`, `tail -n 30`, `peek_data.py`. Cấm in > 30 dòng.

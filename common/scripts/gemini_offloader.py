@@ -78,9 +78,24 @@ MODEL_TIERS = {
         "desc": "Tổng hợp giọng nói Text-To-Speech [70 RPD toàn hệ thống]"
     },
     "transcribe": {
-        "primary": "gemini-3.5-transcribe",
-        "fallbacks": ["gemini-3.5-flash-lite"],
-        "desc": "Bóc băng chuyển âm thanh sang văn bản [175 RPD toàn hệ thống]"
+        "primary": "gemini-3.5-transcribe-live",
+        "fallbacks": ["gemini-3.5-transcribe", "gemini-3.5-flash-lite"],
+        "desc": "Bóc băng chuyển âm thanh sang văn bản trực tiếp [Unlimited RPD Live API]"
+    },
+    "live_translate": {
+        "primary": "gemini-3.5-live-translate",
+        "fallbacks": ["gemini-3-flash-live", "gemini-3.8-live", "gemini-3.5-flash-lite"],
+        "desc": "Dịch trực tiếp đa ngữ thời gian thực qua Live API [Unlimited RPD & Unlimited RPM]"
+    },
+    "live_dialog": {
+        "primary": "gemini-2.5-flash-native-audio-dialog",
+        "fallbacks": ["gemini-3-flash-live", "gemini-3.8-live"],
+        "desc": "Đối thoại âm thanh tự nhiên tương tác hai chiều Native Audio Dialog [Unlimited RPD, 1M TPM]"
+    },
+    "live_thinking": {
+        "primary": "gemini-3.8-live-extended-thinking",
+        "fallbacks": ["gemini-3.8-live", "gemini-3.8-flash"],
+        "desc": "Suy luận mở rộng thời gian thực Extended Thinking qua Live API [Unlimited RPD, 65K TPM]"
     }
 }
 
@@ -99,7 +114,13 @@ MODEL_LIMITS_RPD = {
     "gemma-4-31b-it": 14400,
     "gemini-embedding-2": 1000,
     "gemini-embedding-001": 1000,
+    "gemini-3.5-transcribe-live": 99999,
     "gemini-3.5-transcribe": 25,
+    "gemini-3.5-live-translate": 99999,
+    "gemini-2.5-flash-native-audio-dialog": 99999,
+    "gemini-3-flash-live": 99999,
+    "gemini-3.8-live": 99999,
+    "gemini-3.8-live-extended-thinking": 99999,
     "gemini-3.8-flash-tts": 10,
     "gemini-3.8-flash-lite-tts": 10,
     "gemini-3.1-flash-tts": 10,
@@ -192,10 +213,25 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
         if kw in p_lower:
             return "tts", f"Phát hiện yêu cầu Text-To-Speech ('{kw}') -> Điều phối Tier 'tts' (gemini-3.8-flash-tts)"
 
-    transcribe_keywords = ["transcribe", "bóc băng", "chuyển ghi âm thành chữ", "nhận dạng giọng nói", "speech to text"]
+    live_dialog_keywords = ["native audio", "audio dialog", "đối thoại âm thanh", "voice chat", "giao tiếp giọng nói", "đàm thoại"]
+    for kw in live_dialog_keywords:
+        if kw in p_lower:
+            return "live_dialog", f"Phát hiện yêu cầu Native Audio Dialog ('{kw}') -> Điều phối Tier 'live_dialog' (gemini-2.5-flash-native-audio-dialog, Unlimited RPD)"
+
+    live_thinking_keywords = ["extended thinking", "suy luận mở rộng", "tư duy mở rộng", "thinking live"]
+    for kw in live_thinking_keywords:
+        if kw in p_lower:
+            return "live_thinking", f"Phát hiện yêu cầu Extended Thinking ('{kw}') -> Điều phối Tier 'live_thinking' (gemini-3.8-live-extended-thinking, Unlimited RPD)"
+
+    live_translate_keywords = ["live translate", "dịch trực tiếp", "dịch realtime", "dịch video", "sub song ngữ", "phụ đề", "dịch truyện", "manga translate"]
+    for kw in live_translate_keywords:
+        if kw in p_lower:
+            return "live_translate", f"Phát hiện yêu cầu Dịch thuật thời gian thực ('{kw}') -> Điều phối Tier 'live_translate' (gemini-3.5-live-translate, Unlimited RPD)"
+
+    transcribe_keywords = ["transcribe", "bóc băng", "chuyển ghi âm thành chữ", "nhận dạng giọng nói", "speech to text", "phiên âm"]
     for kw in transcribe_keywords:
         if kw in p_lower:
-            return "transcribe", f"Phát hiện yêu cầu Transcribe ('{kw}') -> Điều phối Tier 'transcribe' (gemini-3.5-transcribe)"
+            return "transcribe", f"Phát hiện yêu cầu Transcribe ('{kw}') -> Điều phối Tier 'transcribe' (gemini-3.5-transcribe-live)"
 
     robotics_keywords = ["robotics", "spatial", "không gian", "vật lý", "iot", "điều khiển thiết bị"]
     for kw in robotics_keywords:
@@ -217,11 +253,11 @@ def auto_classify_task(prompt: str, file_path: Optional[str] = None) -> Tuple[st
     ]
     for kw in ultra_keywords:
         if kw in p_lower:
-            return "ultra", f"Phát hiện tác vụ tần suất cao ('{kw}') -> Điều phối Tier 'ultra' (gemma-4-26b-a4b-it)"
+            return "ultra", f"Phát hiện tác vụ tần suất cao ('{kw}') -> Điều phối Tier 'ultra' (gemma-4-31b-it)"
 
     standard_keywords = [
         "viết api", "serializer", "viewset", "react component", "ui component",
-        "unit test", "integration test", "crud", "refactor code", "viết hàm"
+        "unit test", "integration test", "crud", "refactor code", "viết hàm", "viết code", "sinh code"
     ]
     for kw in standard_keywords:
         if kw in p_lower:

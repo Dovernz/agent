@@ -197,22 +197,19 @@ def main():
     try:
         from sync_rules import SOURCE_GEMINI, GLOBAL_PLUGIN_RULES
         dest_gemini = GLOBAL_PLUGIN_RULES / "GEMINI.md"
-        dest_agents = GLOBAL_PLUGIN_RULES / "AGENTS.md"
         
         synced = True
-        if not (dest_gemini.exists() and dest_agents.exists()):
+        if not dest_gemini.exists():
             synced = False
         else:
             src_stat = SOURCE_GEMINI.stat()
-            for d in [dest_gemini, dest_agents]:
-                dst_stat = d.stat()
-                if src_stat.st_size != dst_stat.st_size or src_stat.st_mtime > dst_stat.st_mtime:
-                    synced = False
-                    break
+            dst_stat = dest_gemini.stat()
+            if src_stat.st_size != dst_stat.st_size or src_stat.st_mtime > dst_stat.st_mtime:
+                synced = False
         
         if synced:
-            print(f"   * [✓] OK: Global Plugin Rules đã đồng bộ 100% với Master GEMINI.md")
-            print(f"   * 💡 Áp dụng tự động cho mọi Workspace (không cần lưu file rác trong từng dự án)")
+            print(f"   * [✓] OK: Global Plugin Rule (GEMINI.md) đồng bộ 100% với Master")
+            print(f"   * 💡 Tự động nạp cho mọi Workspace (không trùng lặp, tối ưu token)")
         else:
             print(f"   * [WARN] Global Plugin Rules cần cập nhật!")
             print("     -> Chạy `hub sync` để đồng bộ ngay lập tức!")

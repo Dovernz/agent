@@ -39,20 +39,25 @@ def sync(check_only: bool = False) -> bool:
             return False
 
     dest_gemini = GLOBAL_PLUGIN_RULES / "GEMINI.md"
-    dest_agents = GLOBAL_PLUGIN_RULES / "AGENTS.md"
 
     # Kiểm tra trạng thái
     up_to_date = True
     src_stat = SOURCE_GEMINI.stat()
 
-    for dest in [dest_gemini, dest_agents]:
-        if not dest.exists():
-            up_to_date = False
-            break
-        dst_stat = dest.stat()
+    if not dest_gemini.exists():
+        up_to_date = False
+    else:
+        dst_stat = dest_gemini.stat()
         if src_stat.st_size != dst_stat.st_size or src_stat.st_mtime > dst_stat.st_mtime:
             up_to_date = False
-            break
+
+    # Dọn dẹp AGENTS.md nếu còn sót (chống nạp trùng rule làm nhân đôi token)
+    dest_agents = GLOBAL_PLUGIN_RULES / "AGENTS.md"
+    if dest_agents.exists() and not check_only:
+        try:
+            dest_agents.unlink()
+        except Exception:
+            pass
 
     if check_only:
         status = "ĐỒNG BỘ 100%" if up_to_date else "CẦN CẬP NHẬT (STALE)"
@@ -61,10 +66,8 @@ def sync(check_only: bool = False) -> bool:
 
     try:
         shutil.copy2(SOURCE_GEMINI, dest_gemini)
-        shutil.copy2(SOURCE_GEMINI, dest_agents)
         print(f"[SUCCESS] Đã đồng bộ Master GEMINI.md -> Global Plugin Rules:")
         print(f"  • {dest_gemini}")
-        print(f"  • {dest_agents}")
         return True
     except Exception as e:
         print(f"[ERROR] Thất bại khi đồng bộ: {e}")

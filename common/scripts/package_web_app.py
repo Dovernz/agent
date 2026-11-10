@@ -1,18 +1,21 @@
 #!/usr/bin/env python3
 r"""
-package_web_app.py - Universal Web App Packager & Key Locker
+package_web_app.py - Universal Web App Packager & Key Locker (Hardened Security V2)
 Đóng gói bất kỳ dự án web nào (Translate, Dental, Next.js, Django, FastAPI)
 thành 1 tệp CMD cài đặt độc lập (Zero-Dependency) đưa cho người dùng test:
   1. Không yêu cầu cài Docker, Git, hay Python lên máy User.
   2. Tự động tải Python Portable (Embed) và giải nén GitHub Zip nếu máy trắng.
   3. Cơ chế Lock Key kép (Dual-Slot AES-256-CBC) bảo vệ API Key / Secrets.
-  4. Tự động tạo Shortcut Desktop, map Domain Local (.local) và chạy ẩn ngầm.
+  4. TUYỆT ĐỐI KHÔNG HARDCODE MẬT KHẨU trong mã nguồn, commit hay tệp CMD.
+  5. Tự động tạo Shortcut Desktop, map Domain Local (.local) và chạy ẩn ngầm.
 """
 
 import os
 import sys
 import argparse
 import subprocess
+import secrets
+import getpass
 from pathlib import Path
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
@@ -23,7 +26,11 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 
 def encrypt_dual_slot_powershell(in_env_file: Path, out_enc_file: Path, master_pass: str, user_pass: str) -> bool:
-    """Mã hóa payload .env bằng PowerShell built-in chuẩn GEMINI_DUAL_V1 (Không cần cài thư viện ngoài)."""
+    """Mã hóa payload .env bằng PowerShell built-in chuẩn GEMINI_DUAL_V1 (Không lưu mật khẩu vào file)."""
+    # Escape single quotes in passwords if any
+    safe_master = master_pass.replace("'", "''")
+    safe_user = user_pass.replace("'", "''")
+    
     ps_script = f"""
 $ErrorActionPreference = 'Stop'
 $plain = [System.IO.File]::ReadAllBytes('{str(in_env_file)}')
@@ -39,16 +46,16 @@ $aesData.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
 $aesData.Key = $dataKey; $aesData.IV = $dataIV
 $cipherPayload = $aesData.CreateEncryptor().TransformFinalBlock($plain, 0, $plain.Length)
 
-# Master Slot
+# Master Slot (50,000 PBKDF2 SHA256)
 $saltM = New-Object byte[](16); $rng.GetBytes($saltM)
-$kdfM = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{master_pass}', $saltM, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+$kdfM = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{safe_master}', $saltM, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
 $aesM = [System.Security.Cryptography.Aes]::Create()
 $aesM.Key = $kdfM.GetBytes(32); $aesM.IV = $kdfM.GetBytes(16)
 $cipherKeyM = $aesM.CreateEncryptor().TransformFinalBlock($dataKey, 0, $dataKey.Length)
 
-# User Slot
+# User Slot (50,000 PBKDF2 SHA256)
 $saltU = New-Object byte[](16); $rng.GetBytes($saltU)
-$kdfU = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{user_pass}', $saltU, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+$kdfU = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{safe_user}', $saltU, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
 $aesU = [System.Security.Cryptography.Aes]::Create()
 $aesU.Key = $kdfU.GetBytes(32); $aesU.IV = $kdfU.GetBytes(16)
 $cipherKeyU = $aesU.CreateEncryptor().TransformFinalBlock($dataKey, 0, $dataKey.Length)
@@ -71,7 +78,7 @@ Write-Output 'DUAL_ENCRYPTION_OK'
             ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
             capture_output=True,
             text=True,
-            timeout=10,
+            timeout=15,
         )
         return "DUAL_ENCRYPTION_OK" in res.stdout
     except Exception as e:
@@ -89,7 +96,7 @@ def generate_cmd_launcher(
     domain: str,
     use_portproxy: bool = True,
 ) -> str:
-    """Sinh nội dung file .cmd cài đặt & khởi chạy độc lập (Zero-Dependency)."""
+    """Sinh nội dung file .cmd cài đặt & khởi chạy độc lập (Không chứa bất kỳ mật khẩu nào)."""
 
     domain_check = ""
     domain_cleanup = ""
@@ -387,6 +394,7 @@ if exist "%CURRENT_DIR%\\.env" (
 if exist "!APP_DIR!\\.env.enc" (
     echo =====================================================================
     echo Ứng dụng đã được khóa key bảo mật. Vui lòng nhập mật khẩu được cấp:
+    set "USER_PASS="
     set /p "USER_PASS=Nhập mật khẩu: "
     powershell -NoProfile -ExecutionPolicy Bypass -Command "$p = '!USER_PASS!'; $f = '!APP_DIR!\\.env.enc'; $out = '!APP_DIR!\\.env'; try {{ $b = [System.IO.File]::ReadAllBytes($f); $m = [System.Text.Encoding]::ASCII.GetString($b, 0, 14); if ($m -eq 'GEMINI_DUAL_V1') {{ $sM = New-Object byte[](16); [System.Array]::Copy($b, 14, $sM, 0, 16); $ckM = New-Object byte[](48); [System.Array]::Copy($b, 30, $ckM, 0, 48); $sU = New-Object byte[](16); [System.Array]::Copy($b, 78, $sU, 0, 16); $ckU = New-Object byte[](48); [System.Array]::Copy($b, 94, $ckU, 0, 48); $dIV = New-Object byte[](16); [System.Array]::Copy($b, 142, $dIV, 0, 16); $pL = $b.Length - 158; $pD = New-Object byte[]($pL); [System.Array]::Copy($b, 158, $pD, 0, $pL); $dk = $null; try {{ $k = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($p, $sM, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256); $a = [System.Security.Cryptography.Aes]::Create(); $a.Key = $k.GetBytes(32); $a.IV = $k.GetBytes(16); $c = $a.CreateDecryptor().TransformFinalBlock($ckM, 0, 48); if ($c.Length -eq 32) {{ $dk = $c }} }} catch {{}}; if ($dk -eq $null) {{ try {{ $k = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($p, $sU, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256); $a = [System.Security.Cryptography.Aes]::Create(); $a.Key = $k.GetBytes(32); $a.IV = $k.GetBytes(16); $c = $a.CreateDecryptor().TransformFinalBlock($ckU, 0, 48); if ($c.Length -eq 32) {{ $dk = $c }} }} catch {{}} }}; if ($dk -eq $null) {{ throw 'Err' }}; $af = [System.Security.Cryptography.Aes]::Create(); $af.Key = $dk; $af.IV = $dIV; $dec = $af.CreateDecryptor().TransformFinalBlock($pD, 0, $pL); [System.IO.File]::WriteAllBytes($out, $dec); Write-Host 'Mở khóa thành công.' -ForegroundColor Green }} }} catch {{ Write-Host 'Mật khẩu mở khóa không chính xác.' -ForegroundColor Red }}"
 )
@@ -471,7 +479,7 @@ exit /b 0
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Universal Web App Packager & Key Locker"
+        description="Universal Web App Packager & Key Locker (Hardened Security V2)"
     )
     parser.add_argument("--name", required=True, help="Tên ứng dụng (vd: GeminiTrans, MinhSinhDental)")
     parser.add_argument("--app-dir", required=True, help="Thư mục mã nguồn của dự án")
@@ -483,8 +491,11 @@ def main():
     parser.add_argument("--zip-folder", default="*-main", help="Tên thư mục sau khi giải nén zip")
     parser.add_argument("--run-cmd", default="", help="Lệnh PowerShell khởi chạy backend (mặc định tự dò uvicorn hoặc django)")
     parser.add_argument("--env-file", default="", help="Đường dẫn file .env chứa key cần khóa")
-    parser.add_argument("--master-pass", default="admin1303", help="Mật khẩu Master/Admin")
-    parser.add_argument("--user-pass", default="ctt1303", help="Mật khẩu cấp cho Tester/User")
+    
+    # BẢO MẬT: KHÔNG CÓ DEFAULT HARDCODE PASSWORD!
+    parser.add_argument("--master-pass", default=None, help="Mật khẩu Master/Admin (Nếu bỏ trống sẽ nhắc nhập hoặc tự sinh)")
+    parser.add_argument("--user-pass", default=None, help="Mật khẩu cấp cho Tester/User (Nếu bỏ trống sẽ nhắc nhập hoặc tự sinh)")
+    parser.add_argument("--auto-pass", action="store_true", help="Tự động sinh mật khẩu ngẫu nhiên an toàn nếu không chỉ định")
 
     args = parser.parse_args()
 
@@ -508,22 +519,47 @@ def main():
         else:
             run_cmd = f"Set-Location '!APP_DIR!'; & '!PY_RUN!' -m http.server {args.port}"
 
-    # 2. Khóa Key (Dual-Slot Encryption) nếu có env file
+    # 2. Xử lý Mật khẩu Dual-Slot an toàn (Không hardcode!)
     env_source = Path(args.env_file).resolve() if args.env_file else (app_dir / ".env")
+    master_pass = args.master_pass
+    user_pass = args.user_pass
+
     if env_source.exists():
         print(f"[+] Tìm thấy file cấu hình nhạy cảm: {env_source}")
+        
+        # Nếu chưa có mật khẩu, hỏi tương tác hoặc sinh an toàn
+        if not master_pass:
+            if args.auto_pass or not sys.stdin.isatty():
+                master_pass = secrets.token_urlsafe(12)
+                print(f"[+] Tự động sinh Master Password ngẫu nhiên")
+            else:
+                master_pass = getpass.getpass("Nhập Master Password (Admin): ")
+                if not master_pass:
+                    master_pass = secrets.token_urlsafe(12)
+
+        if not user_pass:
+            if args.auto_pass or not sys.stdin.isatty():
+                user_pass = secrets.token_urlsafe(8)
+                print(f"[+] Tự động sinh User Test Password ngẫu nhiên")
+            else:
+                user_pass = getpass.getpass("Nhập User Password (cấp cho Tester): ")
+                if not user_pass:
+                    user_pass = secrets.token_urlsafe(8)
+
         out_enc = out_dir / ".env.enc"
-        ok = encrypt_dual_slot_powershell(env_source, out_enc, args.master_pass, args.user_pass)
+        ok = encrypt_dual_slot_powershell(env_source, out_enc, master_pass, user_pass)
         if ok:
             print(f"[✓] Đã khóa mã hóa Key thành công: {out_enc}")
-            print(f"    • Master Password : {args.master_pass}")
-            print(f"    • User Test Pass  : {args.user_pass}")
+            print(f"    🔑 Master Password : {master_pass}")
+            print(f"    🔑 User Test Pass  : {user_pass}")
+            print(f"    ⚠️  LƯU Ý AN TOÀN: Hãy gửi User Pass qua kênh chat riêng biệt cho Tester!")
+            print(f"    ⚠️  TUYỆT ĐỐI KHÔNG commit mật khẩu này vào Git repo!")
         else:
             print(f"[!] Lỗi khi mã hóa {env_source}")
     else:
         print("[!] Không tìm thấy file .env để khóa key. Bỏ qua bước mã hóa.")
 
-    # 3. Sinh file CMD cài đặt độc lập
+    # 3. Sinh file CMD cài đặt độc lập (Tuyệt đối không nhúng mật khẩu vào file CMD)
     cmd_content = generate_cmd_launcher(
         app_title=args.name,
         repo_url=args.repo_url,
@@ -540,12 +576,20 @@ def main():
     with open(out_cmd, "w", encoding="utf-8") as cf:
         cf.write(cmd_content)
 
+    # 4. Kiểm tra vệ sinh an toàn thư mục bàn giao
+    # CẤM tuyệt đối để file .env thô trong out_dir
+    unencrypted_env_in_out = out_dir / ".env"
+    if unencrypted_env_in_out.exists():
+        unencrypted_env_in_out.unlink()
+        print(f"[SECURITY] Đã loại bỏ file .env thô khỏi thư mục bàn giao {out_dir}")
+
     print(f"[✓] Đã sinh file cài đặt Standalone 1-Click: {out_cmd}")
     print(f"\n🎯 HOÀN TẤT ĐÓNG GÓI! Bạn chỉ cần gửi thư mục hoặc file CMD cho User:")
     print(f"   👉 {out_cmd}")
     if (out_dir / ".env.enc").exists():
         print(f"   👉 {out_dir / '.env.enc'}")
-        print(f"   🔑 Mật khẩu cấp cho tester: {args.user_pass}")
+        if user_pass:
+            print(f"   🔑 Mật khẩu gửi riêng cho tester: {user_pass}")
     print("=" * 65)
 
 

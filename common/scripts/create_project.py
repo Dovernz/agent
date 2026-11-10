@@ -207,6 +207,25 @@ def main():
     global_added = update_skills_json(global_skills_json, {"path": global_path})
     if global_added:
         print(f"[+] Đã đăng ký vào cấu hình toàn cục Antigravity: {global_skills_json}")
+
+    # 7. Auto-deploy GEMINI.md to repo & Trigger Rule Sync
+    master_gemini = os.path.join(hub_dir, "GEMINI.md")
+    if args.repo and os.path.isdir(args.repo) and os.path.exists(master_gemini):
+        dest_gemini = os.path.join(args.repo, "GEMINI.md")
+        try:
+            shutil.copy2(master_gemini, dest_gemini)
+            print(f"[+] Đã tự động triển khai GEMINI.md rules vào repo: {dest_gemini}")
+        except Exception as ex:
+            print(f"[!] Cảnh báo không thể sao chép GEMINI.md vào repo: {ex}")
+
+    sync_script = os.path.join(hub_dir, "common", "scripts", "sync_rules.py")
+    if os.path.exists(sync_script):
+        try:
+            import subprocess
+            subprocess.run([sys.executable, sync_script, "--force"], capture_output=True, text=True)
+            print(f"[+] Đã kích hoạt đồng bộ rules toàn hệ thống qua sync_rules.py")
+        except Exception:
+            pass
         
     print("\n" + "="*60)
     print(f"[✓] HOÀN TẤT KHỞI TẠO DỰ ÁN: {project_slug}")

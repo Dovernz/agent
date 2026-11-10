@@ -191,6 +191,36 @@ def main():
     print(f"   * Lượng token phiên hiện tại: ~{tok_res['tokens']:,} tokens")
     if tok_res.get("advice"):
         print(f"   * 💡 Gợi ý: {tok_res['advice']}")
+
+    # 6. Rules Synchronization Check
+    print(f"\n6. Đồng Bộ Quy Tắc (Rules Sync & Coverage):")
+    try:
+        from sync_rules import collect_workspaces, SOURCE_GEMINI
+        workspaces = collect_workspaces()
+        source_res = SOURCE_GEMINI.resolve()
+        stale_count = 0
+        missing_count = 0
+        seen_ws = set()
+        for name, ws in workspaces:
+            r_ws = ws.resolve()
+            if str(r_ws) in seen_ws: continue
+            seen_ws.add(str(r_ws))
+            dest = r_ws / "GEMINI.md"
+            if dest.resolve() == source_res: continue
+            if not dest.exists():
+                missing_count += 1
+            else:
+                dst = dest.stat()
+                src = SOURCE_GEMINI.stat()
+                if src.st_size != dst.st_size or src.st_mtime > dst.st_mtime:
+                    stale_count += 1
+        if missing_count == 0 and stale_count == 0:
+            print(f"   * [✓] OK: 100% ({len(seen_ws)}) workspace đã đồng bộ GEMINI.md mới nhất")
+        else:
+            print(f"   * [WARN] Phát hiện {missing_count} workspace thiếu, {stale_count} workspace cũ hơn master")
+            print("     -> Chạy `hub sync --force` để đồng bộ ngay lập tức!")
+    except Exception as e:
+        print(f"   * [WARN] Không thể kiểm tra rules sync: {e}")
         
     # Summary
     print("\n" + "=" * 65)

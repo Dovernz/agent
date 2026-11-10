@@ -1,23 +1,19 @@
 #!/usr/bin/env python3
-"""
-sync_rules.py - Antigravity Rule Sync Engine
-Tự động đồng bộ GEMINI.md master vào tất cả workspace root của các project Antigravity.
-Chạy khi: commit lên Agent repo, thêm project mới, hoặc gọi `hub sync`.
+r"""
+sync_rules.py - Antigravity Global Rule Sync Engine
+Đồng bộ duy nhất 1 chiều từ Master (D:\Thành\Agent\GEMINI.md)
+sang Global Plugin Runtime (C:\Users\thanhcaotien\.gemini\config\plugins\agent-core\rules\).
+Tuyệt đối KHÔNG nhân bản file rác vào các thư mục dự án con.
 
 Usage:
-    hub sync              - Đồng bộ GEMINI.md vào tất cả workspace
-    hub sync --check      - Chỉ kiểm tra, không ghi
-    hub sync --force      - Ghi đè tất cả, kể cả file đã có
-    hub sync --list       - Liệt kê trạng thái GEMINI.md trên toàn bộ workspace
+    hub sync              - Đồng bộ master sang global plugin
+    hub sync --check      - Kiểm tra tính nhất quán
 """
 
 import sys
 import os
-import json
 import shutil
-import glob
 from pathlib import Path
-from urllib.parse import unquote
 
 if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
     try:
@@ -27,182 +23,58 @@ if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
 
 AGENT_HUB = Path(os.environ.get("AGENT_HUB", r"D:\Thành\Agent"))
 SOURCE_GEMINI = AGENT_HUB / "GEMINI.md"
-PROJECTS_CONFIG_DIR = Path(r"C:\Users\thanhcaotien\.gemini\config\projects")
-
-SKIP_FOLDERS = {".venv", "venv", "node_modules", ".git", "__pycache__"}
-
-
 GLOBAL_PLUGIN_RULES = Path(r"C:\Users\thanhcaotien\.gemini\config\plugins\agent-core\rules")
-PARENT_D_RULES = [Path(r"D:\Thành"), Path(r"D:\Vietjet")]
 
 
-def resolve_uri(uri: str) -> Path | None:
-    """Chuyển file:/// URI thành đường dẫn thực."""
-    if not uri:
-        return None
-    decoded = unquote(uri.replace("file:///", "").replace("file://", ""))
-    p = Path(decoded.replace("/", os.sep))
-    return p if p.exists() else None
-
-
-def collect_workspaces() -> list[tuple[str, Path]]:
-    """Đọc tất cả project configs và trả về [(project_name, workspace_path)]."""
-    workspaces = []
-    for config_file in PROJECTS_CONFIG_DIR.glob("*.json"):
-        if config_file.name == "outside-of-project.json":
-            continue
-        try:
-            with open(config_file, encoding="utf-8") as f:
-                d = json.load(f)
-        except Exception:
-            continue
-        name = d.get("name", config_file.stem)
-        resources = d.get("projectResources", {}).get("resources", [])
-        for r in resources:
-            uri = r.get("gitFolder", {}).get("folderUri", "") or r.get("folderUri", "")
-            path = resolve_uri(uri)
-            if path:
-                workspaces.append((name, path))
-    return workspaces
-
-
-def sync(check_only: bool = False, force: bool = False) -> int:
-    """Thực hiện đồng bộ. Trả về số file thực sự được deploy."""
-
+def sync(check_only: bool = False) -> bool:
     if not SOURCE_GEMINI.exists():
         print(f"[ERROR] Source không tồn tại: {SOURCE_GEMINI}")
-        return 0
+        return False
 
-    workspaces = collect_workspaces()
-    if not workspaces:
-        print("[WARN] Không tìm thấy project config nào.")
-        return 0
-
-    deployed = 0
-    skipped_exists = 0
-    errors = 0
-
-    print(f"{'[DRY-RUN] ' if check_only else ''}Đồng bộ {SOURCE_GEMINI.name} → {len(workspaces)} workspace(s)...\n")
-
-    seen_paths = set()
-    source_resolved = SOURCE_GEMINI.resolve()
-
-    for project_name, ws_path in sorted(workspaces, key=lambda x: str(x[1])):
-        resolved_ws = ws_path.resolve()
-        if str(resolved_ws) in seen_paths:
-            continue
-        seen_paths.add(str(resolved_ws))
-
-        dest = resolved_ws / "GEMINI.md"
-        label = f"{project_name}: {ws_path}"
-
-        # Bỏ qua nếu đích đến chính là file nguồn
-        if dest.resolve() == source_resolved:
-            print(f"  [SOURCE] {label} (File nguồn Master)")
-            continue
-
-        if dest.exists() and not force:
-            src_stat = SOURCE_GEMINI.stat()
-            dst_stat = dest.stat()
-            if src_stat.st_size == dst_stat.st_size and src_stat.st_mtime <= dst_stat.st_mtime:
-                print(f"  [OK]     {label}")
-            else:
-                print(f"  [STALE]  {label} -> Cũ hơn source! Dùng --force để cập nhật.")
-            skipped_exists += 1
+    if not GLOBAL_PLUGIN_RULES.exists():
+        if not check_only:
+            GLOBAL_PLUGIN_RULES.mkdir(parents=True, exist_ok=True)
         else:
-            if not check_only:
-                try:
-                    shutil.copy2(SOURCE_GEMINI, dest)
-                    print(f"  [DEPLOY] {label}")
-                    deployed += 1
-                except Exception as e:
-                    print(f"  [ERROR]  {label}: {e}")
-                    errors += 1
-            else:
-                print(f"  [WOULD]  {label} -> GEMINI.md sẽ được tạo/cập nhật")
-                deployed += 1
+            print(f"[MISSING] Thư mục plugin toàn cầu chưa tồn tại: {GLOBAL_PLUGIN_RULES}")
+            return False
 
-    print(f"\n{'=' * 60}")
-    print(f"Tổng kết: {deployed} deploy | {skipped_exists} đã có | {errors} lỗi")
+    dest_gemini = GLOBAL_PLUGIN_RULES / "GEMINI.md"
+    dest_agents = GLOBAL_PLUGIN_RULES / "AGENTS.md"
 
-    # Đồng bộ sang Global Plugin trên ổ C và các Parent Folder D:\Thành, D:\Vietjet
-    if not check_only:
-        print("\nĐồng bộ sang Global Plugin (ổ C) & Parent Roots:")
-        if GLOBAL_PLUGIN_RULES.exists():
-            for fname in ["GEMINI.md", "AGENTS.md"]:
-                dest_f = GLOBAL_PLUGIN_RULES / fname
-                shutil.copy2(SOURCE_GEMINI, dest_f)
-                print(f"  [GLOBAL] {dest_f}")
-        for pdir in PARENT_D_RULES:
-            if pdir.exists():
-                dest_p = pdir / "GEMINI.md"
-                shutil.copy2(SOURCE_GEMINI, dest_p)
-                print(f"  [PARENT] {dest_p}")
+    # Kiểm tra trạng thái
+    up_to_date = True
+    src_stat = SOURCE_GEMINI.stat()
+
+    for dest in [dest_gemini, dest_agents]:
+        if not dest.exists():
+            up_to_date = False
+            break
+        dst_stat = dest.stat()
+        if src_stat.st_size != dst_stat.st_size or src_stat.st_mtime > dst_stat.st_mtime:
+            up_to_date = False
+            break
 
     if check_only:
-        print("(Dry-run - không có file nào bị ghi thực sự)")
-    return deployed
+        status = "ĐỒNG BỘ 100%" if up_to_date else "CẦN CẬP NHẬT (STALE)"
+        print(f"Trạng thái Global Plugin Rules: [{status}]")
+        return up_to_date
 
-
-def install_git_hook():
-    r"""Cài Git post-commit hook vào D:\Thành\Agent để tự động sync khi commit."""
-    hook_dir = AGENT_HUB / ".git" / "hooks"
-    hook_path = hook_dir / "post-commit"
-
-    hook_script = f"""#!/bin/sh
-# Auto-sync GEMINI.md vào tất cả workspace khi commit vào Agent repo
-if git diff --name-only HEAD~1 HEAD 2>/dev/null | grep -q "GEMINI.md"; then
-    echo "[hook] GEMINI.md đã thay đổi. Đang đồng bộ rules sang tất cả workspace..."
-    uv run python "{AGENT_HUB / 'common' / 'scripts' / 'sync_rules.py'}" --force 2>&1
-    echo "[hook] Đồng bộ hoàn tất."
-fi
-"""
     try:
-        with open(hook_path, "w", encoding="utf-8", newline="\n") as f:
-            f.write(hook_script)
-        print(f"[GIT HOOK] Đã cài post-commit hook tại: {hook_path}")
+        shutil.copy2(SOURCE_GEMINI, dest_gemini)
+        shutil.copy2(SOURCE_GEMINI, dest_agents)
+        print(f"[SUCCESS] Đã đồng bộ Master GEMINI.md -> Global Plugin Rules:")
+        print(f"  • {dest_gemini}")
+        print(f"  • {dest_agents}")
         return True
     except Exception as e:
-        print(f"[ERROR] Không cài được hook: {e}")
+        print(f"[ERROR] Thất bại khi đồng bộ: {e}")
         return False
 
 
 def main():
     args = sys.argv[1:]
-    check_only = "--check" in args
-    force = "--force" in args
-    install_hook = "--install-hook" in args
-    report_only = "--list" in args
-
-    if install_hook:
-        install_git_hook()
-        return
-
-    if report_only:
-        workspaces = collect_workspaces()
-        source_resolved = SOURCE_GEMINI.resolve()
-        print(f"{'PROJECT':<22} {'WORKSPACE':<52} {'GEMINI.md'}")
-        print("-" * 90)
-        seen = set()
-        for name, ws in sorted(workspaces, key=lambda x: str(x[1])):
-            r_ws = ws.resolve()
-            if str(r_ws) in seen:
-                continue
-            seen.add(str(r_ws))
-            dest = r_ws / "GEMINI.md"
-            if dest.resolve() == source_resolved:
-                status = "SOURCE (Master)"
-            elif not dest.exists():
-                status = "MISSING"
-            else:
-                dst = dest.stat()
-                src = SOURCE_GEMINI.stat()
-                stale = src.st_size != dst.st_size or src.st_mtime > dst.st_mtime
-                status = "STALE" if stale else "OK"
-            print(f"  {name:<20} {str(ws):<52} {status}")
-        return
-
-    sync(check_only=check_only, force=force)
+    check_only = "--check" in args or "--list" in args
+    sync(check_only=check_only)
 
 
 if __name__ == "__main__":

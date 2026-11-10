@@ -162,6 +162,10 @@ switch ($Command.ToLower()) {
 
     }
 
+    "package" {
+        uv run python "$ScriptDir\common\scripts\package_web_app.py" @RemainingArgs
+    }
+
     default {
 
         Write-Host "=================================================================" -ForegroundColor Cyan
@@ -211,6 +215,7 @@ switch ($Command.ToLower()) {
         Write-Host "  .\hub.ps1 validate        Kiểm tra tính hợp lệ 100% của toàn bộ 25 skills và 7 dự án" -ForegroundColor Green
 
         Write-Host "  .\hub.ps1 sync [--force]  Đồng bộ GEMINI.md rules vào tất cả workspace của các dự án" -ForegroundColor Green
+        Write-Host "  .\hub.ps1 package [args]   Đóng gói web 1-click standalone cho user test kèm lock key" -ForegroundColor Green
 
         Write-Host "=================================================================" -ForegroundColor Cyan
 

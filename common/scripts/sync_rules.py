@@ -32,6 +32,10 @@ PROJECTS_CONFIG_DIR = Path(r"C:\Users\thanhcaotien\.gemini\config\projects")
 SKIP_FOLDERS = {".venv", "venv", "node_modules", ".git", "__pycache__"}
 
 
+GLOBAL_PLUGIN_RULES = Path(r"C:\Users\thanhcaotien\.gemini\config\plugins\agent-core\rules")
+PARENT_D_RULES = [Path(r"D:\Thành"), Path(r"D:\Vietjet")]
+
+
 def resolve_uri(uri: str) -> Path | None:
     """Chuyển file:/// URI thành đường dẫn thực."""
     if not uri:
@@ -120,6 +124,21 @@ def sync(check_only: bool = False, force: bool = False) -> int:
 
     print(f"\n{'=' * 60}")
     print(f"Tổng kết: {deployed} deploy | {skipped_exists} đã có | {errors} lỗi")
+
+    # Đồng bộ sang Global Plugin trên ổ C và các Parent Folder D:\Thành, D:\Vietjet
+    if not check_only:
+        print("\nĐồng bộ sang Global Plugin (ổ C) & Parent Roots:")
+        if GLOBAL_PLUGIN_RULES.exists():
+            for fname in ["GEMINI.md", "AGENTS.md"]:
+                dest_f = GLOBAL_PLUGIN_RULES / fname
+                shutil.copy2(SOURCE_GEMINI, dest_f)
+                print(f"  [GLOBAL] {dest_f}")
+        for pdir in PARENT_D_RULES:
+            if pdir.exists():
+                dest_p = pdir / "GEMINI.md"
+                shutil.copy2(SOURCE_GEMINI, dest_p)
+                print(f"  [PARENT] {dest_p}")
+
     if check_only:
         print("(Dry-run - không có file nào bị ghi thực sự)")
     return deployed

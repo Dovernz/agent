@@ -3,6 +3,13 @@ setlocal enabledelayedexpansion
 
 REM Antigravity Agent Hub Central CLI Launcher (hub.bat)
 set SCRIPT_DIR=%~dp0
+if not exist "%SCRIPT_DIR%common\scripts" (
+    if defined AGENT_HUB (
+        set SCRIPT_DIR=%AGENT_HUB%\
+    ) else if exist "D:\Thành\Agent\common\scripts" (
+        set SCRIPT_DIR=D:\Thành\Agent\
+    )
+)
 set HUB_DIR=%SCRIPT_DIR%
 if "%HUB_DIR:~-1%"=="\" set HUB_DIR=%HUB_DIR:~0,-1%
 
@@ -30,6 +37,8 @@ if "%1"=="verify" goto verify
 if "%1"=="fanout" goto fanout
 if "%1"=="usage" goto usage
 if "%1"=="shard" goto shard
+if "%1"=="sync" goto sync
+if "%1"=="package" goto package
 
 echo [!] Lenh khong hop le: %1
 echo Go 'hub help' de xem huong dan.
@@ -48,13 +57,7 @@ uv run python "%SCRIPT_DIR%common\scripts\smoke_test_runner.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :clean
-shift
-set TARGET=.
-if not "%1"=="" (
-    set TARGET=%1
-    shift
-)
-uv run python "%SCRIPT_DIR%common\scripts\hub_cleaner.py" %TARGET% --clean %REST_ARGS%
+uv run python "%SCRIPT_DIR%common\scripts\hub_cleaner.py" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
 :lint
@@ -117,6 +120,14 @@ exit /b %ERRORLEVEL%
 uv run python "%SCRIPT_DIR%common\scripts\context_sharder.py" --hub "%HUB_DIR%" %REST_ARGS%
 exit /b %ERRORLEVEL%
 
+:sync
+uv run python "%SCRIPT_DIR%common\scripts\sync_rules.py" %REST_ARGS%
+exit /b %ERRORLEVEL%
+
+:package
+uv run python "%SCRIPT_DIR%common\scripts\package_web_app.py" %REST_ARGS%
+exit /b %ERRORLEVEL%
+
 :help
 echo =================================================================
 echo   ANTIGRAVITY MULTI-PROJECT AGENT HUB CLI (hub)
@@ -133,7 +144,7 @@ echo   hub db-profile [log] Phan tich truy van cham va mau truy van N+1
 echo   hub test [path]     Chay da tang test matrix (Unit, Integration, Lint)
 echo   hub changelog [repo] Tu dong tao Release Notes tu Git Conventional Commits
 echo   hub drift           Kiem tra lech chuan API giua Backend Code va OpenAPI Spec
-echo   hub notify          Ban thong bao su co & canh bao qua Telegram/Discord/Slack
+echo   hub notify          Ban thong bao su co ^& canh bao qua Telegram/Discord/Slack
 echo   hub token-opt       Do luong, dinh vi diem nong va nen toi uu token su dung
 echo   hub shard [args]    Phan manh context dong theo tung du an, giam 90%% token System Prompt
 echo   hub gemini          Chay tac vu nang qua Gemini API ngoai (0d) tiet kiem token
@@ -142,5 +153,7 @@ echo   hub verify [file]   Tham dinh chat luong, cu phap va an ninh output (.py,
 echo   hub fanout [args]   Lap ke hoach phan ra N sub-agent va tang API theo do phuc tap
 echo   hub create          Khoi tao 1-click nhom agent cho du an moi tu template
 echo   hub validate        Kiem tra tinh hop le 100%% cua toan bo 25 skills va 7 du an
+echo   hub sync            Dong bo GEMINI.md master sang Global Plugin tren o C:
+echo   hub package [args]  Dong goi web 1-click standalone cho user test kem lock key
 echo =================================================================
 exit /b 0

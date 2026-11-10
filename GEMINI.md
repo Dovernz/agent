@@ -7,6 +7,16 @@
 
 ## ⚡ CHỈ THỊ BẮT BUỘC: ÉP DÙNG API TỐI ĐA & BẢO TOÀN TOKEN
 
+0. **🛑 CHỐT CHẶN THÉP TRƯỚC KHI GỌI WRITE_FILE / EDIT_FILE (HARD TOOL-GATE):**
+   - **TỰ KIỂM TRA TRƯỚC MỌI TOOL CALL:** Có phải bạn đang chuẩn bị viết code mới, tạo module, refactor logic, viết script kiểm thử, hoặc cập nhật file mã nguồn dự án (> 30 dòng)?
+   - **NẾU ĐÚNG: CẤM GỌI `write_file` HOẶC `edit_file` NGAY LẬP TỨC!**
+   - **HÀNH ĐỘNG BẮT BUỘC DUY NHẤT:** Phải gọi lệnh shell qua Gemini API Pool ngoài:
+     ```powershell
+     hub gemini --prompt "<yêu_cầu_chi_tiết>" --out "<đường_dẫn_tệp>" --tier auto
+     ```
+   - Mọi hành vi tự sinh code dài trực tiếp bằng `write_file` trong chat context đều bị coi là **VI PHẠM QUY TẮC CỐT LÕI (RULE 16)**.
+   - **CẤM DÙNG SUBAGENT `TypeName: "self"` ĐỂ TỰ VIẾT CODE:** Khi gọi Subagent thực thi tác vụ kỹ thuật, BẮT BUỘC chỉ thị Subagent làm vai trò Reviewer & gọi `hub gemini --out`, tuyệt đối cấm Subagent tự gõ mã nguồn qua `write_file`.
+
 1. **Khẩu lệnh kích hoạt (`/master-agent`, `/agent-system`, "sử dụng hệ thống agent"):**
    - Kích hoạt `master-agent` làm đầu não điều phối duy nhất giao tiếp tự nhiên với User.
    - Mọi PM, Tech Lead, Worker cấp dưới **TUYỆT ĐỐI CẤM** chat văn xuôi, 100% dùng chuẩn M2M JSON Code Protocol.

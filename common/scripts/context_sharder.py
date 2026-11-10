@@ -376,7 +376,27 @@ def main():
     parser.add_argument("--reset", action="store_true", help="Reset active shard to 'core' (ultra-lean)")
     parser.add_argument("--json", action="store_true", help="Emit JSON output for M2M protocol")
     
-    args = parser.parse_args()
+    # Normalize positional syntax (e.g. 'hub shard reset', 'hub shard list', 'hub shard set <id>')
+    raw_args = sys.argv[1:]
+    normalized = []
+    i = 0
+    while i < len(raw_args):
+        a = raw_args[i]
+        if a == "reset":
+            normalized.append("--reset")
+        elif a == "list":
+            normalized.append("--list")
+        elif a == "set" and i + 1 < len(raw_args):
+            normalized.extend(["--set", raw_args[i + 1]])
+            i += 1
+        elif a == "auto" and i + 1 < len(raw_args):
+            normalized.extend(["--auto", raw_args[i + 1]])
+            i += 1
+        else:
+            normalized.append(a)
+        i += 1
+
+    args = parser.parse_args(normalized)
     hub_root = Path(args.hub.strip('"')).resolve()
     sharder = ContextSharder(hub_root)
     

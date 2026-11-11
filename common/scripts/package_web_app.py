@@ -1,88 +1,110 @@
 #!/usr/bin/env python3
 r"""
-package_web_app.py - Universal Web App Packager & Key Locker (Hardened Security V2)
-Đóng gói bất kỳ dự án web nào (Translate, Dental, Next.js, Django, FastAPI)
-thành 1 tệp CMD cài đặt độc lập (Zero-Dependency) đưa cho người dùng test:
-  1. Không yêu cầu cài Docker, Git, hay Python lên máy User.
-  2. Tự động tải Python Portable (Embed) và giải nén GitHub Zip nếu máy trắng.
-  3. Cơ chế Lock Key kép (Dual-Slot AES-256-CBC) bảo vệ API Key / Secrets.
-  4. TUYỆT ĐỐI KHÔNG HARDCODE MẬT KHẨU trong mã nguồn, commit hay tệp CMD.
-  5. Tự động tạo Shortcut Desktop, map Domain Local (.local) và chạy ẩn ngầm.
+Universal Web App Packager & Key Locker (Hardened Security V3 - Code Isolation & Zero-Host Dependency)
+==================================================================================================
+Tác vụ:
+1. Đóng gói bất kỳ ứng dụng web nào (FastAPI, Django, Flask, Streamlit) thành 1-Click .cmd độc lập.
+2. Cách ly hoàn toàn mã nguồn vào thư mục 'CODE', thư mục gốc chỉ chứa file .cmd và Docs.
+3. Hỗ trợ 100% Zero-Host Dependency: 0 Docker, 0 Git, 0 Python cài lên máy User.
+   - Tự động tải Python 3.11 Embed từ python.org vào runtime\ khi máy trắng.
+   - Tự mở khóa import site trong *._pth, tải get-pip.py và pip install -r requirements.txt ngầm.
+4. Tích hợp Mạng LAN & QR Code truy cập điện thoại di động ([7] Hiện mã QR kết nối điện thoại).
+5. Tích hợp Cấu hình Custom Domain ([6] Config Domain).
+6. Tích hợp Cập nhật thông minh ([4] Update): Kiểm tra git behind count, không tải thừa nếu đã mới nhất.
+7. Tích hợp Gỡ cài đặt an toàn ([5] Uninstall): Chỉ xóa đúng thư mục CODE, giữ nguyên file .cmd.
+8. Mã hóa Key nhạy cảm bằng chuẩn kép Dual-Slot AES-256-CBC (GEMINI_DUAL_V1) qua PowerShell .NET.
 """
 
 import os
 import sys
-import argparse
-import subprocess
+import re
 import secrets
 import getpass
+import argparse
+import subprocess
 from pathlib import Path
 
-if sys.stdout.encoding and sys.stdout.encoding.lower() != "utf-8":
-    try:
-        sys.stdout.reconfigure(encoding="utf-8")
-    except Exception:
-        pass
+# Force UTF-8 for console output on Windows
+try:
+    if hasattr(sys.stdout, 'reconfigure'):
+        sys.stdout.reconfigure(encoding='utf-8', errors='replace')
+    if hasattr(sys.stderr, 'reconfigure'):
+        sys.stderr.reconfigure(encoding='utf-8', errors='replace')
+except Exception:
+    pass
 
 
 def encrypt_dual_slot_powershell(in_env_file: Path, out_enc_file: Path, master_pass: str, user_pass: str) -> bool:
     """Mã hóa payload .env bằng PowerShell built-in chuẩn GEMINI_DUAL_V1 (Không lưu mật khẩu vào file)."""
-    # Escape single quotes in passwords if any
-    safe_master = master_pass.replace("'", "''")
-    safe_user = user_pass.replace("'", "''")
-    
-    ps_script = f"""
+    p_master = master_pass.replace("'", "''")
+    p_user = user_pass.replace("'", "''")
+    f_in = str(in_env_file.resolve()).replace("'", "''")
+    f_out = str(out_enc_file.resolve()).replace("'", "''")
+
+    ps_code = f"""
 $ErrorActionPreference = 'Stop'
-$plain = [System.IO.File]::ReadAllBytes('{str(in_env_file)}')
+$fIn = '{f_in}'
+$fOut = '{f_out}'
+$pMaster = '{p_master}'
+$pUser = '{p_user}'
 
+$data = [System.IO.File]::ReadAllBytes($fIn)
+
+# 1. Sinh Data Key ngẫu nhiên (32 bytes AES-256) và Data IV (16 bytes)
 $rng = [System.Security.Cryptography.RandomNumberGenerator]::Create()
-$dataKey = New-Object byte[](32); $rng.GetBytes($dataKey)
-$dataIV = New-Object byte[](16); $rng.GetBytes($dataIV)
+$dataKey = New-Object byte[](32)
+$rng.GetBytes($dataKey)
+$dataIV = New-Object byte[](16)
+$rng.GetBytes($dataIV)
 
-$aesData = [System.Security.Cryptography.Aes]::Create()
-$aesData.KeySize = 256; $aesData.BlockSize = 128
-$aesData.Mode = [System.Security.Cryptography.CipherMode]::CBC
-$aesData.Padding = [System.Security.Cryptography.PaddingMode]::PKCS7
-$aesData.Key = $dataKey; $aesData.IV = $dataIV
-$cipherPayload = $aesData.CreateEncryptor().TransformFinalBlock($plain, 0, $plain.Length)
+# 2. Sinh Salt cho Master và User (mỗi salt 16 bytes)
+$saltMaster = New-Object byte[](16)
+$rng.GetBytes($saltMaster)
+$saltUser = New-Object byte[](16)
+$rng.GetBytes($saltUser)
 
-# Master Slot (50,000 PBKDF2 SHA256)
-$saltM = New-Object byte[](16); $rng.GetBytes($saltM)
-$kdfM = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{safe_master}', $saltM, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+# 3. Derive Key & Mã hóa Data Key cho Master Slot (PBKDF2 SHA256 50000 vòng)
+$kdfM = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($pMaster, $saltMaster, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+$keyM = $kdfM.GetBytes(32)
+$ivM = $kdfM.GetBytes(16)
 $aesM = [System.Security.Cryptography.Aes]::Create()
-$aesM.Key = $kdfM.GetBytes(32); $aesM.IV = $kdfM.GetBytes(16)
-$cipherKeyM = $aesM.CreateEncryptor().TransformFinalBlock($dataKey, 0, $dataKey.Length)
+$aesM.Key = $keyM
+$aesM.IV = $ivM
+$encKeyMaster = $aesM.CreateEncryptor().TransformFinalBlock($dataKey, 0, 32)
 
-# User Slot (50,000 PBKDF2 SHA256)
-$saltU = New-Object byte[](16); $rng.GetBytes($saltU)
-$kdfU = New-Object System.Security.Cryptography.Rfc2898DeriveBytes('{safe_user}', $saltU, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+# 4. Derive Key & Mã hóa Data Key cho User Slot (PBKDF2 SHA256 50000 vòng)
+$kdfU = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($pUser, $saltUser, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256)
+$keyU = $kdfU.GetBytes(32)
+$ivU = $kdfU.GetBytes(16)
 $aesU = [System.Security.Cryptography.Aes]::Create()
-$aesU.Key = $kdfU.GetBytes(32); $aesU.IV = $kdfU.GetBytes(16)
-$cipherKeyU = $aesU.CreateEncryptor().TransformFinalBlock($dataKey, 0, $dataKey.Length)
+$aesU.Key = $keyU
+$aesU.IV = $ivU
+$encKeyUser = $aesU.CreateEncryptor().TransformFinalBlock($dataKey, 0, 32)
 
-# File Pack
+# 5. Mã hóa Payload chính (.env) bằng Data Key
+$aesD = [System.Security.Cryptography.Aes]::Create()
+$aesD.Key = $dataKey
+$aesD.IV = $dataIV
+$encPayload = $aesD.CreateEncryptor().TransformFinalBlock($data, 0, $data.Length)
+
+# 6. Ghi định dạng GEMINI_DUAL_V1 nhị phân hoàn chỉnh
+$fs = [System.IO.File]::Create($fOut)
 $magic = [System.Text.Encoding]::ASCII.GetBytes('GEMINI_DUAL_V1')
-$fs = [System.IO.File]::Create('{str(out_enc_file)}')
-$fs.Write($magic, 0, $magic.Length)
-$fs.Write($saltM, 0, $saltM.Length)
-$fs.Write($cipherKeyM, 0, $cipherKeyM.Length)
-$fs.Write($saltU, 0, $saltU.Length)
-$fs.Write($cipherKeyU, 0, $cipherKeyU.Length)
-$fs.Write($dataIV, 0, $dataIV.Length)
-$fs.Write($cipherPayload, 0, $cipherPayload.Length)
+$fs.Write($magic, 0, 14)
+$fs.Write($saltMaster, 0, 16)
+$fs.Write($encKeyMaster, 0, 48)
+$fs.Write($saltUser, 0, 16)
+$fs.Write($encKeyUser, 0, 48)
+$fs.Write($dataIV, 0, 16)
+$fs.Write($encPayload, 0, $encPayload.Length)
 $fs.Close()
-Write-Output 'DUAL_ENCRYPTION_OK'
 """
     try:
-        res = subprocess.run(
-            ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_script],
-            capture_output=True,
-            text=True,
-            timeout=15,
-        )
-        return "DUAL_ENCRYPTION_OK" in res.stdout
-    except Exception as e:
-        print(f"[!] Lỗi khi mã hóa qua PowerShell: {e}")
+        cmd = ["powershell", "-NoProfile", "-ExecutionPolicy", "Bypass", "-Command", ps_code]
+        res = subprocess.run(cmd, capture_output=True, text=True, check=True)
+        return True
+    except subprocess.CalledProcessError as e:
+        print(f"[!] PowerShell Encryption Error: {e.stderr}", file=sys.stderr)
         return False
 
 
@@ -91,407 +113,54 @@ def generate_cmd_launcher(
     repo_url: str,
     repo_zip_url: str,
     zip_subfolder: str,
-    run_command_powershell: str,
+    start_process_args: str,
     port: int,
     domain: str,
-    use_portproxy: bool = True,
+    entry_file: str = "app.py",
 ) -> str:
-    """Sinh nội dung file .cmd cài đặt & khởi chạy độc lập (Không chứa bất kỳ mật khẩu nào)."""
+    """Sinh nội dung file .cmd cài đặt & khởi chạy độc lập từ template chuẩn."""
+    template_path = Path(__file__).parent.parent / "templates" / "app_launcher.template.cmd"
+    if not template_path.exists():
+        raise FileNotFoundError(f"Không tìm thấy file template tại: {template_path}")
 
-    domain_check = ""
-    domain_cleanup = ""
-    if domain:
-        domain_check = f"""findstr /C:"{domain}" "%HOSTS_FILE%" >nul 2>&1
-if !errorlevel! neq 0 set "NEED_HOSTS=1"
-"""
-        domain_cleanup = f"""powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process cmd -ArgumentList '/c (powershell -Command \"\"(Get-Content -Path $env:windir\\System32\\drivers\\etc\\hosts) | Where-Object {{ $_ -notmatch ''{domain}'' }} | Set-Content -Path $env:windir\\System32\\drivers\\etc\\hosts\"\" ) & (netsh interface portproxy delete v4tov4 listenport=80 listenaddress=127.0.0.1 >nul 2>&1)' -Verb RunAs -Wait" >nul 2>&1
-"""
+    template = template_path.read_text(encoding="utf-8")
+    slug = re.sub(r"[^a-zA-Z0-9_]", "_", app_title.lower())
+    app_url = f"http://localhost:{port}"
+    cmd_name = f"{app_title}.cmd"
 
-    proxy_check = ""
-    proxy_cmd = ""
-    if use_portproxy and domain:
-        proxy_check = f"""netsh interface portproxy show v4tov4 | findstr "80" | findstr "{port}" >nul 2>&1
-if !errorlevel! neq 0 set "NEED_PROXY=1"
-"""
-        proxy_cmd = f"& (netsh interface portproxy add v4tov4 listenport=80 listenaddress=127.0.0.1 connectport={port} connectaddress=127.0.0.1 >nul 2>&1)"
+    res = template
+    res = res.replace("__APP_TITLE__", app_title)
+    res = res.replace("__APP_TITLE_UPPER__", app_title.upper())
+    res = res.replace("__APP_SLUG__", slug)
+    res = res.replace("__CMD_NAME__", cmd_name)
+    res = res.replace("__REPO_URL__", repo_url or "")
+    res = res.replace("__REPO_ZIP_URL__", repo_zip_url or "")
+    res = res.replace("__ZIP_SUBFOLDER__", zip_subfolder or f"{slug}-main")
+    res = res.replace("__APP_PORT__", str(port))
+    res = res.replace("__APP_URL__", app_url)
+    res = res.replace("__DOMAIN__", domain or "")
+    res = res.replace("__ENTRY_FILE__", entry_file)
+    res = res.replace("__START_PROCESS_ARGS__", start_process_args)
 
-    url_to_open = f"http://{domain}" if domain else f"http://localhost:{port}"
-
-    cmd_template = f"""@echo off
-setlocal enabledelayedexpansion
-chcp 65001 >nul
-title {app_title}
-
-set "CURRENT_DIR=%~dp0"
-if "%CURRENT_DIR:~-1%"=="\\" set "CURRENT_DIR=%CURRENT_DIR:~0,-1%"
-set "CONFIG_PATH_FILE=%CURRENT_DIR%\\.install_path"
-
-set "APP_DIR="
-if exist "%CONFIG_PATH_FILE%" (
-    set /p "APP_DIR="<"%CONFIG_PATH_FILE%"
-)
-if "!APP_DIR!"=="" (
-    if exist "%CURRENT_DIR%\\app.py" (
-        set "APP_DIR=%CURRENT_DIR%"
-    ) else if exist "%CURRENT_DIR%\\manage.py" (
-        set "APP_DIR=%CURRENT_DIR%"
-    ) else if exist "%USERPROFILE%\\{app_title}\\app.py" (
-        set "APP_DIR=%USERPROFILE%\\{app_title}"
-    ) else if exist "%USERPROFILE%\\{app_title}\\manage.py" (
-        set "APP_DIR=%USERPROFILE%\\{app_title}"
-    ) else (
-        set "APP_DIR=%CURRENT_DIR%"
-    )
-)
-
-set "REPO_URL={repo_url}"
-set "REPO_ZIP_URL={repo_zip_url}"
-set "ZIP_SUBFOLDER={zip_subfolder}"
-set "PY_EMBED_URL=https://www.python.org/ftp/python/3.11.9/python-3.11.9-embed-amd64.zip"
-set "GET_PIP_URL=https://bootstrap.pypa.io/get-pip.py"
-set "HOSTS_FILE=%windir%\\System32\\drivers\\etc\\hosts"
-set "APP_PORT={port}"
-set "APP_URL={url_to_open}"
-
-if not "%~1"=="" (
-    set "choice=%~1"
-    goto DISPATCH
-)
-
-:MENU
-set "choice="
-cls
-call :CHECK_STATUS_INTERNAL
-if "!IS_RUNNING!"=="1" (set "SERVER_STATUS=ĐANG CHẠY") else (set "SERVER_STATUS=ĐÃ TẮT")
-
-echo =====================================================================
-echo     {app_title.upper()}
-echo     Trạng thái: [!SERVER_STATUS!]
-echo =====================================================================
-echo   [1] Bật ứng dụng (Start Web)
-echo   [2] Tắt ứng dụng (Stop Web)
-echo   [3] Cài đặt / Khởi tạo môi trường (Install)
-echo   [4] Cập nhật mã nguồn mới nhất (Update)
-echo   [5] Xóa cài đặt hoàn toàn (Uninstall)
-echo   [0] Thoát
-echo =====================================================================
-set /p "choice=Nhập lựa chọn (0-5): "
-
-:DISPATCH
-if "%choice%"=="1" goto START_APP
-if "%choice%"=="2" goto STOP_APP
-if "%choice%"=="3" goto INSTALL_APP
-if "%choice%"=="4" goto UPDATE_APP
-if "%choice%"=="5" goto UNINSTALL_APP
-if "%choice%"=="0" exit /b 0
-goto MENU
-
-:ENSURE_NETWORK_CONFIG
-set "NEED_HOSTS=0"
-set "NEED_PROXY=0"
-{domain_check}
-{proxy_check}
-
-set "DO_ELEVATE=0"
-if "!NEED_HOSTS!"=="1" set "DO_ELEVATE=1"
-if "!NEED_PROXY!"=="1" set "DO_ELEVATE=1"
-
-if "!DO_ELEVATE!"=="1" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Start-Process cmd -ArgumentList '/c (findstr /C:\"{domain}\" \"%HOSTS_FILE%\" >nul 2>&1 || echo 127.0.0.1 {domain} >> \"%HOSTS_FILE%\") {proxy_cmd}' -Verb RunAs -Wait"
-    ping -n 2 127.0.0.1 >nul
-)
-exit /b 0
-
-:FIND_PYTHON
-set "PY_RUN="
-if exist "!APP_DIR!\\runtime\\python.exe" (
-    set "PY_RUN=!APP_DIR!\\runtime\\python.exe"
-    exit /b 0
-)
-if exist "!APP_DIR!\\venv\\Scripts\\python.exe" (
-    set "PY_RUN=!APP_DIR!\\venv\\Scripts\\python.exe"
-    exit /b 0
-)
-if exist "!APP_DIR!\\.venv\\Scripts\\python.exe" (
-    set "PY_RUN=!APP_DIR!\\.venv\\Scripts\\python.exe"
-    exit /b 0
-)
-where python >nul 2>&1
-if !errorlevel! equ 0 (
-    set "PY_RUN=python"
-    exit /b 0
-)
-exit /b 0
-
-:START_APP
-call :CHECK_STATUS_INTERNAL
-if "!IS_RUNNING!"=="1" (
-    start "" !APP_URL!
-    if not "%~1"=="" exit /b 0
-    goto MENU
-)
-
-call :ENSURE_NETWORK_CONFIG
-
-if not exist "!APP_DIR!" (
-    echo Chưa tìm thấy thư mục ứng dụng. Vui lòng chọn [3] để cài đặt.
-    pause
-    goto MENU
-)
-
-cd /d "!APP_DIR!"
-
-if exist "docker-compose.yml" (
-    docker --version >nul 2>&1
-    if !errorlevel! equ 0 (
-        docker compose up -d
-        goto WAIT_READY
-    )
-)
-
-call :FIND_PYTHON
-if "!PY_RUN!"=="" (
-    echo Không tìm thấy Python. Vui lòng chọn [3] để tự động thiết lập Python Portable.
-    pause
-    goto MENU
-)
-
-start /b "" powershell -NoProfile -WindowStyle Hidden -Command "{run_command_powershell}"
-
-:WAIT_READY
-for /l %%i in (1,1,12) do (
-    netstat -ano | findstr /R ":!APP_PORT! .*LISTENING" >nul 2>&1
-    if !errorlevel! equ 0 (
-        start "" !APP_URL!
-        if not "%~1"=="" exit /b 0
-        goto MENU
-    )
-    ping -n 2 127.0.0.1 >nul
-)
-
-start "" !APP_URL!
-if not "%~1"=="" exit /b 0
-goto MENU
-
-:STOP_APP
-cd /d "!APP_DIR!" 2>nul
-if exist "docker-compose.yml" (
-    docker compose stop >nul 2>&1
-)
-
-for /f "tokens=5" %%a in ('netstat -ano ^| findstr /R ":!APP_PORT! .*LISTENING"') do (
-    taskkill /f /pid %%a >nul 2>&1
-)
-
-ping -n 2 127.0.0.1 >nul
-echo Đã tắt dịch vụ thành công.
-if not "%~1"=="" exit /b 0
-ping -n 2 127.0.0.1 >nul
-goto MENU
-
-:INSTALL_APP
-cls
-echo =====================================================================
-echo                     CÀI ĐẶT {app_title.upper()}
-echo =====================================================================
-echo Chọn thư mục cài đặt:
-echo   [1] Thư mục hiện tại: !CURRENT_DIR!
-echo   [2] Nhập đường dẫn tùy chọn (dán path)
-echo =====================================================================
-set "DIR_CHOICE=1"
-set /p "DIR_CHOICE=Nhập lựa chọn (1/2, Mặc định 1): "
-
-if "!DIR_CHOICE!"=="2" (
-    set /p "CUSTOM_DIR=Nhập đường dẫn thư mục muốn lưu: "
-    set "CUSTOM_DIR=!CUSTOM_DIR:"=!"
-    if not "!CUSTOM_DIR!"=="" (
-        set "APP_DIR=!CUSTOM_DIR!"
-    )
-) else (
-    set "APP_DIR=!CURRENT_DIR!"
-)
-
-echo !APP_DIR!>"%CONFIG_PATH_FILE%"
-echo Thư mục cài đặt: !APP_DIR!
-echo.
-
-if not exist "!APP_DIR!" mkdir "!APP_DIR!"
-cd /d "!APP_DIR!"
-
-set "USE_GIT=0"
-where git >nul 2>&1
-if !errorlevel! equ 0 set "USE_GIT=1"
-
-if "!USE_GIT!"=="1" (
-    if not exist ".git" (
-        if not "!REPO_URL!"=="" (
-            echo Đang tải mã nguồn từ GitHub...
-            git clone "!REPO_URL!" .
-        )
-    )
-) else (
-    if not "!REPO_ZIP_URL!"=="" (
-        echo Đang tải mã nguồn gói Zip từ máy chủ...
-        set "TEMP_ZIP=%TEMP%\\app_pkg_%RANDOM%.zip"
-        set "TEMP_EXTRACT=%TEMP%\\app_ext_%RANDOM%"
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('!REPO_ZIP_URL!', '!TEMP_ZIP!'); Expand-Archive -Path '!TEMP_ZIP!' -DestinationPath '!TEMP_EXTRACT!' -Force; Copy-Item -Path '!TEMP_EXTRACT!\\!ZIP_SUBFOLDER!\\*' -Destination '!APP_DIR!' -Recurse -Force; Remove-Item -Path '!TEMP_EXTRACT!' -Recurse -Force; Remove-Item -Path '!TEMP_ZIP!' -Force"
-    )
-)
-
-set "SYSTEM_PYTHON=0"
-where python >nul 2>&1
-if !errorlevel! equ 0 set "SYSTEM_PYTHON=1"
-
-if "!SYSTEM_PYTHON!"=="1" (
-    echo Đang khởi tạo môi trường Python Virtual Environment...
-    if not exist "venv\\Scripts\\python.exe" (
-        python -m venv venv
-    )
-    call venv\\Scripts\\activate.bat
-    python -m pip install --upgrade pip >nul 2>&1
-    if exist "requirements.txt" (
-        echo Đang cài đặt thư viện phụ thuộc...
-        python -m pip install -r requirements.txt
-    )
-    set "PY_RUN=!APP_DIR!\\venv\\Scripts\\python.exe"
-) else (
-    echo Đang cài đặt môi trường Python Portable (Standalone, 0% rác hệ thống)...
-    if not exist "!APP_DIR!\\runtime" mkdir "!APP_DIR!\\runtime"
-    if not exist "!APP_DIR!\\runtime\\python.exe" (
-        set "PY_ZIP=%TEMP%\\py_embed_%RANDOM%.zip"
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('!PY_EMBED_URL!', '!PY_ZIP!'); Expand-Archive -Path '!PY_ZIP!' -DestinationPath '!APP_DIR!\\runtime' -Force; Remove-Item -Path '!PY_ZIP!' -Force"
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "Get-ChildItem -Path '!APP_DIR!\\runtime' -Filter '*._pth' | ForEach-Object {{ $c = Get-Content $_.FullName; $c = $c -replace '#import site', 'import site'; Set-Content -Path $_.FullName -Value $c }}"
-        set "GET_PIP_FILE=!APP_DIR!\\runtime\\get-pip.py"
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('!GET_PIP_URL!', '!GET_PIP_FILE!')"
-        "!APP_DIR!\\runtime\\python.exe" "!GET_PIP_FILE!" --no-warn-script-location >nul 2>&1
-        del /f /q "!GET_PIP_FILE!" >nul 2>&1
-    )
-    echo Đang cài đặt thư viện phụ thuộc...
-    "!APP_DIR!\\runtime\\python.exe" -m pip install --upgrade pip >nul 2>&1
-    if exist "requirements.txt" "!APP_DIR!\\runtime\\python.exe" -m pip install -r requirements.txt
-    set "PY_RUN=!APP_DIR!\\runtime\\python.exe"
-)
-
-call :ENSURE_ENV_CONFIG
-call :ENSURE_NETWORK_CONFIG
-
-echo Đang tạo phím tắt tiện lợi trên Desktop...
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$ws = New-Object -ComObject WScript.Shell; $s = $ws.CreateShortcut([System.IO.Path]::Combine([Environment]::GetFolderPath('Desktop'), '{app_title}.lnk')); $s.TargetPath = '%~f0'; $s.Arguments = '1'; $s.WorkingDirectory = '%~dp0'; $s.Save()" >nul 2>&1
-
-echo =====================================================================
-echo Cài đặt hoàn tất! Bạn có thể bật ứng dụng ngay bây giờ.
-echo =====================================================================
-pause
-goto MENU
-
-:ENSURE_ENV_CONFIG
-if exist ".env" exit /b 0
-if exist "%CURRENT_DIR%\\.env" (
-    copy "%CURRENT_DIR%\\.env" .env >nul
-    exit /b 0
-)
-
-if exist "!APP_DIR!\\.env.enc" (
-    echo =====================================================================
-    echo Ứng dụng đã được khóa key bảo mật. Vui lòng nhập mật khẩu được cấp:
-    set "USER_PASS="
-    set /p "USER_PASS=Nhập mật khẩu: "
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "$p = '!USER_PASS!'; $f = '!APP_DIR!\\.env.enc'; $out = '!APP_DIR!\\.env'; try {{ $b = [System.IO.File]::ReadAllBytes($f); $m = [System.Text.Encoding]::ASCII.GetString($b, 0, 14); if ($m -eq 'GEMINI_DUAL_V1') {{ $sM = New-Object byte[](16); [System.Array]::Copy($b, 14, $sM, 0, 16); $ckM = New-Object byte[](48); [System.Array]::Copy($b, 30, $ckM, 0, 48); $sU = New-Object byte[](16); [System.Array]::Copy($b, 78, $sU, 0, 16); $ckU = New-Object byte[](48); [System.Array]::Copy($b, 94, $ckU, 0, 48); $dIV = New-Object byte[](16); [System.Array]::Copy($b, 142, $dIV, 0, 16); $pL = $b.Length - 158; $pD = New-Object byte[]($pL); [System.Array]::Copy($b, 158, $pD, 0, $pL); $dk = $null; try {{ $k = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($p, $sM, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256); $a = [System.Security.Cryptography.Aes]::Create(); $a.Key = $k.GetBytes(32); $a.IV = $k.GetBytes(16); $c = $a.CreateDecryptor().TransformFinalBlock($ckM, 0, 48); if ($c.Length -eq 32) {{ $dk = $c }} }} catch {{}}; if ($dk -eq $null) {{ try {{ $k = New-Object System.Security.Cryptography.Rfc2898DeriveBytes($p, $sU, 50000, [System.Security.Cryptography.HashAlgorithmName]::SHA256); $a = [System.Security.Cryptography.Aes]::Create(); $a.Key = $k.GetBytes(32); $a.IV = $k.GetBytes(16); $c = $a.CreateDecryptor().TransformFinalBlock($ckU, 0, 48); if ($c.Length -eq 32) {{ $dk = $c }} }} catch {{}} }}; if ($dk -eq $null) {{ throw 'Err' }}; $af = [System.Security.Cryptography.Aes]::Create(); $af.Key = $dk; $af.IV = $dIV; $dec = $af.CreateDecryptor().TransformFinalBlock($pD, 0, $pL); [System.IO.File]::WriteAllBytes($out, $dec); Write-Host 'Mở khóa thành công.' -ForegroundColor Green }} }} catch {{ Write-Host 'Mật khẩu mở khóa không chính xác.' -ForegroundColor Red }}"
-)
-
-if not exist ".env" (
-    if exist ".env.example" copy .env.example .env >nul
-)
-exit /b 0
-
-:UPDATE_APP
-cls
-echo =====================================================================
-echo                      CẬP NHẬT MÃ NGUỒN
-echo =====================================================================
-cd /d "!APP_DIR!"
-
-if exist ".env" copy /y ".env" "%TEMP%\\app_env_backup.env" >nul
-
-set "USE_GIT=0"
-where git >nul 2>&1
-if !errorlevel! equ 0 (
-    if exist ".git" set "USE_GIT=1"
-)
-
-if "!USE_GIT!"=="1" (
-    echo Đang kéo bản cập nhật mới nhất từ Git...
-    git pull origin main
-) else (
-    if not "!REPO_ZIP_URL!"=="" (
-        echo Đang tải bản cập nhật mới nhất...
-        set "TEMP_ZIP=%TEMP%\\app_upd_%RANDOM%.zip"
-        set "TEMP_EXTRACT=%TEMP%\\app_ext_%RANDOM%"
-        powershell -NoProfile -ExecutionPolicy Bypass -Command "[System.Net.ServicePointManager]::SecurityProtocol = [System.Net.SecurityProtocolType]::Tls12; (New-Object System.Net.WebClient).DownloadFile('!REPO_ZIP_URL!', '!TEMP_ZIP!'); Expand-Archive -Path '!TEMP_ZIP!' -DestinationPath '!TEMP_EXTRACT!' -Force; Copy-Item -Path '!TEMP_EXTRACT!\\!ZIP_SUBFOLDER!\\*' -Destination '!APP_DIR!' -Recurse -Force; Remove-Item -Path '!TEMP_EXTRACT!' -Recurse -Force; Remove-Item -Path '!TEMP_ZIP!' -Force"
-    )
-)
-
-if exist "%TEMP%\\app_env_backup.env" (
-    copy /y "%TEMP%\\app_env_backup.env" ".env" >nul
-    del /f /q "%TEMP%\\app_env_backup.env" >nul
-)
-
-call :FIND_PYTHON
-if not "!PY_RUN!"=="" (
-    if exist "requirements.txt" "!PY_RUN!" -m pip install -r requirements.txt
-)
-
-echo Cập nhật hoàn tất.
-pause
-goto MENU
-
-:UNINSTALL_APP
-cls
-echo =====================================================================
-echo                       GỠ BỎ CÀI ĐẶT
-echo =====================================================================
-echo Thao tác này sẽ xóa ứng dụng khỏi máy tính: !APP_DIR!
-set /p "confirm=Xác nhận xóa? (Y/N): "
-if /i not "!confirm!"=="Y" goto MENU
-
-call :STOP_APP >nul 2>&1
-
-if exist "!APP_DIR!" (
-    powershell -NoProfile -ExecutionPolicy Bypass -Command "Remove-Item -Path '!APP_DIR!' -Recurse -Force -ErrorAction SilentlyContinue" >nul 2>&1
-)
-
-if exist "%CONFIG_PATH_FILE%" del /f /q "%CONFIG_PATH_FILE%" >nul 2>&1
-set "DESKTOP_LNK=%USERPROFILE%\\Desktop\\{app_title}.lnk"
-if exist "!DESKTOP_LNK!" del /f /q "!DESKTOP_LNK!" >nul 2>&1
-{domain_cleanup}
-
-echo Đã gỡ bỏ ứng dụng thành công.
-pause
-goto MENU
-
-:CHECK_STATUS_INTERNAL
-netstat -ano | findstr /R ":!APP_PORT! .*LISTENING" >nul 2>&1
-if !errorlevel! equ 0 (set "IS_RUNNING=1") else (set "IS_RUNNING=0")
-exit /b 0
-"""
-    return cmd_template
+    return res
 
 
 def main():
     parser = argparse.ArgumentParser(
-        description="Universal Web App Packager & Key Locker (Hardened Security V2)"
+        description="Universal Web App Packager & Key Locker (Hardened Security V3)"
     )
-    parser.add_argument("--name", required=True, help="Tên ứng dụng (vd: GeminiTrans, MinhSinhDental)")
+    parser.add_argument("--name", required=True, help="Tên ứng dụng (vd: GeminiTrans, MinhSinh_Dental)")
     parser.add_argument("--app-dir", required=True, help="Thư mục mã nguồn của dự án")
     parser.add_argument("--out-dir", required=True, help="Thư mục xuất file cài đặt cho User")
     parser.add_argument("--port", type=int, default=8000, help="Cổng Web của ứng dụng (mặc định 8000)")
     parser.add_argument("--domain", default="", help="Tên miền cục bộ tùy chọn (vd: dental.local)")
     parser.add_argument("--repo-url", default="", help="Git repo clone URL")
     parser.add_argument("--repo-zip", default="", help="GitHub zip archive URL")
-    parser.add_argument("--zip-folder", default="*-main", help="Tên thư mục sau khi giải nén zip")
-    parser.add_argument("--run-cmd", default="", help="Lệnh PowerShell khởi chạy backend (mặc định tự dò uvicorn hoặc django)")
+    parser.add_argument("--zip-folder", default="", help="Tên thư mục sau khi giải nén zip")
+    parser.add_argument("--entry-file", default="", help="Tệp khởi động chính (tự động nhận diện manage.py hoặc app.py)")
+    parser.add_argument("--run-cmd", default="", help="Lệnh tham số khởi chạy tiến trình Python")
     parser.add_argument("--env-file", default="", help="Đường dẫn file .env chứa key cần khóa")
-    
+
     # BẢO MẬT: KHÔNG CÓ DEFAULT HARDCODE PASSWORD!
     parser.add_argument("--master-pass", default=None, help="Mật khẩu Master/Admin (Nếu bỏ trống sẽ nhắc nhập hoặc tự sinh)")
     parser.add_argument("--user-pass", default=None, help="Mật khẩu cấp cho Tester/User (Nếu bỏ trống sẽ nhắc nhập hoặc tự sinh)")
@@ -507,17 +176,26 @@ def main():
     print(f"📦 ĐÓNG GÓI ỨNG DỤNG CHO USER TEST: {args.name}")
     print("=" * 65)
 
-    # 1. Tự động xác định Run Command nếu chưa chỉ định
-    run_cmd = args.run_cmd
-    if not run_cmd:
-        if (app_dir / "app.py").exists():
-            run_cmd = f"Set-Location '!APP_DIR!'; & '!PY_RUN!' -m uvicorn app:app --host 0.0.0.0 --port {args.port}"
-        elif (app_dir / "manage.py").exists():
-            run_cmd = f"Set-Location '!APP_DIR!'; & '!PY_RUN!' manage.py runserver 0.0.0.0:{args.port}"
+    # 1. Tự động xác định Entry File và Run Arguments
+    entry_file = args.entry_file
+    if not entry_file:
+        if (app_dir / "manage.py").exists():
+            entry_file = "manage.py"
+        elif (app_dir / "app.py").exists():
+            entry_file = "app.py"
         elif (app_dir / "main.py").exists():
-            run_cmd = f"Set-Location '!APP_DIR!'; & '!PY_RUN!' main.py"
+            entry_file = "main.py"
         else:
-            run_cmd = f"Set-Location '!APP_DIR!'; & '!PY_RUN!' -m http.server {args.port}"
+            entry_file = "app.py"
+
+    run_args = args.run_cmd
+    if not run_args:
+        if entry_file == "manage.py":
+            run_args = f"manage.py runserver 0.0.0.0:!APP_PORT!"
+        elif entry_file == "app.py":
+            run_args = f"-m uvicorn app:app --host 0.0.0.0 --port !APP_PORT!"
+        else:
+            run_args = f"{entry_file}"
 
     # 2. Xử lý Mật khẩu Dual-Slot an toàn (Không hardcode!)
     env_source = Path(args.env_file).resolve() if args.env_file else (app_dir / ".env")
@@ -526,8 +204,6 @@ def main():
 
     if env_source.exists():
         print(f"[+] Tìm thấy file cấu hình nhạy cảm: {env_source}")
-        
-        # Nếu chưa có mật khẩu, hỏi tương tác hoặc sinh an toàn
         if not master_pass:
             if args.auto_pass or not sys.stdin.isatty():
                 master_pass = secrets.token_urlsafe(12)
@@ -559,16 +235,16 @@ def main():
     else:
         print("[!] Không tìm thấy file .env để khóa key. Bỏ qua bước mã hóa.")
 
-    # 3. Sinh file CMD cài đặt độc lập (Tuyệt đối không nhúng mật khẩu vào file CMD)
+    # 3. Sinh file CMD cài đặt độc lập
     cmd_content = generate_cmd_launcher(
         app_title=args.name,
         repo_url=args.repo_url,
         repo_zip_url=args.repo_zip,
         zip_subfolder=args.zip_folder,
-        run_command_powershell=run_cmd,
+        start_process_args=run_args,
         port=args.port,
         domain=args.domain,
-        use_portproxy=bool(args.domain),
+        entry_file=entry_file,
     )
 
     cmd_file_name = f"{args.name}.cmd"
@@ -576,7 +252,32 @@ def main():
     with open(out_cmd, "w", encoding="utf-8") as cf:
         cf.write(cmd_content)
 
-    # 4. Kiểm tra vệ sinh an toàn thư mục bàn giao
+    # 4. Tạo thư mục tài liệu Docs\Huong_Dan_Cai_Dat.md
+    docs_dir = out_dir / "Docs"
+    docs_dir.mkdir(parents=True, exist_ok=True)
+    doc_file = docs_dir / "Huong_Dan_Cai_Dat.md"
+    doc_content = f"""# Hướng Dẫn Cài Đặt & Sử Dụng {args.name}
+
+## 1. Yêu cầu hệ thống
+- Hệ điều hành: Windows 10 / 11 (64-bit).
+- **Hoàn toàn KHÔNG CẦN CÀI ĐẶT:** Docker, Git, hay Python trước trên máy tính.
+
+## 2. Cách khởi động nhanh (1-Click)
+1. Nhấp đúp chuột vào tệp `{cmd_file_name}`.
+2. Chọn `[3] Cài đặt` trong Menu lần đầu tiên để hệ thống tự động thiết lập môi trường.
+   - Nếu hệ thống yêu cầu mật khẩu mở khóa, hãy nhập mật khẩu được cấp riêng cho bạn.
+3. Chọn `[1] Bật web` để mở giao diện ứng dụng trên trình duyệt:
+   - Địa chỉ cục bộ: `http://localhost:{args.port}`
+   - Địa chỉ mạng LAN (kết nối qua điện thoại/máy tính bảng cùng Wi-Fi): xem hiển thị trên Menu.
+4. Chọn `[2] Tắt web` khi sử dụng xong để giải phóng cổng {args.port}.
+5. Chọn `[7] Hiện mã QR` để quét mã QR kết nối nhanh trên điện thoại.
+
+## 3. Gỡ cài đặt hoàn toàn
+- Chọn `[5] Uninstall` trong Menu: Hệ thống chỉ xóa sạch thư mục `CODE`, giữ nguyên tệp `{cmd_file_name}` để bạn có thể cài lại bất cứ lúc nào.
+"""
+    doc_file.write_text(doc_content, encoding="utf-8")
+
+    # 5. Kiểm tra vệ sinh an toàn thư mục bàn giao
     # CẤM tuyệt đối để file .env thô trong out_dir
     unencrypted_env_in_out = out_dir / ".env"
     if unencrypted_env_in_out.exists():
@@ -584,8 +285,10 @@ def main():
         print(f"[SECURITY] Đã loại bỏ file .env thô khỏi thư mục bàn giao {out_dir}")
 
     print(f"[✓] Đã sinh file cài đặt Standalone 1-Click: {out_cmd}")
-    print(f"\n🎯 HOÀN TẤT ĐÓNG GÓI! Bạn chỉ cần gửi thư mục hoặc file CMD cho User:")
+    print(f"[✓] Đã tạo tài liệu hướng dẫn: {doc_file}")
+    print("\n" + f"🎯 HOÀN TẤT ĐÓNG GÓI! Bạn chỉ cần gửi thư mục hoặc file CMD cho User:")
     print(f"   👉 {out_cmd}")
+    print(f"   👉 {doc_file}")
     if (out_dir / ".env.enc").exists():
         print(f"   👉 {out_dir / '.env.enc'}")
         if user_pass:

@@ -1,7 +1,7 @@
 ---
 name: app-packager
 description: >-
-  Universal Web App Packager & Key Locker. Đóng gói dự án web thành tệp CMD cài đặt 1-click cho User test, cô lập thư mục CODE, tự cài Python Embed/Git Zip, kết nối QR Mobile LAN, khóa mã hóa Key bản quyền (Hardened Security).
+  Đóng gói web thành installer standalone 1-click; hỗ trợ QR Mobile LAN và bảo vệ license key.
 ---
 # Universal Web App Packager & Key Locker (`app-packager`)
 

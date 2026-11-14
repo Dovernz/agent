@@ -62,6 +62,7 @@
      4. **GỌI NGAY `invoke_subagent` CHỌN ĐÚNG SUBAGENT PM DỰ ÁN** (như `dental-pm-orchestrator`, `vj-pm-orchestrator`, `translate-pm-orchestrator`, v.v. với `Workspace: "inherit"`) và **DỪNG LẠI NGAY LẬP TỨC** (kết thúc lượt gọi tool). Hệ thống tự động kích hoạt lại qua **Reactive Wakeup** khi Subagent gửi tin nhắn M2M xong — KHÔNG ĐƯỢC POLLING!
      5. Khi nhận tin nhắn M2M kết quả từ Subagent: Báo cáo súc tích 2-3 câu Tiếng Việt kèm liên kết file cho User, gọi `hub shard reset` và kết thúc.
    - **TOÀN BỘ CÔNG VIỆC KỸ THUẬT SÂU:** Đọc code, sửa code qua Gemini API ngoài, chạy test/docker ĐỀU DO SUBAGENT THỰC HIỆN ĐỘC LẬP trong context con của Subagent, hoàn toàn cách ly với Main Chat!
+   - **QUY TẮC ZERO-EXECUTION CHO PROJECT PM (Rule 21):** PM dự án tuyệt đối CẤM tự sửa code, tự vá file cấu hình, hay tự chạy script can thiệp file trên terminal. PM BẮT BUỘC gọi `invoke_subagent` chuyển giao cho Nhóm Tech Leads / Dev Squad (`lead-backend`, `lead-frontend`, `lead-devops`, `lead-qa`, `gitops-gatekeeper`). Tech Leads phân rã task cho Workers gọi API ngoài (`hub gemini --out`) để xử lý.
 
 ## ⚡ QUY TẮC PHÂN MẢNH NGỮ CẢNH TỰ ĐỘNG (Rule 18)
 - **TRƯỚC KHI thực thi bất kỳ task dự án nào:** BẮT BUỘC gọi `hub shard auto "<user_prompt>"` để chỉ nạp đúng context dự án tương ứng.

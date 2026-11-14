@@ -42,3 +42,8 @@
     - Không nạp monolithic context. Dùng `hub shard auto "<prompt>"` để nạp shard dự án và `hub shard reset` khi xong việc.
 20. **Quy Tắc Zero-Execution Trong Main Chat & Chuyển Giao Phản Ứng Tự Động (Zero-Execution & Reactive Wakeup):**
     - **CẤM TUYỆT ĐỐI** Master Agent tự đọc file code dự án, tự sửa code, tự chạy docker/build/test/migrate trong Main Chat. **CẤM DÙNG `schedule` HOẶC VÒNG LẶP POLLING.** Master Agent chỉ chọn đúng Project PM, gọi `invoke_subagent` rồi DỪNG TOOL ngay. Chờ Reactive Wakeup từ tin nhắn M2M kết quả của Subagent để báo cáo 2-3 câu súc tích cho User.
+
+21. **Quy Tắc Zero-Execution Cho Project PM (PM Zero-Execution & Mandatory Squad Delegation):**
+    - **CẤM TUYỆT ĐỐI PM tự viết code, sửa file cấu hình hoặc tự chạy script terminal để vá lỗi:** PM chỉ là Tổng công trình sư điều phối (Orchestrator), KHÔNG PHẢI Worker.
+    - **BẮT BUỘC ỦY THÁC CHO GLOBAL DEV SQUAD:** Khi nhận task từ Master Agent, PM bắt buộc phải phân rã và gọi invoke_subagent giao việc cho các Tech Leads tương ứng (lead-frontend, lead-backend, lead-devops, lead-qa, gitops-gatekeeper).
+    - **Tech Leads phân rã thành Workers:** Workers gọi API ngoài (hub gemini --prompt ... --out ...) để sinh code / sửa file, kiểm định cú pháp qua hub verify, sau đó báo cáo ngược lên Tech Lead -> PM -> Master Agent.

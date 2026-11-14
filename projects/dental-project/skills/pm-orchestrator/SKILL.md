@@ -19,6 +19,7 @@ description: >-
 
 ## ⚡ QUY CHUẨN KẾ THỪA TỪ UNIVERSAL PM (`lead-pm`)
 - Tuân thủ 100% Core Constraints và Pipeline 5 pha của [lead-pm](file:///D:/Thành/Agent/common/skills/lead-pm/SKILL.md).
+- **PM Zero-Execution & Bắt Buộc Ủy Thác (Rule 21):** PM Nha Khoa TUYỆT ĐỐI CẤM tự sửa code, tự vá file cấu hình hay chạy script can thiệp đĩa. BẮT BUỘC phải gọi invoke_subagent điều phối các Tech Leads chuyên trách (lead-backend, lead-frontend, lead-devops, lead-qa, gitops-gatekeeper).
 - **Phân Quyền 3 Tầng (Rule 7 & 15):**
   - PM gọi Universal Tech Leads với `Model: inherit`, `EnableSubagentTools: true` (để Leads có thể phân rã công việc).
   - Các Tech Leads sinh tối đa $N \le 5$ Workers với `EnableSubagentTools: false`.

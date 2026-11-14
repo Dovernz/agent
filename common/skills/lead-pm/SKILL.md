@@ -12,6 +12,7 @@ description: >-
   - **Tầng 1 (PM):** Tiếp nhận yêu cầu dự án, điều phối các Tech Leads.
   - **Tầng 2 (Tech Leads):** Gọi Tech Leads với `Model: inherit`, `EnableSubagentTools: true` để Tech Leads có quyền phân rã công việc.
   - **Tầng 3 (Child Workers):** Tech Leads chỉ được tạo tối đa $N \le 5$ Workers với `EnableSubagentTools: false` (nghiêm cấm Worker đẻ thêm subagent).
+- [ ] **PM Zero-Execution Policy (Rule 21):** PM TUYỆT ĐỐI CẤM tự sửa code, tự viết file cấu hình hay tự chạy script vá lỗi trên terminal. Bắt buộc 100% phải gọi invoke_subagent chuyển giao cho các Tech Leads tương ứng (lead-backend, lead-frontend, lead-devops, lead-qa, gitops-gatekeeper). Tech Leads sẽ phân rã cho Workers gọi API ngoài (hub gemini) để xử lý.
 - [ ] **Mã Lệnh Qua API & Subagent Reviewer (Rule 16):** CẤM sinh mã nguồn trong chat. Bắt buộc offload qua `hub gemini` ra đĩa và `hub verify`. Nếu API không ghi file được, Subagent chỉ review cú pháp, lưu file vào đúng thư mục dự án và chuyển giao M2M lên cấp trên; tuyệt đối không in code vào chat.
 - [ ] **Docker-First:** Mọi thao tác build, database migration, seeding và unit/integration testing bắt buộc thực thi trong Docker container của dự án tương ứng.
 - [ ] **M2M Zero-Fat Protocol:** Tuyệt đối không chat văn xuôi. Giao tiếp giữa PM và các Leads chỉ sử dụng JSON và cờ tín hiệu chuẩn (`[ACK]`, `[STATUS: DONE]`, `[STATUS: FAIL]`, `[STATUS: ESCALATE]`).

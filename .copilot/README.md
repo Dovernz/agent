@@ -44,3 +44,31 @@ store, but not the native Copilot `~/.copilot/skills`, `~/.copilot/agents`, or
 and its own compatible Python or uv runtime. Playwright/Chromium are optional
 prerequisites for interactive-browser MCP tools; HTTP search tools do not
 require them.
+
+## Offload substantial generation to Gemini
+
+The installer also places `agent-hub-gemini-offload.ps1` in
+`%USERPROFILE%\.copilot\bin` and sets the user environment variable
+`AGENT_HUB_ROOT`. Open a new terminal after installation so it sees the updated
+environment. The shared agents use this helper for substantial code, test, or
+data generation; Copilot still chooses the scope, reviews the result, integrates
+it, and runs project checks.
+
+Example from the active workspace:
+
+```powershell
+& "$HOME\.copilot\bin\agent-hub-gemini-offload.ps1" `
+  -Prompt "Add the requested focused module" `
+  -ContextFile ".\src\related-file.py" `
+  -OutFile ".\src\generated-module.py" `
+  -Tier standard
+```
+
+`-ContextFile` is optional and is sent to the configured Gemini API. Provide
+only the minimum relevant, non-sensitive context; credentials, `.env` files,
+private keys, and personal data must not be sent. The helper generates to a
+temporary draft, runs the output verifier (and PowerShell parser for `.ps1` or
+`.psm1`), then copies a passing result to the destination. Existing files are
+preserved unless `-ReplaceExisting` is explicitly supplied; replacement creates
+a timestamped backup. Static validation is not a substitute for project tests,
+type checks, or human review.

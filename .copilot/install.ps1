@@ -1,4 +1,4 @@
-param(
+﻿param(
     [switch]$SkipMcp
 )
 
@@ -8,6 +8,7 @@ $copilotHome = Join-Path $HOME '.copilot'
 $skillsRoot = Join-Path $copilotHome 'skills'
 $agentsRoot = Join-Path $copilotHome 'agents'
 $sourceAgents = Join-Path $repoRoot '.copilot\agents'
+$binRoot = Join-Path $copilotHome 'bin'
 
 $skillNames = @(
     'app-packager',
@@ -104,7 +105,7 @@ if (-not $SkipMcp) {
 
     if ($uv) {
         $command = $uv.Source
-        $arguments = @('run', '--directory', $mcpDirectory, 'python', 'server.py')
+        $arguments = @('run', '--directory', $mcpDirectory, '--no-project', 'python', 'server.py')
     }
     elseif ($python) {
         $command = $python.Source
@@ -154,10 +155,21 @@ if (-not $SkipMcp) {
         }
         Set-Content -LiteralPath $configPath -Value $newConfigText -Encoding UTF8
     }
+
+    $env:AGENT_HUB_ROOT = $repoRoot
+    [Environment]::SetEnvironmentVariable('AGENT_HUB_ROOT', $repoRoot, 'User')
+    $offloadSource = Join-Path $repoRoot 'common\scripts\gemini_offload_file.ps1'
+    if (-not (Test-Path -LiteralPath $offloadSource -PathType Leaf)) {
+        throw "Required Gemini offload helper is missing: $offloadSource"
+    }
+    New-Item -ItemType Directory -Path $binRoot -Force | Out-Null
+    $offloadLauncher = Join-Path $binRoot 'agent-hub-gemini-offload.ps1'
+    Copy-Item -LiteralPath $offloadSource -Destination $offloadLauncher -Force
 }
 
 Write-Host "Installed $($skillNames.Count) shared skills and $((Get-ChildItem -LiteralPath $sourceAgents -File -Filter '*.agent.md').Count) shared agents."
 if (-not $SkipMcp) {
     Write-Host 'Configured the web-search-interactive MCP for this machine.'
+    Write-Host 'Installed the Gemini file-offload launcher under the personal Copilot folder.'
 }
 Write-Host 'Open a new Copilot chat to reload customizations.'
